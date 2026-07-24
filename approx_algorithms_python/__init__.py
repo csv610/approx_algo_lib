@@ -11,7 +11,7 @@ __version__ = "1.0.0"
 __author__ = "Companion to Vazirani (2001)"
 
 # Chapter 1: Introduction (Vertex Cover)
-from .ch01_intro import (
+from .intro import (
     vertex_cover_approx_2,
     vertex_cover_approx_2_edge_weighted,
     maximal_matching,
@@ -20,14 +20,14 @@ from .ch01_intro import (
 )
 
 # Chapter 2: Set Cover
-from .ch02_set_cover import (
+from .set_cover import (
     greedy_set_cover,
     set_cover_tight_example,
     harmonic_number,
 )
 
 # Chapter 3: Steiner Tree & TSP
-from .ch03_steiner_tsp import (
+from .steiner_tsp import (
     mst_prim,
     steiner_tree_2approx,
     tsp_2approx_mst,
@@ -36,33 +36,33 @@ from .ch03_steiner_tsp import (
 )
 
 # Chapter 4: Multiway Cut & k-Cut
-from .ch04_multiway_kcut import (
+from .multiway_kcut import (
     multiway_cut_2_2k,
     min_k_cut_2_2k,
     gomory_hu_tree,
 )
 
 # Chapter 5: k-Center
-from .ch05_kcenter import (
+from .kcenter import (
     kcenter_parametric_pruning,
     weighted_kcenter_3approx,
 )
 
 # Chapter 6: Feedback Vertex Set
-from .ch06_feedback_vertex_set import (
+from .feedback_vertex_set import (
     feedback_vertex_set_approx,
     is_feedback_vertex_set,
 )
 
 # Chapter 7: Shortest Superstring
-from .ch07_shortest_superstring import (
+from .shortest_superstring import (
     shortest_superstring_3approx,
     shortest_superstring_4approx,
     greedy_superstring,
 )
 
 # Chapter 8: Knapsack FPTAS
-from .ch08_knapsack import (
+from .knapsack import (
     knapsack_dp,
     knapsack_fptas,
     knapsack_greedy_ratio,
@@ -70,87 +70,87 @@ from .ch08_knapsack import (
 )
 
 # Chapter 9: Bin Packing
-from .ch09_bin_packing import (
+from .bin_packing import (
     bin_packing_aptas,
 )
 
 # Chapter 10: Minimum Makespan Scheduling
-from .ch10_makespan import (
+from .makespan import (
     makespan_ptas,
     list_scheduling,
     lpt_scheduling,
 )
 
 # Chapter 11: Euclidean TSP
-from .ch11_euclidean_tsp import (
+from .euclidean_tsp import (
     quadtree_tsp,
     held_karp_tsp,
 )
 
 # Chapters 12-14: LP-Based Algorithms (Set Cover & Vertex Cover)
-from .ch12_14_lp_algorithms import (
+from .lp_algorithms import (
     set_cover_lp_rounding,
     set_cover_primal_dual,
     vertex_cover_lp_rounding,
 )
 
 # Chapter 15: Weighted Vertex Cover via Primal-Dual
-from .ch15_weighted_vertex_cover_pd import (
+from .weighted_vertex_cover_pd import (
     vertex_cover_primal_dual,
 )
 
 # Chapter 16: Randomized Rounding (Max-SAT)
-from .ch16_randomized_rounding import (
+from .randomized_rounding import (
     solve_max_sat_lp,
     randomized_rounding_max_sat,
 )
 
 # Chapter 17: Chernoff Bounds (Set Cover)
-from .ch17_chernoff_bounds import (
+from .chernoff_bounds import (
     solve_set_cover_lp,
     set_cover_randomized_rounding,
 )
 
 # Chapter 18: Semidefinite Programming (Max-Cut)
-from .ch18_sdp_maxcut import (
+from .sdp_maxcut import (
     goemans_williamson_max_cut,
 )
 
 # Chapter 19: Multiway Cut via LP Rounding
-from .ch19_multiway_rounding import (
+from .multiway_rounding import (
     solve_multiway_cut_lp,
     calinescu_karloff_rabani_rounding,
 )
 
 # Chapter 21: Steiner Forest
-from .ch21_steiner_forest import (
+from .steiner_forest import (
     steiner_forest_primal_dual,
 )
 
 # Chapter 22: Steiner Network
-from .ch22_steiner_network import (
+from .steiner_network import (
     jain_iterative_rounding,
 )
 
 # Chapter 23: Feedback Vertex Set via Primal-Dual
-from .ch23_primal_dual_fvs import (
+from .primal_dual_fvs import (
     primal_dual_fvs,
 )
 
 # Chapter 24: Facility Location
-from .ch24_facility_location import (
+from .facility_location import (
     facility_location_greedy,
     facility_location_primal_dual,
     facility_location_lp_rounding,
 )
 
 # Chapter 26: Semidefinite Programming (Max 2-SAT)
-from .ch26_sdp_sat import (
+from .sdp_sat import (
     goemans_williamson_max_2sat,
 )
 
 # Chapter 30: Multicut in Trees
-from .ch30_tree_multicut import (
+from .tree_multicut import (
     multicut_in_trees,
 )
 

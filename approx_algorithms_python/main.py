@@ -10,29 +10,29 @@ import os
 # Add current directory to path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from ch01_intro import demo_vertex_cover
-from ch02_set_cover import demo_set_cover
-from ch03_steiner_tsp import demo_steiner_tsp
-from ch04_multiway_kcut import demo_multiway_kcut
-from ch05_kcenter import demo_kcenter
-from ch06_feedback_vertex_set import demo_feedback_vertex_set
-from ch07_shortest_superstring import demo_shortest_superstring
-from ch08_knapsack import demo_knapsack
-from ch09_bin_packing import demo_bin_packing
-from ch10_makespan import demo_makespan
-from ch11_euclidean_tsp import demo_euclidean_tsp
-from ch12_14_lp_algorithms import demo_lp_algorithms
-from ch15_weighted_vertex_cover_pd import demo_weighted_vertex_cover_pd
-from ch16_randomized_rounding import demo_randomized_rounding
-from ch17_chernoff_bounds import demo_chernoff_bounds
-from ch18_sdp_maxcut import demo_sdp_max_cut
-from ch19_multiway_rounding import demo_multiway_cut_lp
-from ch21_steiner_forest import demo_steiner_forest
-from ch22_steiner_network import demo_steiner_network
-from ch23_primal_dual_fvs import demo_primal_dual_fvs
-from ch24_facility_location import demo_facility_location
-from ch26_sdp_sat import demo_max_2sat
-from ch30_tree_multicut import demo_tree_multicut
+from intro import demo_vertex_cover
+from set_cover import demo_set_cover
+from steiner_tsp import demo_steiner_tsp
+from multiway_kcut import demo_multiway_kcut
+from kcenter import demo_kcenter
+from feedback_vertex_set import demo_feedback_vertex_set
+from shortest_superstring import demo_shortest_superstring
+from knapsack import demo_knapsack
+from bin_packing import demo_bin_packing
+from makespan import demo_makespan
+from euclidean_tsp import demo_euclidean_tsp
+from lp_algorithms import demo_lp_algorithms
+from weighted_vertex_cover_pd import demo_weighted_vertex_cover_pd
+from randomized_rounding import demo_randomized_rounding
+from chernoff_bounds import demo_chernoff_bounds
+from sdp_maxcut import demo_sdp_max_cut
+from multiway_rounding import demo_multiway_cut_lp
+from steiner_forest import demo_steiner_forest
+from steiner_network import demo_steiner_network
+from primal_dual_fvs import demo_primal_dual_fvs
+from facility_location import demo_facility_location
+from sdp_sat import demo_max_2sat
+from tree_multicut import demo_tree_multicut
 
 
 def main():
