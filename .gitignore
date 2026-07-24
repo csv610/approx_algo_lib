@@ -1,0 +1,22 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+*.pyd
+
+# C++ Build Output
+approx_algorithms_cpp/build/
+approx_algorithms_cpp/CMakeLists.txt.user
+approx_algorithms_cpp/examples/CMakeLists.txt.user
+
+# LaTeX build residuals (in case of manual compile logs)
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz

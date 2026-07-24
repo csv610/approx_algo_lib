@@ -1,0 +1,26 @@
+#pragma once
+
+void demo_vertex_cover();
+void demo_set_cover();
+void demo_steiner_tsp();
+void demo_multiway_kcut();
+void demo_kcenter();
+void demo_feedback_vertex_set();
+void demo_shortest_superstring();
+void demo_knapsack();
+void demo_knapsack_ch13();
+void demo_bin_packing();
+void demo_makespan();
+void demo_euclidean_tsp();
+void demo_lp_algorithms();
+void demo_weighted_vertex_cover_pd();
+void demo_randomized_rounding();
+void demo_chernoff_bounds();
+void demo_sdp_max_cut();
+void demo_multiway_cut_lp();
+void demo_steiner_forest();
+void demo_steiner_network();
+void demo_primal_dual_fvs();
+void demo_facility_location();
+void demo_max_2sat();
+void demo_tree_multicut();

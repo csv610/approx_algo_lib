@@ -1,0 +1,75 @@
+# CMakeLists.txt for examples
+cmake_minimum_required(VERSION 3.20)
+
+add_executable(ex_01_vertex_cover ex_01_vertex_cover.cpp)
+target_link_libraries(ex_01_vertex_cover PRIVATE approx_algo)
+
+add_executable(ex_02_set_cover ex_02_set_cover.cpp)
+target_link_libraries(ex_02_set_cover PRIVATE approx_algo)
+
+add_executable(ex_03_steiner_tsp ex_03_steiner_tsp.cpp)
+target_link_libraries(ex_03_steiner_tsp PRIVATE approx_algo)
+
+add_executable(ex_04_multiway_kcut ex_04_multiway_kcut.cpp)
+target_link_libraries(ex_04_multiway_kcut PRIVATE approx_algo)
+
+add_executable(ex_05_kcenter ex_05_kcenter.cpp)
+target_link_libraries(ex_05_kcenter PRIVATE approx_algo)
+
+add_executable(ex_06_feedback_vertex_set ex_06_feedback_vertex_set.cpp)
+target_link_libraries(ex_06_feedback_vertex_set PRIVATE approx_algo)
+
+add_executable(ex_07_shortest_superstring ex_07_shortest_superstring.cpp)
+target_link_libraries(ex_07_shortest_superstring PRIVATE approx_algo)
+
+add_executable(ex_08_knapsack ex_08_knapsack.cpp)
+target_link_libraries(ex_08_knapsack PRIVATE approx_algo)
+
+add_executable(ex_09_bin_packing ex_09_bin_packing.cpp)
+target_link_libraries(ex_09_bin_packing PRIVATE approx_algo)
+
+add_executable(ex_10_makespan ex_10_makespan.cpp)
+target_link_libraries(ex_10_makespan PRIVATE approx_algo)
+
+add_executable(ex_11_euclidean_tsp ex_11_euclidean_tsp.cpp)
+target_link_libraries(ex_11_euclidean_tsp PRIVATE approx_algo)
+
+add_executable(ex_12_lp_algorithms ex_12_lp_algorithms.cpp)
+target_link_libraries(ex_12_lp_algorithms PRIVATE approx_algo)
+
+add_executable(ex_13_knapsack ex_13_knapsack.cpp)
+target_link_libraries(ex_13_knapsack PRIVATE approx_algo)
+
+add_executable(ex_15_weighted_vertex_cover_pd ex_15_weighted_vertex_cover_pd.cpp)
+target_link_libraries(ex_15_weighted_vertex_cover_pd PRIVATE approx_algo)
+
+add_executable(ex_16_randomized_rounding ex_16_randomized_rounding.cpp)
+target_link_libraries(ex_16_randomized_rounding PRIVATE approx_algo)
+
+add_executable(ex_17_chernoff_bounds ex_17_chernoff_bounds.cpp)
+target_link_libraries(ex_17_chernoff_bounds PRIVATE approx_algo)
+
+add_executable(ex_18_sdp_maxcut ex_18_sdp_maxcut.cpp)
+target_link_libraries(ex_18_sdp_maxcut PRIVATE approx_algo)
+
+add_executable(ex_19_multiway_rounding ex_19_multiway_rounding.cpp)
+target_link_libraries(ex_19_multiway_rounding PRIVATE approx_algo)
+
+add_executable(ex_21_steiner_forest ex_21_steiner_forest.cpp)
+target_link_libraries(ex_21_steiner_forest PRIVATE approx_algo)
+
+add_executable(ex_22_steiner_network ex_22_steiner_network.cpp)
+target_link_libraries(ex_22_steiner_network PRIVATE approx_algo)
+
+add_executable(ex_23_primal_dual_fvs ex_23_primal_dual_fvs.cpp)
+target_link_libraries(ex_23_primal_dual_fvs PRIVATE approx_algo)
+
+add_executable(ex_24_facility_location ex_24_facility_location.cpp)
+target_link_libraries(ex_24_facility_location PRIVATE approx_algo)
+
+add_executable(ex_26_sdp_sat ex_26_sdp_sat.cpp)
+target_link_libraries(ex_26_sdp_sat PRIVATE approx_algo)
+
+add_executable(ex_30_tree_multicut ex_30_tree_multicut.cpp)
+target_link_libraries(ex_30_tree_multicut PRIVATE approx_algo)
+

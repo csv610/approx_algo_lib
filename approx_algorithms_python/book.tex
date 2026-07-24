@@ -1,0 +1,2987 @@
+% Approximation Algorithms with Python
+% LaTeX Book - Companion to Vazirani (2001)
+% Chapter numbering matches Vazirani's original
+
+\documentclass[11pt,oneside]{book}
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{epigraph}
+
+% ===== Colors =====
+\definecolor{darkblue}{rgb}{0.0, 0.2, 0.6}
+\definecolor{darkgreen}{rgb}{0.0, 0.5, 0.0}
+\definecolor{darkred}{rgb}{0.7, 0.0, 0.0}
+\definecolor{codegray}{rgb}{0.95, 0.95, 0.95}
+\definecolor{keyword}{rgb}{0.0, 0.0, 0.8}
+\definecolor{comment}{rgb}{0.0, 0.5, 0.0}
+\definecolor{string}{rgb}{0.7, 0.0, 0.0}
+\definecolor{intuition}{rgb}{0.95, 0.97, 1.0}
+
+% ===== Hyperref =====
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkblue,
+    citecolor=darkgreen,
+    urlcolor=darkred,
+    pdftitle={Approximation Algorithms with Python},
+    pdfauthor={Companion to Vazirani (2001)}
+}
+
+% ===== Listings =====
+\lstdefinestyle{python}{
+    language=Python,
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{keyword}\bfseries,
+    commentstyle=\color{comment}\itshape,
+    stringstyle=\color{string},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    framesep=5pt,
+    breaklines=true,
+    breakatwhitespace=false,
+    tabsize=4,
+    showspaces=false,
+    showstringspaces=false,
+    captionpos=b
+}
+
+% ===== Theorems =====
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{algorithmdef}[theorem]{Algorithm}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{exercise}[theorem]{Exercise}
+
+% ===== Custom Commands =====
+\newcommand{\OPT}{\mathrm{OPT}}
+\newcommand{\poly}{\mathrm{poly}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Set}[1]{\{#1\}}
+\newcommand{\abs}[1]{\lvert #1 \rvert}
+\newcommand{\norm}[1]{\lVert #1 \rVert}
+\newcommand{\union}{\cup}
+\newcommand{\intersect}{\cap}
+\newcommand{\suchthat}{\mid}
+
+% ===== Title Format =====
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries\color{darkblue}}
+    {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}{\normalfont\Large\bfseries\color{darkblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{darkblue}}{\thesubsection}{1em}{}
+
+% ===== Intuition Box =====
+\usepackage{mdframed}
+\mdfdefinestyle{intuitionstyle}{
+    backgroundcolor=intuition,
+    linecolor=darkblue,
+    linewidth=1pt,
+    roundcorner=5pt,
+    innertopmargin=8pt,
+    innerbottommargin=8pt,
+    innerleftmargin=10pt,
+    innerrightmargin=10pt,
+}
+\newmdtheoremenv[style=intuitionstyle]{intuitionbox}{Intuition}[chapter]
+
+% ===== Headers =====
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\leftmark}
+\fancyhead[LO]{\rightmark}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+% ===== FRONT MATTER =====
+\frontmatter
+
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+    {\Huge\bfseries\color{darkblue} Approximation Algorithms with Python\par}
+    \vspace{1.5cm}
+    {\Large A Computational Companion to Vazirani's Classic Text\par}
+    \vspace{2cm}
+    {\large Based on \textit{Approximation Algorithms} by Vijay V. Vazirani (Springer, 2001)\par}
+    \vspace{3cm}
+    {\large Pure Python Implementations — Zero Dependencies\par}
+    \vfill
+    {\small \today\par}
+\end{titlepage}
+
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+\epigraph{``Although this may seem a paradox, all exact science is dominated by the idea of approximation.''}{— Bertrand Russell}
+
+\vspace{1em}
+
+This book is a computational companion to Vijay Vazirani's seminal text \textit{Approximation Algorithms} (Springer, 2001). Vazirani's book provides the mathematical foundations — theorems, proofs, and algorithmic frameworks. This companion provides \textbf{runnable Python implementations} of the core algorithms, along with intuitive explanations that precede the formalism.
+
+\vspace{1em}
+
+\noindent \textbf{Why this book exists:}
+\begin{itemize}
+    \item Theory and practice belong together. Understanding an approximation algorithm deeply requires implementing it.
+    \item This companion covers the \textbf{fundamental algorithms} from Vazirani's Parts I and II, with chapter numbers matching the original book exactly.
+    \item Pure Python, zero dependencies. Run anywhere, modify freely, learn by doing.
+\end{itemize}
+
+\vspace{1em}
+
+\noindent \textbf{Structure of each chapter:}
+\begin{enumerate}
+    \item \textbf{Intuition First} — Why does this work? What's the key idea?
+    \item \textbf{Problem Definition} — Formal statement with notation
+    \item \textbf{Algorithm} — Pseudocode and Python implementation
+    \item \textbf{Analysis} — Approximation factor proof sketch
+    \item \textbf{Other Approaches} — What else works? Why this one?
+    \item \textbf{Why Approximation?} — Why can't we solve exactly?
+    \item \textbf{Applications} — Real-world uses
+    \item \textbf{Tight Examples} — Instances where the bound is achieved
+    \item \textbf{Exercises} — For deeper understanding
+\end{enumerate}
+
+\vspace{1em}
+
+\noindent \textbf{Prerequisites:} Basic algorithms (sorting, graphs, DP), NP-completeness, and Python familiarity. Mathematical maturity at the level of an undergraduate algorithms course.
+
+\vspace{1em}
+
+\noindent \textbf{Acknowledgments:} This work stands on the shoulders of Vazirani's masterpiece. The PAAL library (paal.mimuw.edu.pl) provided C++ reference implementations for verification.
+
+\tableofcontents
+
+% ===== MAIN MATTER =====
+\mainmatter
+
+% ============================================================
+% CHAPTER 1: INTRODUCTION (matches Vazirani Ch. 1)
+% ============================================================
+\setcounter{chapter}{0}
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{The Approximation Paradigm}
+
+\begin{intuitionbox}
+\textbf{The Core Problem:} Most natural optimization problems are NP-hard. Assuming P $\neq$ NP, we cannot find exact solutions efficiently. But we \emph{can} find near-optimal solutions with \emph{provable guarantees}.
+
+\textbf{The Key Insight:} To prove a guarantee like ``within 2$\times$ optimal,'' we don't need to \emph{know} the optimal value. We just need a \emph{lower bound} on OPT that we can compute efficiently. If our algorithm's solution is within a factor of that lower bound, we have our guarantee.
+\end{intuitionbox}
+
+\begin{definition}[$\alpha$-Approximation Algorithm]
+For a minimization problem, an algorithm $A$ is an $\alpha$-approximation ($\alpha \geq 1$) if for every instance $I$:
+\[
+A(I) \leq \alpha \cdot \OPT(I)
+\]
+where $\OPT(I)$ is the optimal value. For maximization: $A(I) \geq \frac{1}{\alpha}\OPT(I)$.
+\end{definition}
+
+\subsection{Vertex Cover: A Gentle Beginning}
+
+\begin{definition}[Vertex Cover]
+Given an undirected graph $G = (V, E)$, a \textbf{vertex cover} is a subset $C \subseteq V$ such that every edge has at least one endpoint in $C$. The \textbf{cardinality vertex cover problem} asks for a cover of minimum size.
+\end{definition}
+
+\subsection{Lower Bound via Maximal Matching}
+
+\begin{definition}[Matching]
+A \textbf{matching} $M \subseteq E$ is a set of edges with no shared endpoints. It is \textbf{maximal} if no edge can be added without violating the matching property.
+\end{definition}
+
+\begin{lemma}
+For any graph $G$, the size of a maximal matching $M$ is a lower bound on the minimum vertex cover: $|M| \leq \OPT$.
+\end{lemma}
+\begin{proof}
+Each edge in $M$ needs a distinct vertex in any vertex cover (edges don't share endpoints). So $|C| \geq |M|$ for any cover $C$.
+\end{proof}
+
+\begin{intuitionbox}
+\textbf{Intuition:} A maximal matching is easy to find greedily. It pairs up vertices that ``must be covered'' in some sense. Each pair contributes 2 vertices to our cover but at most 1 to the optimal cover. This 2:1 ratio is the source of the factor-2 guarantee.
+\end{intuitionbox}
+
+\subsection{The 2-Approximation Algorithm}
+
+\begin{algorithmdef}[Vertex Cover via Maximal Matching (Factor 2)]
+\begin{enumerate}
+    \item Find a maximal matching $M$ in $G$ (greedily).
+    \item Output $C = \{u, v \mid (u,v) \in M\}$ — all matched vertices.
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+Algorithm 1.1 is a factor-2 approximation for Vertex Cover.
+\end{theorem}
+\begin{proof}
+$C$ is a vertex cover because $M$ is maximal (any uncovered edge could be added to $M$). Since $|M| \leq \OPT$ and $|C| = 2|M|$, we have $|C| \leq 2\OPT$.
+\end{proof}
+
+\subsection{Why Approximation? Why Not Exact?}
+
+\begin{itemize}
+    \item \textbf{Exact Vertex Cover is NP-complete} (Karp, 1972). No polynomial-time exact algorithm exists unless P = NP.
+    \item \textbf{Fixed-parameter algorithms} exist ($O(1.2738^k + kn)$) but exponential in $k$.
+    \item \textbf{Integer Linear Programming} solves it exactly but worst-case exponential.
+    \item \textbf{Approximation gives polynomial time with a guarantee} — often the best practical choice.
+\end{itemize}
+
+\subsection{Other Approaches and Their Limits}
+
+\begin{table}[H]
+\centering
+\caption{Approaches to Vertex Cover}
+\begin{tabular}{lcc}
+\toprule
+Method & Time & Guarantee \\
+\midrule
+Brute force / ILP & Exponential & Exact \\
+Fixed-parameter & $O(1.2738^k)$ & Exact, but exponential in $k$ \\
+Maximal matching (this chapter) & $O(m)$ & Factor 2 \\
+LP rounding (Chapter 14) & Poly & Factor 2 \\
+Semidefinite programming & Poly & Factor $2-\epsilon$ (open) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not better than 2?} Under the Unique Games Conjecture, no polynomial-time algorithm can achieve $(2-\epsilon)$-approximation (Khot-Regev, 2008). The factor 2 is essentially tight.
+
+\subsection{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Vertex Cover 2-Approximation]
+def maximal_matching(graph):
+    """Greedy maximal matching: pick edges, remove endpoints."""
+    n = len(graph)
+    matched = [False] * n
+    matching = []
+    for u in range(n):
+        if not matched[u]:
+            for v in graph[u]:
+                if not matched[v]:
+                    matching.append((u, v))
+                    matched[u] = matched[v] = True
+                    break
+    return matching
+
+def vertex_cover_approx_2(graph):
+    """Factor-2 approximation for Vertex Cover."""
+    matching = maximal_matching(graph)
+    cover = set()
+    for u, v in matching:
+        cover.add(u)
+        cover.add(v)
+    return cover
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Network monitoring:} Place sensors on vertices to monitor all links
+    \item \textbf{Compiler register allocation:} Variables as vertices, conflicts as edges
+    \item \textbf{Bioinformatics:} Protein interaction networks — find minimal interacting set
+    \item \textbf{Scheduling:} Tasks as vertices, conflicts as edges
+\end{itemize}
+
+\subsection*{Real Example: Register Allocation in a Compiler}
+\textbf{Scenario:} A compiler must assign $n=50$ variables to $k=16$ CPU registers. Variables used simultaneously cannot share a register.
+\textbf{Model:} Conflict graph $G=(V,E)$ where $V$ = variables, $(u,v) \in E$ if $u,v$ are live simultaneously. Minimum vertex cover finds the minimum set of variables to \emph{spill to memory} so the remaining $k$ can fit in registers.
+\textbf{Why 2-approx matters:} If OPT spills 10 variables, our algorithm spills $\leq 20$. In practice, maximal matching often finds near-optimal solutions. The guarantee means we never spill more than twice the minimum — critical for register-starved architectures (embedded systems).
+\textbf{Alternative approach:} ILP (exact) takes exponential time; greedy degree-based gives $O(\log n)$.
+
+\subsection{Tight Example}
+
+\begin{example}[Complete Bipartite $K_{n,n}$]
+The algorithm picks all $2n$ vertices. Optimal picks one side ($n$ vertices). Ratio $= 2$.
+\end{example}
+
+\subsection{Exercises}
+\begin{exercise}
+Show that the greedy algorithm picking highest-degree vertices gives $O(\log n)$ approximation.
+\end{exercise}
+\begin{exercise}
+Design a 2-approximation for \emph{minimum cardinality maximal matching}.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 2: SET COVER (matches Vazirani Ch. 2)
+% ============================================================
+\setcounter{chapter}{1}
+\chapter{Set Cover}
+\label{ch:setcover}
+
+\section{Intuition: The Greedy Instinct}
+
+\begin{intuitionbox}
+\textbf{The Greedy Idea:} When you need to cover all elements, pick the set that gives you the most ``bang for your buck'' — the most new elements per unit cost. Repeat until everything is covered.
+
+\textbf{Why it works:} The price paid for each element when it's covered serves as a \emph{dual variable}. Summing all prices gives a lower bound on OPT (via LP duality, Chapter 13). The harmonic number $H_n$ emerges naturally because early elements get covered cheaply, later elements pay more.
+\end{intuitionbox}
+
+\section{Problem Definition}
+
+\begin{definition}[Set Cover]
+Given a universe $U = \{e_1, \dots, e_n\}$ and a collection of subsets $\mathcal{S} = \{S_1, \dots, S_m\}$ with costs $c(S_i) \geq 0$, find a minimum-cost subcollection $\mathcal{C} \subseteq \mathcal{S}$ such that $\bigcup_{S \in \mathcal{C}} S = U$.
+\end{definition}
+
+\section{The Greedy Algorithm}
+
+\begin{algorithmdef}[Greedy Set Cover — $H_n$ Approximation]
+\begin{enumerate}
+    \item $C \gets \emptyset$ (covered elements)
+    \item While $C \neq U$:
+    \begin{enumerate}
+        \item Pick $S \in \mathcal{S}$ minimizing $\frac{c(S)}{|S \setminus C|}$ (cost-effectiveness)
+        \item For each $e \in S \setminus C$, set $\text{price}(e) = \frac{c(S)}{|S \setminus C|}$
+        \item $C \gets C \cup S$
+    \end{enumerate}
+    \item Output the picked sets
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+The Greedy Set Cover algorithm achieves approximation factor $H_n = 1 + \frac{1}{2} + \dots + \frac{1}{n} \approx \ln n + \gamma$.
+\end{theorem}
+\begin{proof}[Proof Sketch]
+Each element's price is a lower bound on its contribution to OPT. The $k$-th element covered pays at most $\frac{\OPT}{k}$. Summing gives $H_n \cdot \OPT$.
+\end{proof}
+
+\subsection{Layering: Another 2-Approximation for Weighted Vertex Cover}
+
+Layering decomposes vertex weights into degree-weighted functions. Each layer gives a factor-2 vertex cover, and summing gives factor-2 for the weighted case. This is a preview of the primal-dual schema (Chapter 22).
+
+\subsection{Application to Shortest Superstring}
+
+The Shortest Superstring problem (find shortest string containing all given strings as substrings) reduces to Set Cover via string overlaps. Greedy gives $2H_n$-approximation; Li (1992) improved to factor 3.
+
+\section{Other Algorithms for Set Cover}
+
+\begin{table}[H]
+\centering
+\caption{Approaches to Set Cover}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Greedy (this chapter) & $H_n$ & Combinatorial \\
+LP Rounding (Ch. 14) & $f$ (max frequency) & LP + Rounding \\
+Primal-Dual (Ch. 13, 22) & $f$ & Primal-Dual Schema \\
+Randomized Rounding & $O(\log n)$ & LP + Randomization \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why Greedy?} It's simple, fast, and achieves the optimal $\ln n$ bound (Feige, 1998 proved no $(1-\epsilon)\ln n$ unless P = NP).
+
+\textbf{Why not better?} Feige (1998) showed no polynomial-time algorithm can achieve $(1-\epsilon)\ln n$ approximation unless NP $\subseteq$ DTIME$(n^{\log\log n})$.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Greedy Set Cover]
+def greedy_set_cover(universe, sets, costs):
+    """H_n-approximation for Set Cover."""
+    covered = set()
+    picked = []
+    total_cost = 0.0
+    prices = {}
+    
+    while covered != universe:
+        best_set = None
+        best_ratio = float('inf')
+        for s_id, s in sets.items():
+            new = s - covered
+            if not new: continue
+            ratio = costs[s_id] / len(new)
+            if ratio < best_ratio:
+                best_ratio = ratio
+                best_set = s_id
+        
+        if best_set is None: break
+        new_elements = sets[best_set] - covered
+        for e in new_elements:
+            prices[e] = best_ratio
+        covered |= sets[best_set]
+        picked.append(best_set)
+        total_cost += costs[best_set]
+    
+    return picked, total_cost
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Feature selection:} Minimum features covering all classes
+    \item \textbf{Antenna placement:} Cover all locations with minimum transmitters
+    \item \textbf{Test case minimization:} Cover all code paths with fewest tests
+    \item \textbf{Emergency facilities:} Fire stations covering all districts
+    \item \textbf{Data compression:} Shortest superstring via set cover
+\end{itemize}
+
+\subsection*{Real Example: A/B Test Minimization at a Tech Company}
+\textbf{Scenario:} A/B testing platform runs 10,000 experiments. Each experiment tests a variant against control on a subset of 100 metrics (click-through, revenue, retention, etc.). Running an experiment on all metrics is expensive.
+\textbf{Model:} Universe = 100 metrics. Sets = experiments (each covers $\sim$15 metrics). Cost = compute cost per experiment.
+\textbf{Why greedy:} The greedy algorithm picks the experiment covering the most \emph{new} metrics per unit cost. $H_{100} \approx 5.18$ means greedy uses $\leq 5\times$ the minimum experiments.
+\textbf{Real result:} In practice, greedy reduces experiments by $70\%$ vs. running all, with $H_n$ bound giving stakeholders confidence.
+\textbf{Set cover variant:} \emph{Budgeted maximum coverage} — given $k$ experiments, maximize metrics covered. Greedy gives $(1-1/e)$-approx (Chapter 13).
+
+\subsection*{Real Example: Feature Selection for Medical Diagnosis}
+\textbf{Scenario:} A hospital has $n=10,000$ patient features (lab results, vitals, history). They want to select the minimum subset that still predicts $m=50$ diseases with $95\%$ accuracy.
+\textbf{Model:} Universe $U$ = diseases. Each feature $f$ covers the subset $S_f \subseteq U$ it helps predict above threshold. Cost $c(f) = 1$ (each feature has equal acquisition cost).
+\textbf{Why greedy works here:} At each step, greedy picks the feature that adds the most \emph{new} diseases predicted. The $H_{50} \approx 4.5$ guarantee means if optimal uses 20 features, greedy uses $\leq 90$. In practice, greedy often finds near-optimal because features have diminishing returns (submodularity).
+\textbf{Real constraint:} Some features are expensive (MRI) vs. cheap (blood pressure). Weighted set cover handles this — greedy picks by cost-effectiveness.
+\textbf{Alternative:} LASSO (convex relaxation) gives exact recovery under restricted isometry but no worst-case guarantee; ILP is exact but slow for $n=10,000$.
+
+\section{Tight Example}
+
+\begin{example}
+Universe $\{e_1, \dots, e_n\}$. Sets: $S_0 = U$ (cost $1+\epsilon$), $S_i = \{e_i\}$ (cost $1/i$). Greedy picks all $S_i$ (total $H_n$). Optimal picks $S_0$ (cost $1+\epsilon$). Ratio $\to H_n$.
+\end{example}
+
+\section{Exercises}
+\begin{exercise}
+Show greedy achieves $H_k$ where $k = \max_i |S_i|$.
+\end{exercise}
+\begin{exercise}
+Give a factor-$f$ algorithm where $f$ is maximum element frequency.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 3: STEINER TREE AND TSP (matches Vazirani Ch. 3)
+% ============================================================
+\setcounter{chapter}{2}
+\chapter{Steiner Tree and TSP}
+\label{ch:steiner_tsp}
+
+\section{Intuition: Metric Closure and MST}
+
+\begin{intuitionbox}
+\textbf{Steiner Tree Intuition:} We only need to connect the \emph{terminals} (required vertices). The shortest path between two terminals in the original graph defines a distance. Build the complete graph on terminals with these distances (the \emph{metric closure}). The MST of this closure, when expanded back to shortest paths in the original graph, gives a tree connecting all terminals within factor 2.
+
+\textbf{TSP Intuition:} The MST is a lower bound on TSP (removing any edge from a TSP tour gives a spanning tree). Double the MST to make it Eulerian, find an Euler tour, then shortcut repeated vertices. Triangle inequality ensures shortcuts don't increase cost. Christofides' insight: instead of doubling \emph{all} edges, just add a matching on odd-degree vertices.
+\end{intuitionbox}
+
+\section{Metric Steiner Tree}
+
+\begin{definition}[Metric Steiner Tree]
+Given graph $G = (V, E)$ with metric edge costs and terminals $R \subseteq V$, find minimum-cost tree connecting all terminals (may use Steiner vertices $V \setminus R$).
+\end{definition}
+
+\begin{algorithmdef}[Metric Steiner Tree — Factor 2]
+\begin{enumerate}
+    \item Compute metric closure $G'$ on terminals: complete graph with $d(u,v)$ = shortest path distance in $G$
+    \item Find MST $T'$ of $G'$
+    \item Replace each edge of $T'$ with corresponding shortest path in $G$
+    \item Let $H$ be the union; find MST $T$ of $H$
+    \item Prune non-terminal leaves from $T$
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This algorithm achieves a factor-2 approximation for Metric Steiner Tree.
+\end{theorem}
+
+\section{Metric TSP}
+
+\begin{definition}[Metric TSP]
+Given complete graph with metric edge costs, find minimum-cost Hamiltonian cycle.
+\end{definition}
+
+Without metric assumption, TSP has no polynomial-time approximation unless P = NP (reduction from Hamiltonian Cycle).
+
+\subsection{Factor-2 Algorithm (Double Tree)}
+
+\begin{algorithmdef}[Metric TSP — Factor 2]
+\begin{enumerate}
+    \item Find MST $T$ of $G$
+    \item Double every edge of $T$ to get Eulerian multigraph
+    \item Find Eulerian tour
+    \item Shortcut: visit vertices in order of first appearance
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+Double-tree gives factor-2 approximation for Metric TSP.
+\end{theorem}
+
+\subsection{Christofides' 3/2-Approximation}
+
+\begin{algorithmdef}[Christofides — Factor 3/2]
+\begin{enumerate}
+    \item Find MST $T$
+    \item Let $O$ be odd-degree vertices in $T$ ($|O|$ is even)
+    \item Find minimum-weight perfect matching $M$ on $O$ (using metric closure distances)
+    \item $T \cup M$ is Eulerian; find Euler tour and shortcut
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}[Christofides, 1976]
+Christofides' algorithm achieves a $3/2$-approximation for Metric TSP.
+\end{theorem}
+\begin{proof}
+Cost(T) $\leq$ OPT (MST lower bound). Cost(M) $\leq$ OPT/2 (matching on odd vertices is at most half the optimal tour). Total $\leq$ OPT + OPT/2 = 1.5 OPT.
+\end{proof}
+
+\subsection{Other Approaches for TSP}
+
+\begin{table}[H]
+\centering
+\caption{TSP Algorithms for Metric Case}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Double-tree & 2 & MST + Euler tour \\
+Christofides & 1.5 & MST + Matching \\
+Held-Karp (LP) & $\leq 1.5$ & LP relaxation (exact value $\approx 1.09$) \\
+Iterative rounding & $< 1.5$ & Recent breakthroughs (Karlin et al., 2021: 1.5 - $\epsilon$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not exact?} Metric TSP is NP-hard (reduction from Hamiltonian Cycle). The best exact algorithm is $O(n^2 2^n)$ (Held-Karp DP).
+
+\textbf{Why 3/2 was a barrier?} For 45 years no improvement. Karlin-Klein-Gharan (2021) broke it with $1.5 - 10^{-36}$, later improved to $1.5 - \epsilon$.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Christofides TSP 3/2-Approximation]
+def tsp_christofides(graph):
+    """3/2-approx for Metric TSP."""
+    n = len(graph)
+    if n <= 2: return tsp_2approx(graph)
+    
+    # 1. MST
+    mst_edges = mst_prim(graph)
+    
+    # 2. Odd-degree vertices
+    degree = {u: 0 for u in graph}
+    for u, v in mst_edges:
+        degree[u] += 1; degree[v] += 1
+    odd = [u for u, d in degree.items() if d % 2 == 1]
+    
+    # 3. Min-weight perfect matching on odd vertices
+    closure = metric_closure(graph, set(odd))
+    matching = min_weight_perfect_matching(closure, odd)
+    
+    # 4. Euler tour + shortcut
+    euler_adj = build_eulerian(mst_edges, matching)
+    tour = eulerian_tour(euler_adj)
+    ham = shortcut(tour)
+    
+    return ham, cost(ham)
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{VLSI design:} Steiner tree = wire routing; TSP = drill path optimization
+    \item \textbf{Logistics:} Vehicle routing (TSP variants)
+    \item \textbf{Phylogeny:} Steiner tree = evolutionary trees
+    \item \textbf{Network design:} Connect required nodes at minimum cost
+    \item \textbf{DNA sequencing:} Shortest superstring = genome assembly
+\end{itemize}
+
+\subsection*{Real Example: Vehicle Routing for E-Commerce Delivery}
+\textbf{Scenario:} A delivery company has 1 depot, 50 packages, 5 trucks. Each truck starts/ends at depot. Minimize total distance.
+\textbf{Model:} Complete graph on 51 nodes (depot + 50 customers). Edge costs = travel time (satisfies triangle inequality). Optimal TSP tour = optimal single-truck route. For 5 trucks: split TSP tour into 5 segments (each $\leq$ capacity). Metric TSP 1.5-approx (Christofides) gives route within $1.5 \times$ optimal single-truck distance.
+\textbf{Why approximation matters:} Exact TSP (Held-Karp DP) is $O(n^2 2^n)$ — impossible for $n=50$. Christofides runs in $O(n^3)$ and gives provable $1.5\times$ bound. In practice, Christofides + 2-opt local search often achieves $< 1.1\times$ optimal.
+\textbf{Steiner Tree variant:} If only 20 of 50 locations require delivery today, Steiner Tree connects the 20 "terminals" at minimum cost — useful for ad-hoc routing.
+
+\section{Tight Examples}
+
+\begin{example}[Steiner Tree]
+Star graph: center connected to $n$ leaves (cost 1), leaf-to-leaf cost 2. Optimal = $n$ (star). Algorithm gives $2n-2$. Ratio $\to 2$.
+\end{example}
+
+\begin{example}[TSP Double-Tree]
+Star with center 0, leaves 1..n. Edges (0,i) cost 1, (i,j) cost 2. MST = star ($n-1$). Double tree = $2n-2$. Optimal tour = $n$ (0-1-2-...-n-0). Ratio $\to 2$.
+\end{example}
+
+\begin{example}[Christofides]
+Odd cycle of length $n$ (odd). MST = path ($n-1$). Odd vertices = 2 ends. Matching adds $(n+1)/2$. Total = $1.5n - 0.5$. Optimal = $n$. Ratio $\to 1.5$.
+\end{example}
+
+\section{Exercises}
+\begin{exercise}
+Show that in Euclidean plane, optimal Steiner tree has all Steiner points of degree 3 with 120° angles.
+\end{exercise}
+\begin{exercise}
+Give a factor-2 algorithm for Rectilinear Steiner Arborescence.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 4: MULTIWAY CUT AND k-CUT (matches Vazirani Ch. 4)
+% ============================================================
+\setcounter{chapter}{3}
+\chapter{Multiway Cut and k-Cut}
+\label{ch:multiway}
+
+\section{Intuition: Isolating Cuts}
+
+\begin{intuitionbox}
+\textbf{Multiway Cut:} We have $k$ terminals that must be separated. For each terminal $s_i$, find the minimum cut isolating $s_i$ from all other terminals (merge other terminals into a super-terminal). Take the union of the $k-1$ lightest isolating cuts.
+
+\textbf{Why it works:} In the optimal multiway cut, each terminal sits in its own component. The cut separating component $i$ from the rest is an isolating cut for $s_i$. The sum of all $k$ isolating cuts in OPT is exactly $2 \times$ OPT (each edge counted twice). Discarding the heaviest leaves at most $2(1-1/k)\OPT$.
+\end{intuitionbox}
+
+\section{Multiway Cut}
+
+\begin{definition}[Multiway Cut]
+Given graph $G = (V, E)$ with edge weights and terminals $S = \{s_1, \dots, s_k\}$, find minimum-weight edge set whose removal disconnects all terminals from each other.
+\end{definition}
+
+\begin{algorithmdef}[Multiway Cut — Factor $2-2/k$]
+\begin{enumerate}
+    \item For each $i = 1..k$, compute minimum isolating cut $C_i$ separating $s_i$ from $S \setminus \{s_i\}$
+    \item Discard the heaviest $C_i$
+    \item Output union of remaining $k-1$ cuts
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This algorithm achieves a $2 - \frac{2}{k}$ approximation for Multiway Cut.
+\end{theorem}
+
+\subsection{Minimum k-Cut}
+
+\begin{definition}[$k$-Cut]
+Find minimum-weight edge set whose removal partitions $G$ into at least $k$ components.
+\end{definition}
+
+The Gomory-Hu tree represents all pairwise minimum cuts in a tree with $n-1$ edges. Removing the $k-1$ lightest edges gives a $k$-cut.
+
+\begin{algorithmdef}[Minimum $k$-Cut — Factor $2-2/k$]
+\begin{enumerate}
+    \item Compute Gomory-Hu tree $T$ of $G$
+    \item Remove $k-1$ lightest edges from $T$
+    \item Output union of corresponding cuts in $G$
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This achieves a $2 - \frac{2}{k}$ approximation for Minimum $k$-Cut.
+\end{theorem}
+
+\subsection{Other Approaches}
+
+\begin{table}[H]
+\centering
+\caption{Multiway Cut / k-Cut Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Isolating cuts (this chapter) & $2-2/k$ & Min-cut subroutine \\
+Gomory-Hu tree (this chapter) & $2-2/k$ & Min-cut + tree \\
+LP rounding (Ch. 19) & $1.5$ & LP relaxation \\
+Region growing & $2$ & Continuous relaxation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Multiway Cut and k-Cut]
+def multiway_cut_2_2k(graph, terminals):
+    """2-2/k approx for Multiway Cut."""
+    cuts = []
+    weights = []
+    for s in terminals:
+        other = terminals - {s}
+        S, T = min_isolating_cut(graph, s, other)
+        cuts.append((S, T))
+        weights.append(cut_weight(graph, S, T))
+    
+    max_idx = max(range(len(terminals)), key=lambda i: weights[i])
+    result = set()
+    for i, (S, T) in enumerate(cuts):
+        if i != max_idx:
+            result.update(cut_edges(graph, S, T))
+    return result
+
+def min_k_cut_2_2k(graph, k):
+    """2-2/k approx for Minimum k-Cut."""
+    tree = gomory_hu_tree(graph)
+    lightest = sorted(tree.edges, key=lambda e: e.weight)[:k-1]
+    return union_of_cuts(graph, lightest)
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Image segmentation:} Multiway cut = partition pixels into regions
+    \item \textbf{Network reliability:} $k$-cut = minimum edges to disconnect into $k$ parts
+    \item \textbf{Clustering:} Multiway cut with similarity weights
+    \item \textbf{VLSI partitioning:} Divide circuit into modules
+\end{itemize}
+
+\subsection*{Real Example: Medical Image Segmentation}
+\textbf{Scenario:} MRI brain scan with $k=4$ tissue types (gray matter, white matter, CSF, tumor). Each pixel must be assigned to one type.
+\textbf{Model:} Graph where vertices = pixels, edges = adjacency. Terminals = seed pixels labeled by radiologist for each tissue type. Edge weights = similarity (inverse intensity difference). Multiway cut separates the 4 terminals with minimum boundary cost = maximum coherence within each tissue region.
+\textbf{Why multiway cut:} Unlike $k$-means, multiway cut respects boundary continuity — cuts follow intensity gradients. The $2-2/4 = 1.5$-approximation guarantees the segmentation boundary is at most $1.5\times$ the optimal length.
+\textbf{In practice:} With pre-seeded terminals from a CNN, the multiway cut refines boundaries better than pure CNN output (post-processing step in medical imaging pipelines).
+\textbf{$k$-cut variant:} No pre-labeled seeds — find $k$ components of minimum boundary. Used for unsupervised segmentation.
+
+\section{Tight Example}
+
+$2k$ vertices in a cycle: $k$ terminals alternating with $k$ Steiner vertices. Terminal-Steiner edges weight $2-\epsilon$, Steiner-Steiner edges weight 1. Algorithm picks $k-1$ heavy edges; optimal picks $k$ light edges. Ratio $\to 2-2/k$.
+
+\section{Exercises}
+\begin{exercise}
+Show Algorithm 4.3 can find a $k$-cut within $2-2/k$ using multiway cut as subroutine.
+\end{exercise}
+\begin{exercise}
+Prove the greedy multiway cut algorithm (iteratively remove lightest $s_i$-$s_j$ cut) also achieves $2-2/k$.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 5: k-CENTER (matches Vazirani Ch. 5)
+% ============================================================
+\setcounter{chapter}{4}
+\chapter{k-Center}
+\label{ch:kcenter}
+
+\section{Intuition: Parametric Pruning}
+
+\begin{intuitionbox}
+\textbf{The Idea:} We don't know the optimal radius $r^*$, but we can guess it. For a guess $r$, build graph $G_r$ with edges of length $\leq r$. Can we cover all vertices with $k$ centers of radius $r$? This means finding a dominating set of size $k$ in $G_r$. Checking this is NP-hard, but we can approximate: find a maximal independent set in $G_r^2$ (square graph). If its size $\leq k$, its neighborhoods in $G_r$ cover everything.
+
+\textbf{Why Square Graph?} If $M$ is an MIS in $G^2$, then every vertex is within distance 2 of $M$ in $G$. In metric spaces, distance 2 means radius $\leq 2r$ in the original metric. So we get a 2-approximation.
+\end{intuitionbox}
+
+\section{Problem Definition}
+
+\begin{definition}[Metric $k$-Center]
+Given complete graph with metric distances, choose $k$ centers minimizing the maximum distance from any vertex to its nearest center:
+\[
+\min_{S \subseteq V, |S|=k} \max_{v \in V} \min_{u \in S} \text{dist}(u, v)
+\]
+\end{definition}
+
+This is the \emph{warehouse location} problem: minimize worst-case delivery distance.
+
+\subsection{Parametric Pruning Algorithm}
+
+\begin{algorithmdef}[Metric $k$-Center — Factor 2]
+\begin{enumerate}
+    \item Sort distinct edge weights; for each threshold $r$, build $G_r$ (edges $\leq r$)
+    \item For each $G_r$, compute $G_r^2$ (square: edges for distance $\leq 2$)
+    \item Find maximal independent set $M$ in $G_r^2$
+    \item If $|M| \leq k$ and $M$'s neighborhoods in $G_r$ cover all vertices, output neighborhoods as centers with radius $2r$
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This algorithm achieves a factor-2 approximation for Metric $k$-Center.
+\end{theorem}
+
+\subsection{Weighted $k$-Center}
+
+Vertices have weights; total weight of centers $\leq W$. Same parametric pruning with weight-aware selection gives factor-3 approximation.
+
+\subsection{Other Approaches}
+
+\begin{table}[H]
+\centering
+\caption{k-Center Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Parametric pruning (this chapter) & 2 & Combinatorial \\
+Farthest-first traversal & 2 & Greedy \\
+LP rounding & 2 & LP relaxation \\
+High-dimensional $\ell_p$ & $1+\epsilon$ & Coresets \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not exact?} $k$-Center is NP-hard even for $k=2$ (reduction from Dominating Set). Without metric assumption, no $\alpha(n)$-approximation exists.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=k-Center Parametric Pruning]
+def kcenter_parametric_pruning(graph, k):
+    """2-approx for k-Center via parametric pruning."""
+    thresholds, graphs = build_graphs_by_threshold(graph)
+    
+    for t, g in zip(thresholds, graphs):
+        g2 = graph_square(g)
+        mis = maximal_independent_set(g2)
+        
+        if len(mis) <= k:
+            centers = set(mis)
+            # Pad if we have fewer than k centers
+            if len(centers) < k:
+                remaining = set(graph.keys()) - centers
+                centers.update(list(remaining)[:k - len(centers)])
+            return centers, t
+    
+    return set(graph.keys()), max(thresholds)
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Facility location:} Fire stations, warehouses, cell towers
+    \item \textbf{Clustering:} Minimize cluster radius ($k$-center = bottleneck $k$-means)
+    \item \textbf{Load balancing:} Distribute tasks to minimize max load
+    \item \textbf{Robotics:} Multi-robot coverage of an area
+\end{itemize}
+
+\subsection*{Real Example: Cell Tower Placement for 5G}
+\textbf{Scenario:} Telecom placing $k=15$ new 5G towers in a city of $n=2,000$ potential sites. Each site covers a radius $r$. Goal: minimize $r$ so every subscriber is covered.
+\textbf{Model:} Complete graph with metric distances (lat/long $\to$ haversine). $k$-center finds $k$ centers minimizing maximum distance to nearest center = maximum subscriber-tower distance.
+\textbf{Why 2-approx matters:} If OPT radius = 800m, our towers have radius $\leq$ 1.6km. Guarantee ensures no subscriber is more than 2$\times$ the minimum possible distance from a tower.
+\textbf{Real constraint:} Some sites are unavailable (zoning, cost). Remove those vertices from graph — parametric pruning handles this naturally.
+\textbf{Comparison:} $k$-means minimizes \emph{sum} of squared distances (average case), $k$-center minimizes \emph{maximum} distance (worst case). For coverage guarantees, $k$-center is correct model.
+\textbf{Weighted $k$-center (Ch. 5):} Towers have different capacities (weights). Total capacity budget $W$. 3-approx algorithm extends directly.
+
+\section{Tight Example: Wheel Graph}
+Center connected to $n$ outer vertices (weight 1), outer cycle weight 2. For $k=1$, optimal center = hub (radius 1). Algorithm may pick outer vertex (radius 2). Ratio = 2.
+
+\section{Exercises}
+\begin{exercise}
+Show that without triangle inequality, $k$-center has no $\alpha(n)$-approximation.
+\end{exercise}
+\begin{exercise}
+Modify Algorithm 5.3 to use minimal dominating set instead of MIS in $G_i^2$.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 6: FEEDBACK VERTEX SET (matches Vazirani Ch. 6)
+% ============================================================
+\chapter{Feedback Vertex Set}
+\label{ch:fvs}
+
+\section{Intuition: Peeling and Layering}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} Feedback Vertex Set (FVS) is the problem of breaking all cycles in a graph by deleting a minimum-weight set of vertices. Low-degree vertices cannot support cycles: degree 0 or 1 vertices are useless for cycles, and degree 2 vertices can be contracted. In a ``clean'' graph (minimum degree $\ge 3$), the average degree of any forest is less than 2, meaning any cycle-free subgraph must connect heavily to the deleted feedback vertices. By reducing weights proportionally to a vertex's cycle-breaking contribution (measured by its cyclomatic weight $\delta_G(v)$), we pay at most twice the optimal cost to hit every cycle.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with non-negative vertex weights $w: V \to \mathbb{R}^+$, the \emph{Minimum Feedback Vertex Set} (FVS) problem is to find a subset $F \subseteq V$ of minimum total weight $\sum_{v \in F} w(v)$ such that the induced subgraph $G[V \setminus F]$ contains no cycles (i.e., it is a forest).
+
+The decision version of FVS is one of Karp's 21 NP-complete problems. It has applications in database deadlock resolution, circuit design, and Bayesian network inference (loop cutsets).
+
+\section{Algorithm and Python Implementation}
+The 2-approximation algorithm uses the local-ratio technique. It first simplifies the graph by removing vertices of degree $\le 1$ and contracting vertices of degree 2. It then scales weights based on the cyclomatic weight $\delta_H(v) = \text{cyc}(H) - \text{cyc}(H \setminus \{v\})$, where $\text{cyc}(H) = |E(H)| - |V(H)| + \text{cc}(H)$ is the cyclomatic number of graph $H$.
+
+\begin{lstlisting}[style=python, caption=Local Ratio Algorithm for Feedback Vertex Set]
+def feedback_vertex_set_approx(graph, weights):
+    """2-approx for undirected weighted Feedback Vertex Set."""
+    g = {v: list(neighbors) for v, neighbors in graph.items()}
+    
+    # 0. If any vertex has weight <= 0, remove and recurse
+    for v in list(g.keys()):
+        if weights.get(v, 0.0) <= 1e-9:
+            g_sub = {x: [y for y in neighbors if y != v] for x, neighbors in g.items() if x != v}
+            sub_fvs = feedback_vertex_set_approx(g_sub, weights)
+            sub_fvs.add(v)
+            # Prune before returning
+            final_fvs = set(sub_fvs)
+            for x in list(final_fvs):
+                if is_feedback_vertex_set(graph, final_fvs - {x}):
+                    final_fvs.remove(x)
+            return final_fvs
+            
+    # 1. Clean the graph (remove degree <= 1, contract degree 2)
+    changed = True
+    while changed:
+        changed = False
+        to_remove = [v for v in g if len(g[v]) <= 1]
+        if to_remove:
+            for v in to_remove:
+                for nxt in g[v]:
+                    if nxt in g:
+                        while v in g[nxt]: g[nxt].remove(v)
+                del g[v]
+            changed = True
+            continue
+            
+        deg2_vertices = [v for v in g if len(g[v]) == 2]
+        for v in deg2_vertices:
+            if v not in g: continue
+            u, w = g[v]
+            if u != w:
+                del g[v]
+                g[u] = [w if x == v else x for x in g[u]]
+                g[w] = [u if x == v else x for x in g[w]]
+                changed = True
+                break
+
+    if not g or cyclomatic_number(g) == 0:
+        return set()
+
+    # 2. Check for self-loops (cycle of length 1)
+    for v in g:
+        if v in g[v]:
+            g_sub = {x: [y for y in neighbors if y != v] for x, neighbors in g.items() if x != v}
+            sub_fvs = feedback_vertex_set_approx(g_sub, weights)
+            sub_fvs.add(v)
+            return sub_fvs
+
+    # 3. Check for multi-edges (cycle of length 2)
+    for u in g:
+        for v in g[u]:
+            if g[u].count(v) > 1:
+                eps = min(weights[u], weights[v])
+                weights_next = dict(weights)
+                weights_next[u] -= eps
+                weights_next[v] -= eps
+                g_sub = {x: list(neighbors) for x, neighbors in g.items()}
+                sub_fvs = feedback_vertex_set_approx(g_sub, weights_next)
+                if u not in sub_fvs and v not in sub_fvs:
+                    sub_fvs.add(u if weights_next[u] <= 1e-9 else v)
+                return sub_fvs
+
+    # 4. Normal local ratio step
+    cyc_g = cyclomatic_number(g)
+    deltas = {}
+    for v in g:
+        g_without_v = {x: [y for y in neighbors if y != v] for x, neighbors in g.items() if x != v}
+        deltas[v] = cyc_g - cyclomatic_number(g_without_v)
+        if deltas[v] <= 0: deltas[v] = 1
+
+    eps = min(weights[v] / deltas[v] for v in g)
+    weights_next = dict(weights)
+    for v in g:
+        weights_next[v] -= eps * deltas[v]
+        
+    sub_fvs = feedback_vertex_set_approx(g, weights_next)
+    for v in [v for v in g if weights_next[v] <= 1e-9]:
+        if v not in sub_fvs: sub_fvs.add(v)
+            
+    final_fvs = set(sub_fvs)
+    for v in list(final_fvs):
+        if is_feedback_vertex_set(graph, final_fvs - {v}):
+            final_fvs.remove(v)
+    return final_fvs
+\end{lstlisting}
+
+\section{Analysis: Local Ratio and Cyclomatic Weights}
+The cyclomatic number $\text{cyc}(G) = |E| - |V| + \text{cc}(G)$ represents the maximum number of independent cycles in $G$.
+The value $\delta_G(v) = \text{cyc}(G) - \text{cyc}(G \setminus \{v\})$ measures how many cycles are broken by deleting $v$. We have:
+\[
+\delta_G(v) = d_G(v) - 1 - (k(G \setminus \{v\}) - k(G))
+\]
+Since a minimal feedback vertex set $F$ leaves a forest $T = G[V \setminus F]$, the average degree in $T$ is less than 2. From this, we can show that the sum of cyclomatic weights of any minimal FVS is bounded:
+\[
+\sum_{v \in F} \delta_G(v) \le 2 \cdot \text{OPT}_{IP}
+\]
+By the Local Ratio Theorem, decomposing the weights $w(v)$ into $w'(v) + \epsilon \cdot \delta_G(v)$ guarantees that the final minimal FVS satisfies $w(F) \le 2 \cdot \text{OPT}$.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Bayesian Inference (Loop Cutsets):} Pearl's belief propagation algorithm is exact on trees. For graphs with cycles, belief propagation can be run by conditioning on a loop cutset (which is an FVS). Finding a minimum-weight FVS minimizes the conditioning overhead.
+    \item \textbf{Deadlock Resolution:} In database transactions, the wait-for graph tracks transaction dependencies. Cycles represent deadlocks. An FVS represents a set of transactions to abort to resolve all deadlocks with minimal cost.
+    \item \textbf{Dependency Resolution in Compilers:} Breaking cyclic package dependencies in package managers or modular architectures.
+\end{itemize}
+
+\subsection*{Real Example: Deadlock Resolution in Distributed Databases}
+\textbf{Scenario:} A database has $n=100$ concurrent transactions. Cyclic dependencies (deadlocks) occur when transaction $A$ waits for $B$, $B$ waits for $C$, and $C$ waits for $A$. Aborting a transaction has a weight (representing processing time lost). We want to break all deadlocks with minimal total weight aborted.
+\textbf{Model:} Directed graph of dependencies. For undirected cycles (simplifying directed FVS to undirected FVS when cycles are symmetric), the FVS algorithm finds the minimum-cost set of transactions to abort.
+\textbf{Why 2-approx matters:} Minimizing transaction abort cost is NP-hard. A 2-approximation guarantees that we abort transactions costing no more than $2\times$ the absolute minimum abort cost required to free the database from deadlocks.
+
+\section{Tight Example: Bipartite Graph}
+For a bipartite graph $K_{3,3}$ where all vertex weights are 1, the optimal FVS is of size 2. If the algorithm selects a suboptimal set or order, the local ratio step can yield a set of size 4 if vertices are not chosen carefully. The ratio approaches 2 for larger instances.
+
+\section{Exercises}
+\begin{exercise}
+Prove that for any tree $T$, the Feedback Vertex Set is empty.
+\end{exercise}
+\begin{exercise}
+Prove that for any graph $G$, the average degree of a forest $T \subset G$ is less than 2.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 7: SHORTEST SUPERSTRING (matches Vazirani Ch. 7)
+% ============================================================
+\chapter{Shortest Superstring}
+\label{ch:superstring}
+
+\section{Intuition: Overlaps and Cycles}
+
+\begin{intuitionbox}
+\textbf{Overlap Minimization Intuition:} Finding the shortest common superstring of a set of strings is equivalent to maximizing the total overlap between adjacent strings. If we construct a directed graph where edge weights represent the cost of transitioning between strings (i.e. prefix length of the successor not overlapping with the predecessor), the shortest superstring is a TSP-like path. While TSP path cover is hard, a cycle cover of minimum weight can be found in polynomial time. By opening the cycles of the optimal cycle cover, we obtain a set of representative strings which can then be merged to yield a guaranteed 4-approximation (or 3-approximation using greedy merges).
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given a set of strings $S = \{s_1, \dots, s_n\}$ over a finite alphabet $\Sigma$, the \emph{Shortest Common Superstring} (SCS) problem is to find a string $s$ of minimum length $|s|$ such that each $s_i \in S$ is a substring of $s$.
+
+Without loss of generality, we assume that no string $s_i \in S$ is a substring of any other string $s_j \in S$. The SCS problem is NP-hard and has direct applications in bioinformatics (de novo genome assembly) and text compression.
+
+\section{Algorithm and Python Implementation}
+The approximation algorithms construct a directed overlap graph where vertices are the input strings. The edge weight $w(u, v) = |v| - \text{ov}(u, v)$ is the cost of appending $v$ after $u$, where $\text{ov}(u, v)$ is the length of the longest suffix of $u$ that is a prefix of $v$. 
+
+\begin{lstlisting}[style=python, caption=Approximation Algorithms for Shortest Superstring]
+def shortest_superstring_3approx(strings):
+    """3-approx algorithm for Shortest Superstring (Modified Greedy)."""
+    cleaned = preprocess_substrings(strings)
+    if not cleaned: return ""
+    if len(cleaned) == 1: return cleaned[0]
+        
+    n = len(cleaned)
+    cost_matrix = [[0.0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            cost_matrix[i][j] = len(cleaned[j]) - compute_overlap(cleaned[i], cleaned[j])
+            
+    perm, _ = find_minimum_cycle_cover(cost_matrix)
+    cycles = extract_cycles(perm)
+    cycle_strings = cycle_cover_to_strings(cycles, cleaned)
+    return greedy_superstring(cycle_strings)
+\end{lstlisting}
+
+\section{Analysis: Cycle Covers as Lower Bounds}
+Let $\text{OPT}$ be the length of the shortest superstring. We define the prefix distance function $d(u, v) = |v| - \text{ov}(u, v)$. This distance function is metric-like: it satisfies the triangle inequality $d(u, w) \le d(u, v) + d(v, w)$.
+
+A cycle cover of the overlap graph is a set of vertex-disjoint cycles covering all vertices. The minimum cycle cover has total weight $\text{wt}(C) \le \text{OPT}$. By breaking each cycle $c_k$ at an arbitrary string to form a single merged string $s'_{c_k}$, we can show that the sum of lengths of the cycle representative strings is bounded by:
+\[
+\sum_{c_k} |s'_{c_k}| \le \text{OPT} + \text{wt}(C) \le 2 \cdot \text{OPT}
+\]
+The 4-approximation simply concatenates these representative strings (giving at most $2 \cdot 2 \cdot \text{OPT} = 4 \cdot \text{OPT}$). The 3-approximation (Modified Greedy) runs a greedy merge on these representatives, which limits the overlap loss and achieves a factor of 3.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{DNA Sequencing (De Novo Assembly):} Sanger sequencing and high-throughput sequencing generate millions of short DNA fragments (reads). The genome is assembled by finding the shortest common superstring of these reads.
+    \item \textbf{Data Compression:} Storing a dictionary of common words/patterns as a single superstring and referencing substrings via offsets.
+\end{itemize}
+
+\subsection*{Real Example: Sanger DNA Sequence Assembly}
+\textbf{Scenario:} A biologist sequences a gene and gets 5 short overlapping reads: \texttt{CATG}, \texttt{ATGT}, \texttt{TGTA}, \texttt{GTAC}, and \texttt{TACA}. Goal: reconstruct the original DNA sequence.
+\textbf{Model:} Overlap graph vertices are the 5 reads. Minimum cycle cover groups overlapping fragments. The 3-approximation algorithm merges cycle representatives greedily to yield the reconstructed sequence: \texttt{CATGTACA}.
+\textbf{Why 3-approx matters:} Finding the absolute shortest common superstring is NP-hard. The 3-approximation ensures that the reconstructed sequence length is within a factor of 3 of the optimal assembly, preventing over-compaction or redundant sequence generation.
+
+\section{Tight Example: Greedy Overlap Heuristic}
+A tight example for the standard greedy algorithm consists of strings $s_1 = a^k b$, $s_2 = b a^k$, and $s_3 = a^k$. The greedy heuristic can make choices that result in a superstring of length close to 2 times optimal. The modified greedy cycle-cover method resolves these structural bottlenecks.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the distance function $d(u, v) = |v| - \text{ov}(u, v)$ satisfies the triangle inequality $d(u, w) \le d(u, v) + d(v, w)$.
+\end{exercise}
+\begin{exercise}
+Explain why the minimum cycle cover can be solved in polynomial time using bipartite matching.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 8: KNAPSACK AND FPTAS (matches Vazirani Ch. 8)
+% ============================================================
+\chapter{Knapsack and FPTAS}
+\label{ch:knapsack}
+
+\section{Intuition: Scaling Values}
+
+\begin{intuitionbox}
+\textbf{FPTAS Idea:} Knapsack has a pseudo-polynomial DP in $O(nW)$ time. If we scale down the \emph{values} by a factor $K$, the DP runs in $O(n^2/K)$ time. The optimal value decreases by at most $nK$. Setting $K = \epsilon V_{\max}/n$ gives $(1-\epsilon)$-approximation in $O(n^3/\epsilon)$ time.
+\end{intuitionbox}
+
+\section{Problem Definition}
+
+\begin{definition}[0/1 Knapsack]
+Given $n$ items with weights $w_i$ and values $v_i$, capacity $W$, maximize $\sum v_i x_i$ s.t. $\sum w_i x_i \leq W$, $x_i \in \{0,1\}$.
+\end{definition}
+
+\subsection{Exact DP (Pseudo-polynomial)}
+
+$dp[i][w] = \max$ value using first $i$ items with weight $\leq w$. Runs in $O(nW)$.
+
+\subsection{FPTAS via Value Scaling}
+
+\begin{algorithmdef}[Knapsack FPTAS — $(1-\epsilon)$-Approximation]
+\begin{enumerate}
+    \item Let $V_{\max} = \max_i v_i$, $K = \frac{\epsilon V_{\max}}{n}$
+    \item Scale values: $v'_i = \lfloor v_i / K \rfloor$
+    \item Run exact DP on scaled instance: $dp[v] = \min$ weight to achieve scaled value $v$
+    \item Find max $v$ with $dp[v] \leq W$, reconstruct solution
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+The solution value is at least $(1-\epsilon)\OPT$.
+\end{theorem}
+\begin{proof}
+Each value reduced by $< K$. Total reduction $\leq nK = \epsilon V_{\max} \leq \epsilon \OPT$.
+\end{proof}
+
+\subsection{Other Approaches}
+
+\begin{table}[H]
+\centering
+\caption{Knapsack Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Time \\
+\midrule
+Exact DP & Exact & $O(nW)$ \\
+FPTAS (value scaling) & $1-\epsilon$ & $O(n^3/\epsilon)$ \\
+FPTAS (weight scaling) & $1-\epsilon$ & $O(n^2/\epsilon)$ \\
+Greedy by value/weight & 2 (fractional) & $O(n \log n)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not exact?} Knapsack is weakly NP-hard. Exact requires pseudo-polynomial time. FPTAS gives polynomial time for any fixed $\epsilon$.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Knapsack FPTAS]
+def knapsack_fptas(weights, values, capacity, epsilon):
+    """(1-epsilon)-approx for 0/1 Knapsack."""
+    n = len(weights)
+    Vmax = max(values)
+    K = epsilon * Vmax / n
+    if K == 0: K = 1
+    
+    scaled = [int(v / K) for v in values]
+    max_scaled = sum(scaled)
+    
+    # dp[v] = min weight to achieve value v
+    dp = [float('inf')] * (max_scaled + 1)
+    dp[0] = 0
+    choice = [[False] * (max_scaled + 1) for _ in range(n + 1)]
+    
+    for i in range(1, n + 1):
+        v, w = scaled[i-1], weights[i-1]
+        for val in range(max_scaled, v - 1, -1):
+            if dp[val - v] + w < dp[val]:
+                dp[val] = dp[val - v] + w
+                choice[i][val] = True
+    
+    best_val = max(v for v in range(max_scaled + 1) if dp[v] <= capacity)
+    
+    # Reconstruct
+    selected = []
+    val = best_val
+    for i in range(n, 0, -1):
+        if choice[i][val]:
+            selected.append(i-1)
+            val -= scaled[i-1]
+    
+    return selected, sum(values[i] for i in selected)
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Resource allocation:} Budget-constrained project selection
+    \item \textbf{Portfolio optimization:} Risk-constrained investment
+    \item \textbf{Logistics:} Cargo loading with weight limit
+    \item \textbf{Cloud computing:} VM placement with capacity constraints
+\end{itemize}
+
+\subsection*{Real Example: IT Budget Allocation for Cloud Migration}
+\textbf{Scenario:} A company has $\$500,000$ budget to migrate $n=200$ on-premise applications to the cloud. Each app $i$ has migration cost $w_i$ and business value $v_i$ (revenue impact, risk reduction). Maximize total value within budget.
+\textbf{Why FPTAS:} Exact DP with $W=500,000$ takes $O(nW) = 10^8$ operations — too slow for interactive planning. FPTAS with $\epsilon=0.05$ runs in $O(n^3/\epsilon) \approx 1.6 \times 10^6$ operations — instant.
+\textbf{Guarantee:} The selected apps achieve $\geq 95\%$ of optimal business value. CFO can trust the plan.
+\textbf{Real constraint:} Some apps are interdependent (if A moves, B must move). This is \emph{knapsack with dependencies} — can be modeled as tree-knapsack with FPTAS.
+\textbf{Alternative:} Greedy by $v_i/w_i$ ratio gives 2-approx for fractional but can be arbitrarily bad for 0/1 (e.g., one item with value $100$, weight $101$; budget $100$; greedy picks nothing).
+
+\section{Exercises}
+\begin{exercise}
+Implement the FPTAS using weight scaling instead of value scaling.
+\end{exercise}
+\begin{exercise}
+Show that the greedy algorithm by value/weight ratio gives a 2-approximation for fractional knapsack but can be arbitrarily bad for 0/1 knapsack.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 9: BIN PACKING (matches Vazirani Ch. 9)
+% ============================================================
+\chapter{Bin Packing}
+\label{ch:bin_packing}
+
+\section{Intuition: Fitting and Grouping}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The goal of Bin Packing is to pack a set of items of various sizes into the minimum number of unit-capacity bins. Online algorithms like Next-Fit (which keeps only one open bin) and First-Fit (which places an item in the first bin that can hold it) achieve constant factor approximations (2 and 1.7, respectively). To do better offline, we can construct an Asymptotic PTAS (APTAS) using linear grouping. By separating out small items ($<\epsilon$) and grouping the remaining large items into $1/\epsilon^2$ groups, we can round item sizes up to the maximum in their group. This reduces the problem to a constant number of distinct sizes, which can be solved exactly using dynamic programming.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given a list of $n$ items with sizes $s_1, \dots, s_n \in (0, 1]$, the \emph{Bin Packing} problem is to pack all items into the minimum number of bins, each of capacity 1.
+
+The problem is NP-hard. It is also NP-hard to approximate within a factor of $3/2 - \epsilon$ for any $\epsilon > 0$ in the absolute sense (due to a partition reduction). However, it admits an \emph{Asymptotic PTAS} (APTAS) which packs items into at most $(1 + \epsilon)\text{OPT} + O(1/\epsilon^2)$ bins.
+
+\section{Algorithm and Python Implementation}
+We implement standard online algorithms (Next-Fit, First-Fit) and the offline First-Fit Decreasing heuristic. We also implement the Asymptotic PTAS (APTAS) using linear grouping, which rounds large item sizes and solves the rounded instance exactly using dynamic programming.
+
+\begin{lstlisting}[style=python, caption=Asymptotic PTAS for Bin Packing]
+def bin_packing_aptas(items, eps=0.3, capacity=1.0):
+    """APTAS for Bin Packing via linear grouping."""
+    large_items = [x for x in items if x >= eps]
+    small_items = [x for x in items if x < eps]
+    
+    if not large_items:
+        return first_fit(small_items, capacity)
+        
+    large_items.sort()
+    n_large = len(large_items)
+    k = int(1.0 / (eps ** 2))
+    q = n_large // k
+    
+    rounded_large = []
+    if q == 0 or k == 0:
+        rounded_large = list(large_items)
+    else:
+        groups = [large_items[i*q : (i+1)*q if i < k-1 else n_large] for i in range(k)]
+        for group in groups:
+            max_size = max(group)
+            rounded_large.extend([max_size] * len(group))
+            
+    distinct_sizes = sorted(list(set(rounded_large)))
+    counts = tuple(rounded_large.count(s) for s in distinct_sizes)
+    configs = generate_configurations(distinct_sizes, capacity)
+    large_bins = pack_large_dp(counts, configs, distinct_sizes)
+    
+    # Map rounded items back to original large items
+    flattened = sorted([item for b in large_bins for item in b])
+    item_map = {s: [] for s in distinct_sizes}
+    for r_val, orig_val in zip(flattened, large_items):
+        item_map[r_val].append(orig_val)
+        
+    final_large_bins = []
+    for b in large_bins:
+        new_bin = [item_map[item].pop(0) for item in b]
+        final_large_bins.append(new_bin)
+        
+    # Place small items using First-Fit
+    for item in small_items:
+        placed = False
+        for b in final_large_bins:
+            if sum(b) + item <= capacity:
+                b.append(item)
+                placed = True
+                break
+        if not placed:
+            final_large_bins.append([item])
+    return final_large_bins
+\end{lstlisting}
+
+\section{Analysis: Linear Grouping and APTAS}
+For Next-Fit, we can prove that the number of bins $A(I) \le 2 \cdot \text{OPT}(I) + 1$, because the sum of items in any two consecutive bins must exceed 1.
+
+The Asymptotic PTAS (APTAS) works by:
+1.  Ignoring small items of size $< \epsilon$.
+2.  Grouping the remaining $n'$ large items into $k = 1/\epsilon^2$ groups, each of size $q = \lfloor n'\epsilon^2 \rfloor$.
+3.  Rounding up the size of each item in Group $i$ to the maximum in that group.
+Let $I'$ be the rounded instance. Because we rounded up, any packing for $I'$ is valid for the original large items. By discarding the first group (which has size $q \le n'\epsilon^2 \le \text{OPT}\epsilon$), we can map the packing of Group $i$ to the slots of Group $i-1$ in the optimal packing. This yields:
+\[
+\text{OPT}(I') \le \text{OPT}(I) + q \le (1 + \epsilon)\text{OPT}(I)
+\]
+Packing the discarded group adds at most $q \le 1/\epsilon^2$ bins. Finally, packing the small items using First-Fit either opens no new bins (keeping the size within $(1+\epsilon)\text{OPT} + O(1/\epsilon^2)$) or, if it does, all bins except the last are packed to at least $1-\epsilon$ density, yielding an overall $(1+\epsilon)\text{OPT} + 1$ guarantee.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Cloud Computing (VM Allocation):} Allocating virtual machines (VMs) of different CPU/memory demands (items) to physical servers of unit capacity (bins) to minimize server leasing costs.
+    \item \textbf{Logistics and Container Loading:} Packing boxes of different weights into standard shipping containers to minimize shipping costs.
+    \item \textbf{Ad Placement:} Fitting ads of different durations into standard ad slots.
+\end{itemize}
+
+\subsection*{Real Example: Virtual Machine Allocation in Cloud Data Centers}
+\textbf{Scenario:} A cloud provider (e.g. AWS) receives requests to run $n=5,000$ virtual machines of various sizes (e.g. 0.1, 0.25, 0.4 of a physical server's resources). The provider wants to host them on the minimum number of physical servers to save energy.
+\textbf{Model:} Standard Bin Packing. Physical servers are unit-capacity bins. Items are VM resource demands. First-Fit Decreasing and APTAS find the near-optimal VM-to-server allocation.
+\textbf{Why FFD and APTAS matter:} Energy cost in data centers is a major expense. First-Fit Decreasing is offline and achieves a tight 11/9-approximation in practice. The APTAS allows trading off computation time for an arbitrarily close-to-optimal packing, saving millions of dollars in infrastructure costs.
+
+\section{Tight Example: Next-Fit Heuristic}
+A tight example for Next-Fit consists of $2n$ items of alternating sizes $0.5 + \delta$ and $0.5 - \delta$ for a small $\delta > 0$. Next-Fit will place each pair in a new bin because $0.5 + \delta + 0.5 - \delta = 1.0$, but if the next item is $0.5 + \delta$, it cannot fit in the current bin of remaining capacity $0.5 - \delta$. Next-Fit will use $2n$ bins, whereas the optimal packing can pair each $0.5+\delta$ with a $0.5-\delta$, using only $n$ bins. The ratio approaches 2.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the number of bins used by Next-Fit is at most $2 \cdot \text{OPT} + 1$.
+\end{exercise}
+\begin{exercise}
+Prove that if all item sizes are strictly greater than $1/3$, then the First-Fit Decreasing algorithm finds an optimal packing.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 10: MINIMUM MAKESPAN SCHEDULING (matches Vazirani Ch. 10)
+% ============================================================
+\chapter{Minimum Makespan Scheduling}
+\label{ch:makespan}
+
+\section{Intuition: Load Balancing and Dual Approximation}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The goal of Minimum Makespan Scheduling is to allocate $n$ jobs on $m$ identical machines to minimize the maximum machine completion time (makespan). A simple online greedy rule (Graham's List Scheduling) achieves a 2-approximation by assigning each job to the least loaded machine. Sort-based greedy (LPT rule) improves this to a 4/3-approximation by scheduling larger jobs first. For a PTAS, we use Hochbaum-Shmoys dual approximation: we guess the makespan $T$, round large job sizes down to reduce the distinct sizes to a constant, pack them using DP, and then place small jobs greedily. Binary searching $T$ yields a $(1+\epsilon)$ schedule.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given $n$ jobs with processing times $p_1, \dots, p_n \ge 0$ and $m$ identical parallel machines, the \emph{Minimum Makespan Scheduling} problem is to assign each job to a machine such that the maximum total processing time of any machine is minimized.
+
+The problem is NP-hard. It admits a Polynomial-Time Approximation Scheme (PTAS), which finds a schedule of makespan at most $(1 + \epsilon)\text{OPT}$ in time polynomial in $n$ for any fixed $\epsilon > 0$.
+
+\section{Algorithm and Python Implementation}
+We implement Graham's List Scheduling, the LPT heuristic, and the Hochbaum-Shmoys PTAS using dual approximation via bin packing.
+
+\begin{lstlisting}[style=python, caption=Hochbaum-Shmoys PTAS for Minimum Makespan]
+def makespan_ptas(jobs, m, eps=0.25):
+    """Hochbaum-Shmoys PTAS for Minimum Makespan Scheduling."""
+    lb = max(max(jobs), sum(jobs) / m)
+    ub = max(max(jobs), 2 * sum(jobs) / m)
+    
+    best_schedule = None
+    for _ in range(15):
+        mid = (lb + ub) / 2
+        success, schedule = check_schedule(jobs, m, mid, eps)
+        if success:
+            best_schedule = schedule
+            ub = mid
+        else:
+            lb = mid
+            
+    if not best_schedule:
+        _, best_schedule = check_schedule(jobs, m, ub, eps)
+    return best_schedule
+\end{lstlisting}
+
+\section{Analysis: LPT and Hochbaum-Shmoys PTAS}
+Graham's List Scheduling achieves an approximation factor of $2 - 1/m$. The LPT heuristic achieves a factor of $4/3 - 1/(3m)$ by sorting jobs.
+
+The PTAS uses dual approximation: instead of minimizing makespan directly, it solves the dual decision problem: ``Can we schedule all jobs within makespan $T$?''
+1.  Jobs of size $\le \epsilon T$ are ``small'' and can be placed greedily.
+2.  Jobs of size $> \epsilon T$ are ``large.'' We round each large job down to the nearest multiple of $\epsilon^2 T$. This yields at most $1/\epsilon^2$ distinct large sizes.
+3.  We test if the rounded large jobs can be packed into $m$ bins of capacity $T$ using dynamic programming.
+If they can, the rounding error adds at most $(1/\epsilon) \times \epsilon^2 T = \epsilon T$ to the load of any machine, giving a makespan $\le (1+\epsilon)T$ for the original large jobs. Placing small jobs keeps the makespan $\le (1+\epsilon)T$ or proves $T < \text{OPT}$. Binary searching $T$ in $[LB, UB]$ yields the $(1+\epsilon)$ PTAS.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{CPU / GPU Task Scheduling:} Assigning threads or compute tasks to identical CPU/GPU cores to minimize total execution time (latency).
+    \item \textbf{Manufacturing:} Allocating identical production lines to process a batch of customer orders.
+    \item \textbf{Distributed Computing MapReduce:} Distributing map or reduce tasks to cluster nodes.
+\end{itemize}
+
+\subsection*{Real Example: Multicore CPU Load Balancing}
+\textbf{Scenario:} An OS scheduler has $n=50$ computational tasks with known durations (e.g. 5ms, 12ms, 30ms) to run on a quad-core CPU ($m=4$). Goal: distribute tasks to minimize total execution time.
+\textbf{Model:} Minimum Makespan Scheduling. Tasks are jobs, CPU cores are identical machines. FFD/LPT or PTAS provides the optimal scheduling.
+\textbf{Why PTAS matters:} Maximizing CPU utilization is key to overall system performance. A PTAS guarantees that the multicore scheduling is within $\epsilon$ of the theoretical minimum latency possible, which avoids core idling and maximizes throughput.
+
+\section{Tight Example: LPT Heuristic}
+A tight example for LPT on 2 machines consists of 5 jobs of sizes $3, 3, 2, 2, 2$. LPT sorts them and schedules the two 3s on separate machines, then places the 2s, yielding a schedule of loads $3+2+2 = 7$ and $3+2 = 5$. The makespan is 7. The optimal schedule pairs a 3 and a 2 on each machine, and places the remaining 2 on one of them, achieving loads $3+2 = 5$ and $3+2+2 = 7$? No, optimal is loads $3+3 = 6$ and $2+2+2 = 6$, makespan 6. The ratio is $7/6 \approx 1.167$, which matches $4/3 - 1/(3m) = 4/3 - 1/6 = 7/6$.
+
+\section{Exercises}
+\begin{exercise}
+Prove that Graham's List Scheduling achieves an approximation factor of exactly $2 - 1/m$.
+\end{exercise}
+\begin{exercise}
+Construct a tight example for LPT scheduling on $m=3$ machines showing the ratio is $4/3 - 1/(3m) = 11/9$.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 11: EUCLIDEAN TSP (matches Vazirani Ch. 11)
+% ============================================================
+\chapter{Euclidean TSP}
+\label{ch:euclidean_tsp}
+
+\section{Intuition: Geometric Dissection and Portals}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} General Metric TSP is hard to approximate below $1.5$. However, if vertices are points in a 2D Euclidean plane, we can use the geometric structure to construct a PTAS. Arora's PTAS works by enclosing all points in a bounding box, applying a randomized shift, and recursively partitioning the box into a quadtree. By restricting the tour to cross cell boundaries only at a small number of designated points called \emph{portals}, the problem can be solved via dynamic programming. We implement a divide-and-conquer version of this quadtree partition: solving sub-quadrants recursively and merging tours using cheapest 2-edge connections.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given $n$ points in the Euclidean plane $\mathbb{R}^2$, the \emph{Euclidean Traveling Salesman Problem} is to find a closed tour of minimum total Euclidean length that visits every point exactly once.
+
+The problem remains NP-hard. However, unlike general Metric TSP, it admits a Polynomial-Time Approximation Scheme (PTAS) that achieves a $(1 + \epsilon)$-approximation in $n^{O(1/\epsilon)}$ time.
+
+\section{Algorithm and Python Implementation}
+We implement the exact Held-Karp dynamic programming baseline, alongside the quadtree divide-and-conquer cycle merging heuristic which serves as the geometric partitioning engine.
+
+\begin{lstlisting}[style=python, caption=Cheapest swap to merge tours]
+def merge_tours(tour1, tour2, points):
+    """Cheapest connection swap between two tours or insertion of a single point."""
+    if not tour1: return tour2
+    if not tour2: return tour1
+    dist = lambda u, v: math.hypot(points[u][0]-points[v][0], points[u][1]-points[v][1])
+    
+    # Case 1 & 2: Single point insertion
+    if len(tour2) <= 2:
+        u = tour2[0]
+        best_diff, best_idx = float('inf'), -1
+        for i in range(len(tour1) - 1):
+            diff = dist(tour1[i], u) + dist(u, tour1[i+1]) - dist(tour1[i], tour1[i+1])
+            if diff < best_diff:
+                best_diff, best_idx = diff, i
+        return tour1[:best_idx + 1] + [u] + tour1[best_idx + 1:]
+    if len(tour1) <= 2:
+        return merge_tours(tour2, tour1, points)
+        
+    # Case 3: Merge two closed cycles
+    t1, t2 = list(tour1), list(tour2)
+    n1, n2 = len(t1) - 1, len(t2) - 1
+    best_diff, best_swap = float('inf'), None
+    
+    for i in range(n1):
+        for j in range(n2):
+            diff1 = dist(t1[i], t2[j]) + dist(t1[i+1], t2[j+1]) - dist(t1[i], t1[i+1]) - dist(t2[j], t2[j+1])
+            diff2 = dist(t1[i], t2[j+1]) + dist(t1[i+1], t2[j]) - dist(t1[i], t1[i+1]) - dist(t2[j], t2[j+1])
+            if diff1 < best_diff: best_diff, best_swap = diff1, (i, j, False)
+            if diff2 < best_diff: best_diff, best_swap = diff2, (i, j, True)
+            
+    i, j, reverse = best_swap
+    t2_rot = t2[j:-1] + t2[:j]
+    if reverse: t2_rot.reverse()
+    return t1[:i+1] + t2_rot + t1[i+1:]
+\end{lstlisting}
+
+\section{Analysis: Arora's PTAS and Portals}
+Arora's PTAS achieves a $(1+\epsilon)$-approximation by proving that:
+1.  **Structure Theorem:** There exists a near-optimal tour (cost $\le (1+\epsilon)\text{OPT}$) that crosses the boundary of each quadtree square at most $r = O(1/\epsilon)$ times, and only at designated \emph{portals} spaced along the square's perimeter.
+2.  **Randomized Shifting:** By shifting the quadtree coordinates randomly, we ensure that the probability of a bounding line intersecting a dense region of the tour (and thus requiring many crossings) is small. The expected cost added by routing the tour through portals is at most $\epsilon \cdot \text{OPT}$.
+3.  **Dynamic Programming:** For each quadtree cell, the number of portal configurations is small (at most $(O(1/\epsilon \log L))^{O(1/\epsilon)}$). We can find the optimal set of paths within each cell using dynamic programming, proceeding from the leaves of the quadtree up to the root.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{PCB Drilling and Tool-Path Optimization:} Minimizing the travel distance of a drill bit moving across coordinates on a circuit board.
+    \item \textbf{Robotics and Automated Navigation:} Path planning for automated warehouse forklifts or domestic vacuum cleaners.
+    \item \textbf{Neighborhood Package Delivery:} Local routing for delivery trucks within a localized zip code.
+\end{itemize}
+
+\subsection*{Real Example: High-Speed PCB Drilling Optimization}
+\textbf{Scenario:} A manufacturing line needs to drill $n = 10,000$ micro-vias on a silicon wafer. The drilling head moves in 2D space. The total production throughput is directly limited by the travel time of the drill head between via locations.
+\textbf{Model:} Euclidean TSP. Drill coordinates are points in 2D space. A fast, high-quality tour is required to minimize motor wear and cycle time.
+\textbf{Why PTAS matters:} Even a 5\% reduction in tour distance translates to thousands of dollars saved daily in high-volume electronics manufacturing. By employing a quadtree-based PTAS, we partition the drill grid recursively, optimize clusters locally, and merge them into an overall near-optimal toolpath.
+
+\section{Tight Example: Shifting Bottleneck}
+If we do not shift the quadtree boundaries, a simple configuration of points can yield a poor approximation. Consider two parallel rows of points placed very close to one another, but separated by the root division line $x = x_{mid}$. Without shifting, the algorithm is forced to solve the left half and right half independently and then merge them. The merge step must connect across the boundary line, forcing a long loop that increases the cost, whereas a simple zigzag pattern crossing the boundary line many times would be optimal. Shifting the quadtree randomly ensures that with high probability, the main split line does not separate these tightly coupled rows.
+
+\section{Exercises}
+\begin{exercise}
+Prove that for a quadtree cell of width $W$, if we place $m$ equally spaced portals on each boundary line, the distance from any point on a boundary to its nearest portal is at most $W / (2m)$.
+\end{exercise}
+\begin{exercise}
+Explain why the number of ways to match $2k$ portals into $k$ disjoint paths is $(2k)! / (2^k k!)$.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 12: INTRODUCTION TO LP-DUALITY (matches Vazirani Ch. 12)
+% ============================================================
+\setcounter{chapter}{11}
+\chapter{Introduction to LP-Duality}
+\label{ch:lp_duality}
+
+\section{Intuition: Two Sides of the Same Coin}
+
+\begin{intuitionbox}
+\textbf{Primal-Dual Intuition:} Every minimization problem has a maximization ``dual'' that provides lower bounds. The primal variables are the algorithm's decisions (which sets to pick, which vertices to cover). The dual variables are \emph{prices} or \emph{charges} assigned to constraints (elements to cover, edges to cut).
+
+\textbf{Weak Duality:} Any feasible dual solution gives a lower bound on the primal optimum. This is the engine of approximation algorithms — we construct primal and dual solutions together, ensuring the primal cost is within a constant factor of the dual value.
+\end{intuitionbox}
+
+\section{The LP-Duality Theorem}
+
+\begin{theorem}[LP Duality]
+Let primal (P) be $\min \{c^T x : Ax \geq b, x \geq 0\}$ and dual (D) be $\max \{b^T y : A^T y \leq c, y \geq 0\}$. Then:
+\begin{enumerate}
+    \item \textbf{Weak Duality:} $c^T x \geq b^T y$ for all feasible $x, y$
+    \item \textbf{Strong Duality:} If (P) has finite optimum, so does (D), and $\min = \max$
+    \item \textbf{Complementary Slackness:} $x_i^* (c - A^T y^*)_i = 0$ and $y_j^* (A x^* - b)_j = 0$
+\end{enumerate}
+\end{theorem}
+
+\section{Min-Max Relations as LP Duality}
+
+Classic theorems are LP duality in disguise:
+\begin{itemize}
+    \item \textbf{Max-flow Min-cut:} Primal = max flow, Dual = min cut
+    \item \textbf{König-Egerváry:} Primal = max matching, Dual = min vertex cover (bipartite)
+    \item \textbf{Menger's Theorem:} Max disjoint paths = Min separator
+\end{itemize}
+
+\section{Two Fundamental Algorithm Design Techniques}
+
+\begin{enumerate}
+    \item \textbf{Rounding (Chapters 14, 16-21):} Solve LP relaxation, round fractional $x^*$ to integer $\hat{x}$. Approximation factor $\leq$ integrality gap.
+    \item \textbf{Primal-Dual Schema (Chapters 13, 22-23):} Construct primal and dual solutions simultaneously. Start with dual $y=0$, increase until a constraint becomes tight, then add corresponding primal variable.
+\end{enumerate}
+
+\subsection{Integrality Gap}
+
+The integrality gap of an LP relaxation is $\sup \frac{\text{IP opt}}{\text{LP opt}}$. No rounding-based algorithm can beat the integrality gap.
+
+\section{Python: Simple Simplex Solver}
+
+\begin{lstlisting}[style=python, caption=Simplex for Small LPs]
+class Simplex:
+    """Maximize c^T x s.t. Ax <= b, x >= 0"""
+    def __init__(self, A, b, c):
+        self.m, self.n = len(A), len(A[0])
+        self.A, self.b, self.c = A, b, c
+    
+    def solve(self):
+        # Add slack variables, build tableau
+        tab = [self.A[i] + [1 if j==i else 0 for j in range(self.m)] + [self.b[i]]
+               for i in range(self.m)]
+        tab.append([-ci for ci in self.c] + [0]*self.m + [0])
+        
+        while True:
+            # Entering variable (most negative in obj row)
+            entering = min(range(self.n + self.m), key=lambda j: tab[-1][j])
+            if tab[-1][entering] >= -1e-9: break
+            
+            # Leaving variable (min ratio test)
+            leaving = min(range(self.m), 
+                key=lambda i: tab[i][-1]/tab[i][entering] if tab[i][entering] > 1e-9 else float('inf'))
+            if tab[leaving][entering] <= 1e-9: return None, float('inf')
+            
+            # Pivot
+            piv = tab[leaving][entering]
+            tab[leaving] = [v/piv for v in tab[leaving]]
+            for i in range(self.m + 1):
+                if i != leaving:
+                    factor = tab[i][entering]
+                    tab[i] = [tab[i][j] - factor*tab[leaving][j] for j in range(len(tab[0]))]
+        
+        x = [0]*self.n
+        for i in range(self.m):
+            for j in range(self.n + self.m):
+                if abs(tab[i][j] - 1) < 1e-9 and all(abs(tab[r][j]) < 1e-9 for r in range(self.m+1) if r != i):
+                    if j < self.n: x[j] = tab[i][-1]
+        return x, tab[-1][-1]
+\end{lstlisting}
+
+\section{Exercises}
+\begin{exercise}
+Write the dual of the Set Cover LP and interpret the variables as prices.
+\end{exercise}
+\begin{exercise}
+Show that the integrality gap of the Set Cover LP is $H_n$.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 13: SET COVER VIA DUAL FITTING (matches Vazirani Ch. 13)
+% ============================================================
+\setcounter{chapter}{12}
+\chapter{Set Cover via Dual Fitting}
+\label{ch:setcover_dual}
+
+\section{Intuition: Prices as Dual Variables}
+
+\begin{intuitionbox}
+\textbf{Dual Fitting:} The greedy algorithm assigns a \emph{price} to each element when it's covered. These prices don't form a feasible dual solution (they may violate $\sum_{e \in S} \text{price}(e) \leq c(S)$). But if we scale all prices down by $H_n$, they \emph{do} become feasible! This proves the $H_n$ bound without explicitly solving the LP.
+\end{intuitionbox}
+
+\section{Dual of Set Cover LP}
+
+Primal: $\min \sum_S c(S) x_S$ s.t. $\sum_{S \ni e} x_S \geq 1 \ \forall e$, $x_S \geq 0$
+
+Dual: $\max \sum_e y_e$ s.t. $\sum_{e \in S} y_e \leq c(S) \ \forall S$, $y_e \geq 0$
+
+\subsection{Dual-Fitting Analysis of Greedy}
+
+\begin{theorem}
+The prices $y_e$ assigned by the greedy algorithm, scaled by $1/H_n$, form a feasible dual solution.
+\end{theorem}
+\begin{proof}
+When element $e$ is covered, there are $k$ uncovered elements. Its price $\leq \OPT/k$. Summing over all elements in any set $S$: at most $\OPT \cdot H_n$. Scaling by $1/H_n$ makes dual feasible.
+\end{proof}
+
+\subsection{Can the Guarantee Be Improved?}
+
+Feige (1998): No polynomial-time algorithm achieves $(1-\epsilon)\ln n$ unless NP $\subseteq$ DTIME$(n^{\log\log n})$. Greedy is essentially optimal.
+
+\section{Generalizations}
+
+\subsection{Constrained Set Multicover}
+Each element $e$ has requirement $r_e$. Greedy with $H_{nr}$ bound where $r = \max r_e$.
+
+\subsection{Dual Fitting for Multicover}
+Prices assigned per unit of coverage. Same analysis extends.
+
+\section{Other Algorithms for Set Cover}
+
+\begin{table}[H]
+\centering
+\caption{Set Cover Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Greedy & $H_n$ & Combinatorial \\
+LP Rounding (Ch. 14) & $f$ (max frequency) & LP Rounding \\
+Primal-Dual (Ch. 22) & $f$ & Primal-Dual Schema \\
+Randomized Rounding & $O(\log n)$ & LP + Randomization \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Set Cover (f-approx)]
+def set_cover_primal_dual(universe, sets, costs):
+    """f-approx for Set Cover via Primal-Dual."""
+    covered = set()
+    y = {e: 0.0 for e in universe}
+    picked = []
+    
+    # Precompute sets containing each element
+    sets_containing = {e: [] for e in universe}
+    for s, se in sets.items():
+        for e in se:
+            if e in universe:
+                sets_containing[e].append(s)
+    
+    while covered != universe:
+        e = next(iter(universe - covered))
+        
+        # Raise y[e] until some set becomes tight
+        while True:
+            min_slack = float('inf')
+            tight_set = None
+            for s in sets_containing[e]:
+                slack = costs[s] - sum(y[ee] for ee in sets[s] if ee in universe)
+                if slack < min_slack:
+                    min_slack = slack
+                    tight_set = s
+            
+            if min_slack <= 1e-9: break
+            y[e] += min_slack
+            
+            for s in sets_containing[e]:
+                slack = costs[s] - sum(y[ee] for ee in sets[s] if ee in universe)
+                if abs(slack) < 1e-9:
+                    tight_set = s
+                    break
+            if tight_set: break
+        
+        if tight_set and tight_set not in picked:
+            picked.append(tight_set)
+            covered.update(sets[tight_set])
+    
+    return picked
+\end{lstlisting}
+
+\section{Exercises}
+\begin{exercise}
+Show greedy set cover achieves $H_k$ where $k = \max |S_i|$.
+\end{exercise}
+\begin{exercise}
+Give a factor-$f$ algorithm where $f$ is maximum element frequency.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 14: ROUNDING APPLIED TO SET COVER (matches Vazirani Ch. 14)
+% ============================================================
+\setcounter{chapter}{13}
+\chapter{Rounding Applied to Set Cover}
+\label{ch:setcover_rounding}
+
+\section{Intuition: Threshold Rounding}
+
+\begin{intuitionbox}
+\textbf{LP Rounding:} Solve the LP relaxation, get fractional $x^*_S$. Pick all sets with $x^*_S \geq 1/f$ where $f$ is maximum element frequency. Since each element appears in at most $f$ sets, and $\sum_{S \ni e} x^*_S \geq 1$, at least one set containing $e$ must have $x^*_S \geq 1/f$. So $e$ is covered!
+\end{intuitionbox}
+
+\section{LP Relaxation for Set Cover}
+
+\[
+\min \sum_S c(S) x_S \quad \text{s.t.} \quad \sum_{S \ni e} x_S \geq 1 \ \forall e, \quad x_S \geq 0
+\]
+
+\begin{algorithmdef}[Set Cover via LP Rounding — Factor $f$]
+\begin{enumerate}
+    \item Solve LP relaxation, get optimal $x^*$
+    \item Let $f = \max_e |\{S : e \in S\}|$ (maximum frequency)
+    \item Pick all sets with $x^*_S \geq 1/f$
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This gives an $f$-approximation for Set Cover.
+\end{theorem}
+\begin{proof}
+For any $e$, $\sum_{S \ni e} x^*_S \geq 1$. With at most $f$ terms, at least one $x^*_S \geq 1/f$, so $e$ is covered. Cost $\leq f \sum c(S) x^*_S = f \cdot \OPT_{LP} \leq f \cdot \OPT_{IP}$.
+\end{proof}
+
+\subsection{Vertex Cover via LP Rounding (Factor 2)}
+
+Vertex Cover is Set Cover with $f=2$ (each edge in exactly 2 sets). LP rounding gives a clean 2-approximation.
+
+\begin{algorithmdef}[Vertex Cover via LP Rounding — Factor 2]
+\begin{enumerate}
+    \item Solve LP: $\min \sum_v x_v$ s.t. $x_u + x_v \geq 1 \ \forall (u,v) \in E$, $x_v \geq 0$
+    \item Pick all vertices with $x_v \geq 1/2$
+\end{enumerate}
+\end{algorithmdef}
+
+This matches the combinatorial 2-approximation from Chapter 1 but via LP duality.
+
+\subsection{Integrality Gap}
+
+The integrality gap of the Set Cover LP is $H_n$ (tight example from Chapter 2). So no rounding-based algorithm can beat $H_n$.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=LP Rounding for Set Cover]
+def set_cover_lp_rounding(universe, sets, costs):
+    """f-approx for Set Cover via LP Rounding."""
+    x, opt = set_cover_lp(universe, sets, costs)
+    if not x: return [], 0.0
+    
+    S = list(sets.keys())
+    f = max(sum(1 for s in S if e in sets[s]) for e in universe)
+    threshold = 1.0 / f
+    
+    picked = [s for i, s in enumerate(S) if x[i] >= threshold]
+    total_cost = sum(costs[s] for s in picked)
+    return picked, total_cost
+
+def vertex_cover_lp_rounding(graph):
+    """2-approx for Vertex Cover via LP Rounding."""
+    # Map to Set Cover to solve via Dual LP
+    edges = [(u,v) for u in graph for v in graph[u] if u < v]
+    universe = set(range(len(edges)))
+    edge_to_idx = {e: i for i, e in enumerate(edges)}
+    
+    vertices = list(graph.keys())
+    sets = {v: {edge_to_idx[(min(v,w), max(v,w))] for w in graph[v]} 
+            for v in vertices}
+    costs = {v: 1.0 for v in vertices}
+    
+    x, opt = set_cover_lp(universe, sets, costs)
+    return {vertices[i] for i in range(len(vertices)) if x[i] >= 0.5}
+\end{lstlisting}
+
+\section{Exercises}
+\begin{exercise}
+Show that the integrality gap of the Set Cover LP is $H_n$.
+\end{exercise}
+\begin{exercise}
+Prove that the LP rounding for Vertex Cover gives a 2-approximation.
+\end{exercise}
+
+
+
+% ============================================================
+% CHAPTER 15: WEIGHTED VERTEX COVER VIA PRIMAL-DUAL (matches Vazirani Ch. 15)
+% ============================================================
+\setcounter{chapter}{14}
+\chapter{Weighted Vertex Cover via Primal-Dual}
+\label{ch:weighted_vertex_cover_pd}
+
+\section{Intuition: The Classical Schema}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The primal-dual schema is one of the most powerful paradigms for designing approximation algorithms. Starting with a feasible dual solution (initially set to zero) and an infeasible primal solution (initially empty), the algorithm iteratively increases the dual variables of unsatisfied constraints until one or more dual constraints become tight. The tight constraints dictate which primal variables should be set. This ensures that we construct a primal cover whose cost is bounded by a constant factor of the dual objective value (which serves as a lower bound on the optimal primal cost).
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with non-negative vertex weights $w_v \ge 0$ for each $v \in V$, the \emph{Weighted Vertex Cover} problem is to find a subset of vertices $U \subseteq V$ of minimum total weight such that every edge in $E$ has at least one endpoint in $U$.
+
+The problem is NP-hard. We seek a 2-approximation using the LP primal-dual schema.
+
+\section{Algorithm and Python Implementation}
+We implement the primal-dual schema: we initialize $y_e = 0$ for all $e \in E$, and for any uncovered edge, we raise its dual variable $y_e$ until a vertex becomes tight.
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Schema for Weighted Vertex Cover]
+def vertex_cover_primal_dual(vertices, edges, weights):
+    """Primal-Dual 2-approximation for Weighted Vertex Cover."""
+    y = {(min(u, v), max(u, v)): 0.0 for u, v in edges}
+    vertex_dual_sums = {v: 0.0 for v in vertices}
+    cover = set()
+    
+    for u, v in edges:
+        e = (min(u, v), max(u, v))
+        if u not in cover and v not in cover:
+            slack_u = weights[u] - vertex_dual_sums[u]
+            slack_v = weights[v] - vertex_dual_sums[v]
+            raise_amount = min(slack_u, slack_v)
+            
+            y[e] += raise_amount
+            vertex_dual_sums[u] += raise_amount
+            vertex_dual_sums[v] += raise_amount
+            
+            if abs(vertex_dual_sums[u] - weights[u]) < 1e-9:
+                cover.add(u)
+            if abs(vertex_dual_sums[v] - weights[v]) < 1e-9:
+                cover.add(v)
+    return cover, y
+\end{lstlisting}
+
+\section{Analysis: Factor 2 Approximation}
+Let the primal LP be:
+\[
+\min \sum_{v \in V} w_v x_v \quad \text{s.t.} \quad x_u + x_v \ge 1 \; (\forall (u,v) \in E), \quad x_v \ge 0
+\]
+The dual LP is:
+\[
+\max \sum_{e \in E} y_e \quad \text{s.t.} \quad \sum_{e \ni v} y_e \le w_v \; (\forall v \in V), \quad y_e \ge 0
+\]
+By construction, our algorithm ensures that for any selected vertex $v \in \text{cover}$, its dual constraint is tight: $\sum_{e \ni v} y_e = w_v$.
+Thus, the total weight of the selected cover is:
+\[
+\sum_{v \in \text{cover}} w_v = \sum_{v \in \text{cover}} \sum_{e \ni v} y_e \le 2 \sum_{e \in E} y_e
+\]
+where the factor of 2 arises because each edge $e = (u,v)$ can have at most both of its endpoints in the cover. By weak duality, $\sum_{e \in E} y_e \le \text{OPT}$, which guarantees that:
+\[
+\text{Cost}(\text{cover}) \le 2 \cdot \text{OPT}
+\]
+This proves that the primal-dual algorithm is a 2-approximation.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Network Security:} Minimizing the cost of monitoring nodes to cover all communication links (edges).
+    \item \textbf{Resource Optimization:} Selecting the cheapest routers/servers to cover all transmission paths.
+    \item \textbf{Facilities Protection:} Placing guards at vertices of a street network to observe all streets.
+\end{itemize}
+
+\subsection*{Real Example: Network Traffic Monitoring with Cost Constraints}
+\textbf{Scenario:} An ISP wants to monitor all optical fiber links (edges) connecting a set of routers (vertices). Placing monitoring software on router $v$ costs $w_v$. The ISP wants to cover all links while minimizing the software licensing cost.
+\textbf{Model:} Weighted Vertex Cover. Routers are vertices, fiber links are edges. Primal-Dual algorithm finds the near-optimal router subset to monitor.
+\textbf{Why Primal-Dual matters:} LP solvers can be computationally expensive and may return fractional values requiring complex rounding. The primal-dual schema runs in linear time $O(|V| + |E|)$ and provides a fast, integer, and guaranteed factor 2 solution, which is ideal for real-time traffic monitoring systems.
+
+\section{Tight Example: Star Graph and Complete Bipartite Graph}
+Consider a star graph with center vertex $0$ and leaf vertices $1, 2, \dots, k$. Let the center have weight $w_0 = k$, and each leaf have weight $w_i = 1$. The optimal vertex cover is $\{0\}$ with cost $k$.
+If we process the edges $(0, 1), (0, 2), \dots, (0, k)$ in order, the primal-dual algorithm will raise $y_{(0,i)}$ to $1.0$ for each edge, tighting the leaves $1, \dots, k$ and the center vertex $0$ simultaneously. The algorithm can include both the center and all leaves in the cover, yielding a total cost of $k + k = 2k$. The ratio is $2k / k = 2$, showing the factor 2 bound is tight.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the primal-dual vertex cover algorithm is exactly equivalent to the local-ratio vertex cover algorithm (which scales vertex weights by subtraction).
+\end{exercise}
+\begin{exercise}
+Construct a tight example for the primal-dual algorithm on a path graph of length 5 with vertex weights $1, 1, 1, 1, 1$.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 16: RANDOMIZED ROUNDING (matches Vazirani Ch. 16)
+% ============================================================
+\setcounter{chapter}{15}
+\chapter{Randomized Rounding}
+\label{ch:randomized_rounding}
+
+\section{Intuition: LP Probabilistic Rounding}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} LP rounding algorithms are often deterministic (e.g. Set Cover rounding at threshold $1/f$). However, for problems like Max-SAT, deterministic thresholding can be suboptimal. Instead, we can interpret the fractional LP variables $y_i^*$ as \emph{probabilities}. By setting variable $x_i$ to True with probability $y_i^*$, we ensure that the expected value of the assignment is close to the LP optimal value. By combining this with a simple coin-flip assignment (which performs well on large clauses, while LP rounding performs well on small clauses), we obtain a $3/4$-approximation.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given $n$ boolean variables $x_1, \dots, x_n$ and $m$ clauses $C_1, \dots, C_m$ with weights $w_j \ge 0$, the \emph{Maximum Satisfiability} (Max-SAT) problem is to find a truth assignment to the variables that maximizes the total weight of satisfied clauses.
+
+The decision version of SAT is NP-complete. Max-SAT is NP-hard. We seek a randomized $(1 - 1/e)$-approximation (approx. 0.632) via LP rounding, and a $3/4$-approximation (0.75) by choosing the best of LP rounding and random coin-flipping.
+
+\section{Algorithm and Python Implementation}
+We formulate the Max-SAT problem as an integer program, solve its LP relaxation using our Simplex solver, and perform randomized rounding.
+
+\begin{lstlisting}[style=python, caption=Randomized Rounding for Max-SAT]
+def solve_max_sat_lp(n_vars, clauses, weights):
+    """Formulate and solve LP relaxation for Max-SAT."""
+    n_cols = n_vars + len(clauses)
+    A, b = [], []
+    
+    # Clause constraints: z_j - sum_{i in C_j^+} y_i + sum_{i in C_j^-} y_i <= |C_j^-|
+    for j, (pos, neg) in enumerate(clauses):
+        row = [0.0] * n_cols
+        row[n_vars + j] = 1.0
+        for i in pos: row[i] = -1.0
+        for i in neg: row[i] = 1.0
+        A.append(row)
+        b.append(float(len(neg)))
+        
+    # Bounds: y_i <= 1, z_j <= 1
+    for i in range(n_vars):
+        row = [0.0] * n_cols; row[i] = 1.0; A.append(row); b.append(1.0)
+    for j in range(len(clauses)):
+        row = [0.0] * n_cols; row[n_vars + j] = 1.0; A.append(row); b.append(1.0)
+        
+    c = [0.0] * n_cols
+    for j in range(len(clauses)): c[n_vars + j] = weights[j]
+    
+    solver = Simplex(A, b, c)
+    sol, obj = solver.solve()
+    return sol[:n_vars], sol[n_vars:], obj
+
+def randomized_rounding_max_sat(n_vars, clauses, weights, y_lp, trials=200):
+    """Applies randomized rounding to LP variable values."""
+    best_weight, best_assignment, total_weight = -1.0, [], 0.0
+    for _ in range(trials):
+        assignment = [random.random() < y_lp[i] for i in range(n_vars)]
+        weight = evaluate_assignment(assignment, clauses, weights)
+        total_weight += weight
+        if weight > best_weight:
+            best_weight, best_assignment = weight, assignment
+    return best_assignment, total_weight / trials, best_weight
+\end{lstlisting}
+
+\section{Analysis: Approximations and Probability}
+For a clause $C_j$ with size $k$, let its index set of positive and negative literals be $C_j^+$ and $C_j^-$. The LP relaxation includes:
+\[
+z_j \le \sum_{i \in C_j^+} y_i + \sum_{i \in C_j^-} (1 - y_i)
+\]
+Under randomized rounding, variable $x_i$ is set to True with probability $y_i^*$. The probability that clause $C_j$ is satisfied is:
+\[
+1 - \prod_{i \in C_j^+} (1 - y_i^*) \prod_{i \in C_j^-} y_i^*
+\]
+Using the arithmetic-geometric mean inequality, we can show this probability is at least:
+\[
+1 - \left(1 - \frac{z_j}{k}\right)^k
+\]
+Since $g(z) = 1 - (1 - z/k)^k$ is concave and $g(0) = 0, g(1) = 1 - (1 - 1/k)^k$, we have:
+\[
+\text{Pr}[C_j \text{ is satisfied}] \ge \left[1 - \left(1 - \frac{1}{k}\right)^k\right] z_j \ge \left(1 - \frac{1}{e}\right) z_j
+\]
+Summing over all clauses, the expected weight satisfied is $\ge (1 - 1/e) \cdot \text{OPT}_{LP} \approx 0.632 \cdot \text{OPT}$.
+For small clauses, this bound is much higher (e.g. $k=1$ gives $1 \cdot z_j$, $k=2$ gives $0.75 \cdot z_j$). For large clauses, the coin-flip baseline satisfies them with probability $1 - 2^{-k}$. Choosing the best of both algorithms yields a $3/4$-approximation (Goemans-Williamson 1994).
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Satisfiability Solvers:} Finding satisfying assignments for weighted CNF formulas in hardware design verification.
+    \item \textbf{Database Query Optimizers:} Selecting indexing configurations to satisfy as many query filters as possible under physical memory limits.
+    \item \textbf{Digital Circuit Testing:} Generating test vectors that cover maximum gate combinations.
+\end{itemize}
+
+\subsection*{Real Example: Database Query Filter Maximization}
+\textbf{Scenario:} A high-speed database system (e.g., Google Bigtable) has a set of query requests. Each query is a set of boolean filters (clauses). We want to index a subset of fields (variables) to accelerate the queries. If we index a field, it satisfies positive/negative constraints. We want to maximize queries served.
+\textbf{Model:} Max-SAT. Variables are index decisions, clauses are query filters. Randomized LP rounding finds the indexing strategy that maximizes query throughput.
+\textbf{Why Randomized Rounding matters:} Real systems cannot wait for exact integer programming solvers. Randomized LP rounding runs instantly by solving a continuous linear program and sampling variable assignments, guaranteeing that query satisfaction is within a fraction of the absolute optimal configuration.
+
+\section{Tight Example: Clause Size Bottleneck}
+A tight example for the $(1-1/e)$ bound consists of $n$ independent single-literal clauses of the form $(x_i)$ for $i=1, \dots, n$, each with weight 1.
+The LP relaxation will set $y_i^* = 1.0$ and $z_i^* = 1.0$, achieving objective $n$.
+Randomized rounding sets each $x_i$ to True with probability $y_i^* = 1.0$, satisfying all clauses exactly.
+Wait! What if we have a clause $(x_1 \lor x_2 \lor \dots \lor x_k)$? As $k$ grows, the factor $1 - (1 - 1/k)^k$ converges to $1 - 1/e \approx 0.632$. This shows the asymptotic bound is tight for large clauses under pure randomized rounding, but the coin-flip algorithm achieves $1 - 2^{-k} \approx 1$ for large clauses, which compensates for this bottleneck.
+
+\section{Exercises}
+\begin{exercise}
+Prove that for any clause $C_j$ of size $k$, the probability that it is satisfied by the coin-flip assignment is $1 - 2^{-k}$.
+\end{exercise}
+\begin{exercise}
+Show that if all clauses in a Max-SAT instance have size 1, the randomized rounding algorithm finds an exact optimal solution.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 17: CHERNOFF BOUNDS (matches Vazirani Ch. 17)
+% ============================================================
+\setcounter{chapter}{16}
+\chapter{Chernoff Bounds}
+\label{ch:chernoff_bounds}
+
+\section{Intuition: Concentration and Coverage}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} In many randomized algorithms, we want to prove that the sum of independent random variables is close to its expected value. This is achieved by \emph{Chernoff bounds}, which show that the tails of the distribution decay exponentially. When applying randomized rounding to Set Cover, we select set $S$ with probability $x_S^*$. To ensure all elements are covered, we run this selection $O(\log n)$ times. Chernoff bounds allow us to prove that the probability of failing to cover any element is extremely small, and the total cost remains within $O(\log n) \cdot \text{OPT}$.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given a universe $U$ of $n$ elements and a collection of sets $\mathcal{S}$ with costs $c_S$, the \emph{Set Cover} problem is to find a minimum cost subcollection of $\mathcal{S}$ that covers $U$.
+
+The problem is NP-hard. We seek a randomized $O(\log n)$-approximation that succeeds with high probability ($1 - 1/n$).
+
+\section{Algorithm and Python Implementation}
+We solve the LP relaxation of Set Cover and perform multiround randomized rounding, repeating the selection process $t = c \ln n$ times.
+
+\begin{lstlisting}[style=python, caption=Randomized Rounding for Set Cover]
+def set_cover_randomized_rounding(universe, sets, costs, x_lp, c_factor=1.5):
+    """Set Cover randomized rounding using multiround selection."""
+    n_elements = len(universe)
+    t = int(math.ceil(c_factor * math.log(max(2, n_elements))))
+    chosen_sets = set()
+    
+    # Run t independent selection rounds
+    for _ in range(t):
+        for s_idx in range(len(sets)):
+            if random.random() < x_lp[s_idx]:
+                chosen_sets.add(s_idx)
+                
+    covered = set()
+    for s_idx in chosen_sets:
+        covered.update(sets[s_idx])
+    cost = sum(costs[s_idx] for s_idx in chosen_sets)
+    return chosen_sets, cost, (covered == universe)
+\end{lstlisting}
+
+\section{Analysis: Chernoff Bounds and Set Cover}
+Let $x^*$ be the optimal fractional LP solution. For each element $e$, the LP constraint is $\sum_{S \ni e} x_S^* \ge 1$.
+In a single round of randomized rounding, the probability that element $e$ is not covered is:
+\[
+\prod_{S \ni e} (1 - x_S^*) \le \prod_{S \ni e} e^{-x_S^*} = e^{-\sum_{S \ni e} x_S^*} \le e^{-1} \le \frac{1}{e}
+\]
+If we repeat the selection process independently for $t = c \ln n$ rounds, the probability that $e$ remains uncovered is at most:
+\[
+(e^{-1})^t = e^{-c \ln n} = \frac{1}{n^c}
+\]
+Applying the union bound over all $n$ elements, the probability that *any* element is left uncovered is:
+\[
+\text{Pr}[\text{some element is uncovered}] \le n \cdot \frac{1}{n^c} = \frac{1}{n^{c-1}}
+\]
+For $c = 2$, this probability is at most $1/n$, meaning all elements are covered with probability at least $1 - 1/n$.
+The expected cost of the chosen sets is:
+\[
+E[\text{Cost}] \le t \cdot \sum_{S \in \mathcal{S}} c_S x_S^* = O(\log n) \cdot \text{OPT}_{LP}
+\]
+By Markov's inequality, the cost is within $2 t \cdot \text{OPT}_{LP}$ with probability at least $1/2$. By running the algorithm a few times, we obtain a valid cover of cost $O(\log n) \cdot \text{OPT}$ with high probability.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Randomized Load Balancing:} Allocating client queries to servers to prevent congestion and guarantee even CPU distribution.
+    \item \textbf{High-Speed Packet Routing:} Selecting paths for network packets to minimize link congestions.
+    \item \textbf{Coverage of Wireless Sensor Networks:} Activating sensor groups to cover a target field while maximizing battery life.
+\end{itemize}
+
+\subsection*{Real Example: Query Server Load Balancing}
+\textbf{Scenario:} A web service (e.g., Netflix) distributes incoming client requests to $m = 100$ parallel servers. Each request demands CPU. We want to distribute them randomly such that no server has CPU load exceeding $1.2 \times$ average.
+\textbf{Model:} Randomized load allocation. The sum of task loads on server $i$ is a sum of independent random variables.
+\textbf{Why Chernoff Bounds matter:} Without bounds, a simple random assignment could lead to temporary server crash due to congestion. Chernoff bounds mathematically guarantee that with $n = 10,000$ requests, the probability that any single server becomes overloaded is less than $10^{-6}$, ensuring system reliability.
+
+\section{Tight Example: The Grid Partition}
+Consider a universe of $n$ elements where sets are structured such that the LP solution is $x_S^* = 1/k$ for $k$ overlapping sets. If we only run 1 round of randomized rounding, each element has a failure probability of $(1-1/k)^k \approx 1/e \approx 0.368$. For $n = 1000$ elements, this would leave about 368 elements uncovered. Running $t = c \ln n$ rounds is mathematically required to bring this down to zero.
+
+\section{Exercises}
+\begin{exercise}
+State the multiplicative Chernoff bound for the sum of independent Bernoulli trials $X = \sum X_i$ with mean $\mu$.
+\end{exercise}
+\begin{exercise}
+Prove that if we run $t = 3 \ln n$ rounds, the probability that any element remains uncovered is at most $1/n^2$.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 18: SEMIDEFINITE PROGRAMMING (matches Vazirani Ch. 18)
+% ============================================================
+\setcounter{chapter}{17}
+\chapter{Semidefinite Programming}
+\label{ch:sdp_maxcut}
+
+\section{Intuition: High-Dimensional Embeddings and Hyperplanes}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The Max-Cut problem is NP-hard and cannot be approximated within $16/17 \approx 0.941$ unless P=NP. However, we can obtain a $0.878$ approximation using Semidefinite Programming (SDP). We model the vertices as unit vectors on a sphere in $\mathbb{R}^n$. Instead of assigning each vertex to 0 or 1, we embed them such that connected vertices are pushed as far apart as possible (minimizing their dot products). To round these vectors, we choose a random hyperplane. Vertices on one side of the hyperplane form one partition, and the rest form the other.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with non-negative edge weights $w_{ij} \ge 0$, the \emph{Maximum Cut} (Max-Cut) problem is to find a partition of the vertices $V$ into two sets $S$ and $V \setminus S$ such that the total weight of edges crossing the partition is maximized.
+
+The problem is NP-hard. We seek a randomized $0.878$-approximation using the Goemans-Williamson algorithm.
+
+\section{Algorithm and Python Implementation}
+We implement a lightweight gradient projection optimizer to find the vector embeddings on the unit sphere and apply randomized hyperplane rounding to partition the vertices.
+
+\begin{lstlisting}[style=python, caption=Goemans-Williamson Max-Cut Algorithm]
+def optimize_max_cut_vectors(n, edges, weights, dim=8, lr=0.05, epochs=200):
+    """Finds unit vector embeddings in R^dim for Max-Cut."""
+    v = []
+    for _ in range(n):
+        vec = [random.gauss(0.0, 1.0) for _ in range(dim)]
+        mag = math.sqrt(sum(x*x for x in vec))
+        v.append([x/mag for x in vec])
+        
+    for _ in range(epochs):
+        new_v = []
+        for i in range(n):
+            grad = [0.0] * dim
+            for (u, val_v), weight in zip(edges, weights):
+                if u == i:
+                    for k in range(dim): grad[k] += weight * v[val_v][k]
+                elif val_v == i:
+                    for k in range(dim): grad[k] += weight * v[u][k]
+            updated = [v[i][k] - lr * grad[k] for k in range(dim)]
+            mag = math.sqrt(sum(x*x for x in updated))
+            new_v.append(v[i] if mag < 1e-9 else [x/mag for x in updated])
+        v = new_v
+    return v
+
+def goemans_williamson_max_cut(n, edges, weights, vectors, trials=500):
+    """Applies randomized hyperplane rounding to partition vertices."""
+    dim = len(vectors[0])
+    best_weight, best_assignment = -1.0, []
+    for _ in range(trials):
+        r = [random.gauss(0.0, 1.0) for _ in range(dim)]
+        mag = math.sqrt(sum(x*x for x in r))
+        r = [x/mag for x in r]
+        
+        assignment = [1 if sum(vectors[i][k] * r[k] for k in range(dim)) >= 0 else 0 for i in range(n)]
+        weight = compute_cut_weight(assignment, edges, weights)
+        if weight > best_weight:
+            best_weight, best_assignment = weight, assignment
+    return best_assignment, best_weight
+\end{lstlisting}
+
+\section{Analysis: The 0.878 Performance Bound}
+We formulate the Max-Cut problem as a quadratic integer program: maximize $\frac{1}{2} \sum_{(i,j) \in E} w_{ij} (1 - y_i y_j)$ s.t. $y_i \in \{-1, 1\}$.
+By relaxing the scalar variables $y_i \in \{-1, 1\}$ to unit vectors $v_i \in \mathbb{R}^n$, we obtain the Semidefinite Programming relaxation:
+\[
+\text{Maximize} \quad \frac{1}{2} \sum_{(i,j) \in E} w_{ij} (1 - v_i \cdot v_j) \quad \text{s.t.} \quad v_i \cdot v_i = 1 \; (\forall i \in V)
+\]
+Under Goemans-Williamson randomized rounding, we choose a random unit vector $r$ and partition based on $\text{sign}(v_i \cdot r)$. The probability that edge $(i, j)$ is cut (i.e. $v_i, v_j$ are separated by the random hyperplane) is exactly $\theta_{ij}/\pi$, where $\theta_{ij} = \arccos(v_i \cdot v_j)$ is the angle between $v_i$ and $v_j$.
+By linearity of expectation, the expected weight of the cut is:
+\[
+E[\text{Weight}] = \sum_{(i,j) \in E} w_{ij} \frac{\theta_{ij}}{\pi}
+\]
+Comparing this term-by-term with the SDP relaxation's objective, we bound the ratio:
+\[
+\alpha = \min_{\theta \in [0, \pi]} \frac{\theta/\pi}{(1 - \cos \theta)/2} \approx 0.87856
+\]
+Thus, the expected cut weight is at least $0.878 \cdot \text{OPT}_{SDP} \ge 0.878 \cdot \text{OPT}$.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Statistical Physics (Ising Spin Glasses):} Finding the minimum energy configuration (ground state) of spin glass magnetic systems.
+    \item \textbf{VLSI Layout and Cross-Talk Minimization:} Splitting circuit gates into two layers to minimize inter-layer connection crossovers.
+    \item \textbf{Image Segmentation:} Clustering pixels into foreground and background by maximizing cut weight along contrast boundaries.
+\end{itemize}
+
+\subsection*{Real Example: VLSI Circuit Cross-Talk Minimization}
+\textbf{Scenario:} A chip designer (e.g. Intel) layouts $n = 5,000$ transistors on a chip. Certain pairs of wires have high electrical interference (cross-talk) if routed on the same layer. The designer wants to partition transistors into two separate routing layers to minimize same-layer cross-talk.
+\textbf{Model:} Max-Cut. Transistors are vertices, cross-talk interferences are edge weights. Layer division is the cut. The Goemans-Williamson algorithm partitions the circuit layers.
+\textbf{Why SDP matters:} Deterministic algorithms easily get stuck in local minima on highly interconnected networks. The Goemans-Williamson SDP algorithm embeds the netlist geometrically, placing highly interfering nodes on opposite sides of a sphere, and partitions them globally with a guaranteed $87.8\%$ efficiency.
+
+\section{Tight Example: The 5-Cycle Graph}
+Consider the 5-cycle graph $C_5$ with unit edge weights. The optimal Max-Cut value is 4 (achieved by partitioning into sets of size 2 and 3).
+The optimal 2D embedding of $C_5$ places the vectors on a circle with angle $\theta = 4\pi/5 = 144^\circ$ between adjacent nodes.
+The SDP objective value is:
+\[
+\text{OPT}_{SDP} = 5 \cdot \frac{1 - \cos(144^\circ)}{2} \approx 5 \cdot 0.9045 = 4.5225
+\]
+The expected cut weight under random hyperplane rounding is:
+\[
+E[\text{Weight}] = 5 \cdot \frac{144^\circ}{180^\circ} = 4.0000
+\]
+The ratio of the expected cut weight to the SDP optimal value is $4.0 / 4.5225 \approx 0.8844$, which is extremely close to the theoretical bound of $0.878$.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the probability that two unit vectors $v_i, v_j$ are separated by a random hyperplane $r$ is exactly $\theta_{ij}/\pi$, where $\theta_{ij} = \arccos(v_i \cdot v_j)$.
+\end{exercise}
+\begin{exercise}
+Show that for a triangle graph $K_3$ with unit weights, the optimal Max-Cut is 2, while the SDP relaxation value is 2.25. What is the ratio?
+\end{exercise}
+
+
+% ============================================================
+% CHAPTER 19: MULTIWAY CUT LP ROUNDING (matches Vazirani Ch. 19)
+% ============================================================
+\setcounter{chapter}{18}
+\chapter{Multiway Cut LP Rounding}
+\label{ch:multiway_rounding}
+
+\section{Intuition: Simplex-Distance LP and CKR Rounding}
+
+\begin{intuitionbox}
+\textbf{Multiway Cut LP Rounding:} For the Multiway Cut problem, the standard isolating cuts algorithm yields a $2(1-1/k)$-approximation. However, by formulating the problem as a Simplex-distance LP relaxation (where vertices are embedded in a simplex and edge costs correspond to distances on this simplex), we can achieve a better approximation ratio of 1.5. 
+
+\textbf{CKR Rounding:} The Călinescu-Karloff-Rabani (CKR) randomized rounding scheme selects a random permutation of terminals and a random radius $r \in (0, 1/2)$, assigning each vertex to the first terminal in the permutation whose distance is within the radius. This global randomized routing scheme cuts edges with probability bounded by $1.5$ times their LP contribution.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with non-negative edge costs $c_e \ge 0$, and a set of $k$ terminals $S = \{s_1, \dots, s_k\} \subseteq V$, the \emph{Multiway Cut} problem is to find a minimum cost subset of edges $C \subseteq E$ whose removal disconnects every terminal from all other terminals.
+
+The problem is NP-hard. We seek a randomized 1.5-approximation using the Simplex-distance LP relaxation and CKR randomized rounding.
+
+\section{Algorithm and Python Implementation}
+We solve the LP relaxation by formulating the primal-dual problem and then apply the CKR randomized rounding.
+
+\begin{lstlisting}[style=python, caption=CKR Randomized Rounding for Multiway Cut]
+def calinescu_karloff_rabani_rounding(
+    n, edges, costs, terminals, d, trials=500
+):
+    """Applies CKR randomized rounding to multiway cut LP solution."""
+    k = len(terminals)
+    best_cost = float('inf')
+    best_cut = []
+    
+    for _ in range(trials):
+        perm = list(range(k))
+        random.shuffle(perm)
+        r = random.uniform(0.0, 0.5)
+        
+        assignment = [-1] * n
+        for v in range(n):
+            assigned = False
+            for idx in perm:
+                if d[v][idx] > r:
+                    assignment[v] = idx
+                    assigned = True
+                    break
+            if not assigned:
+                assignment[v] = perm[-1]
+                
+        cut = []
+        cost = 0.0
+        for e, (u, v) in enumerate(edges):
+            if assignment[u] != assignment[v]:
+                cut.append((u, v))
+                cost += costs[e]
+                
+        if cost < best_cost:
+            best_cost, best_cut = cost, cut
+            
+    return best_cut, best_cost
+\end{lstlisting}
+
+\section{Analysis: Simplex Embedding and 1.5 Bound}
+In the Simplex-distance LP relaxation, we associate a vector $d(v) = (d_1(v), \dots, d_k(v))$ with each vertex $v$ representing its location in the $k$-dimensional simplex.
+The distance between $u$ and $v$ is measured as $\frac{1}{2} \sum_{i=1}^k |d_i(u) - d_i(v)|$.
+The LP is formulated as:
+\[
+\min \frac{1}{2} \sum_{(u,v) \in E} c_{uv} \sum_{i=1}^k |d_i(u) - d_i(v)|
+\]
+subject to:
+\[
+\sum_{i=1}^k d_i(v) = 1 \; (\forall v \in V), \quad d_i(s_j) = 1 \text{ if } i = j \text{ else } 0, \quad d_i(v) \ge 0 \; (\forall v, i)
+\]
+Under the CKR randomized rounding scheme, the probability that edge $e=(u,v)$ is cut is bounded by:
+\[
+\Pr[\text{edge } (u,v) \text{ is cut}] \le 1.5 \cdot \left( \frac{1}{2} \sum_{i=1}^k |d_i(u) - d_i(v)| \right)
+\]
+By linearity of expectation, the expected cost of the cut is at most $1.5 \cdot \text{OPT}_{LP} \le 1.5 \cdot \text{OPT}$.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Distributed Database Partitioning:} Dividing data tables across $k$ database servers to minimize the cost of cross-server transactional joins.
+    \item \textbf{Image Segmentation with Multiple Labels:} Segmenting an image into $k$ distinct semantic regions (e.g. road, sky, car) while minimizing boundary mismatch costs.
+    \item \textbf{Network Domain Isolation:} Separating $k$ secure networks sharing a common backbone using firewall boundaries.
+\end{itemize}
+
+\subsection*{Real Example: Image Segmentation with Multiple Labels}
+\textbf{Scenario:} A self-driving car's vision system (e.g. Waymo) segments an HD camera frame into $k=3$ categories: Road, Obstacles, and Background. Pixels represent vertices, and adjacent pixels are connected by edges with weight proportional to color similarity.
+\textbf{Model:} Multiway Cut on a grid graph, where the terminals represent seeds for each category.
+\textbf{Why CKR LP Rounding matters:} Isolating cuts can yield asymmetric boundary segments that cross high-contrast edges. The CKR Simplex LP embedding places pixel classes smoothly on a probability simplex, and the random permutation and radius ensure globally consistent cuts. This results in segment boundaries that align naturally with physical object edges.
+
+\section{Tight Example: The Spokes Graph}
+Consider a graph of 6 vertices: 3 terminals $0, 2, 4$, a central vertex $5$, and outer cycle vertices. 
+The LP relaxation allows the central vertex to be embedded at $(1/3, 1/3, 1/3)$, yielding an LP value of 12.0.
+\textbf{CKR Rounding Results:} With high probability, the cut total cost is 12.0, which matches the optimal integral cut value of 12.0.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the Simplex-distance LP relaxation for $k=3$ terminals has an integrality gap of at most 12/11.
+\end{exercise}
+\begin{exercise}
+Implement a deterministic version of the CKR rounding by trying all possible permutations and picking the best threshold.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 21: STEINER FOREST (matches Vazirani Ch. 21)
+% ============================================================
+\setcounter{chapter}{20}
+\chapter{Steiner Forest}
+\label{ch:steiner_forest}
+
+\section{Intuition: Connective Components and Reverse Deletion}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} Steiner Forest generalizes Steiner Tree by requiring only specific pairs of terminals $(s_i, t_i)$ to be connected. In the primal-dual schema, we raise dual variables $y_C$ associated with active connected components (components separating at least one terminal pair). When an edge becomes tight, it is added to the forest. This can cause redundant connections. The crucial step is a \emph{reverse-delete phase}: we examine chosen edges in reverse order and delete any edge that is not necessary to maintain the connection of all terminal pairs.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with edge costs $c_e \ge 0$, and a set of $k$ terminal pairs $S = \{(s_1, t_1), \dots, (s_k, t_k)\}$, the \emph{Steiner Forest} problem is to find a minimum cost subgraph $F \subseteq E$ such that $s_i$ and $t_i$ are in the same connected component of $(V, F)$ for every $i \in \{1, \dots, k\}$.
+
+The problem is NP-hard. It admits a 2-approximation using the Agrawal-Klein-Ravi (AKR) primal-dual algorithm.
+
+\section{Algorithm and Python Implementation}
+We implement the AKR primal-dual schema: growing dual variables for active components, adding tight edges to the forest, and performing reverse-delete pruning.
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Steiner Forest Algorithm]
+def steiner_forest_primal_dual(vertices, edges, pairs):
+    """AKR Primal-Dual 2-approximation for Steiner Forest."""
+    chosen_edges = []
+    L = {i: 0.0 for i in range(len(edges))} # Dual values on edges
+    
+    while True:
+        components = find_components(vertices, chosen_edges)
+        node_to_comp = {node: idx for idx, comp in enumerate(components) for node in comp}
+        
+        # Identify active components
+        active = set()
+        for s, t in pairs:
+            if node_to_comp[s] != node_to_comp[t]:
+                active.add(node_to_comp[s])
+                active.add(node_to_comp[t])
+                
+        if not active: break
+        
+        # Find next tight edge
+        best_delta, best_edge_indices = float('inf'), []
+        edge_rates = []
+        for i, (u, v, cost) in enumerate(edges):
+            if (u, v) in chosen_edges or (v, u) in chosen_edges:
+                edge_rates.append(0); continue
+            c_u, c_v = node_to_comp[u], node_to_comp[v]
+            if c_u == c_v:
+                edge_rates.append(0); continue
+            rate = (1 if c_u in active else 0) + (1 if c_v in active else 0)
+            edge_rates.append(rate)
+            if rate > 0:
+                delta = (cost - L[i]) / rate
+                if delta < best_delta:
+                    best_delta, best_edge_indices = delta, [i]
+                elif abs(delta - best_delta) < 1e-9:
+                    best_edge_indices.append(i)
+                    
+        for i in range(len(edges)):
+            if edge_rates[i] > 0: L[i] += best_delta * edge_rates[i]
+        for idx in best_edge_indices:
+            u, v, _ = edges[idx]
+            chosen_edges.append((u, v))
+            
+    # Reverse-delete pruning
+    pruned = list(chosen_edges)
+    for edge in reversed(chosen_edges):
+        pruned.remove(edge)
+        if not all(is_connected(vertices, pruned, s, t) for s, t in pairs):
+            pruned.append(edge)
+    return pruned
+\end{lstlisting}
+
+\section{Analysis: Factor 2 Approximation}
+The LP relaxation of the Steiner Forest problem is:
+\[
+\min \sum_{e \in E} c_e x_e \quad \text{s.t.} \quad \sum_{e \in \delta(U)} x_e \ge 1 \; (\forall U \in \mathcal{A}), \quad x_e \ge 0
+\]
+where $\mathcal{A}$ is the set of all cuts separating some terminal pair. The dual LP is:
+\[
+\max \sum_{U \in \mathcal{A}} y_U \quad \text{s.t.} \quad \sum_{U: e \in \delta(U)} y_U \le c_e \; (\forall e \in E), \quad y_U \ge 0
+\]
+For any edge $e$ in the final pruned forest $F$, the dual constraint is tight: $\sum_{U: e \in \delta(U)} y_U = c_e$. Thus, the cost of the forest is:
+\[
+\sum_{e \in F} c_e = \sum_{e \in F} \sum_{U: e \in \delta(U)} y_U = \sum_{U \in \mathcal{A}} y_U \cdot \text{deg}_F(U)
+\]
+where $\text{deg}_F(U)$ is the number of edges of $F$ crossing the cut $\delta(U)$. To prove a 2-approximation, it suffices to show that at any step:
+\[
+\sum_{U \text{ active}} \text{deg}_F(U) \le 2 \cdot |\{U \text{ active}\}|
+\]
+This holds because if we contract each component of $G=(V, F)$ to a single node, the active components form a set of nodes in a forest where every leaf node is active, and no node of degree 1 is inactive (due to reverse-delete pruning). The average degree of active nodes in such a forest is at most 2. Thus, $\sum_{e \in F} c_e \le 2 \sum y_U \le 2 \cdot \text{OPT}$.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Telecommunication Network Design:} Laying cables to connect specific pairs of client servers while sharing as much infrastructure as possible.
+    \item \textbf{VLSI Routing:} Connecting pairs of terminals on an integrated circuit layout.
+    \item \textbf{Highways Construction:} Planning transport pathways that must connect disjoint cities of interest.
+\end{itemize}
+
+\subsection*{Real Example: Multi-Tenant Virtual Private Network Routing}
+\textbf{Scenario:} A network provider (e.g. Equinix) needs to establish secure connections for multiple enterprise tenants in a shared data center network. Tenant A needs to connect location $s_1$ to $t_1$. Tenant B needs to connect $s_2$ to $t_2$. The provider pays a cost for each physical link activated and wants to minimize the total link cost.
+\textbf{Model:} Steiner Forest. Each tenant represents a terminal pair. Activated links form the forest. The AKR primal-dual algorithm finds the cost-minimizing shared routing tree/forest.
+\textbf{Why Primal-Dual matters:} Connecting tenants individually leads to redundant duplicate links (e.g. each running its own Steiner Tree), which is highly suboptimal. Steiner Forest optimizes the entire topology globally. The primal-dual schema runs in polynomial time and guarantees a cost within a factor of 2 of the absolute optimum, even for huge transit networks.
+
+\section{Tight Example: The Redundant Cycle}
+Consider a cycle of three nodes $0, 1, 2$ with edges $(0, 1)$ of cost 1, $(1, 2)$ of cost 2, and $(2, 0)$ of cost 1. We want to connect the terminal pair $(0, 2)$.
+The optimal solution is to select $(2, 0)$ with cost 1.
+If we run primal-dual, the active components are $\{0\}$ and $\{2\}$. Edge slacks decrease. Edge $(0, 1)$ and $(2, 0)$ both have rate 1 and cost 1. They become tight simultaneously and are added to $F$. The components merge into $\{0, 1, 2\}$, which connects $0$ and $2$.
+The set of chosen edges is $F = \{(0, 1), (2, 0)\}$.
+Now we run reverse delete:
+If we try deleting $(2, 0)$, $0$ and $2$ are not connected, so we keep it. If we try deleting $(0, 1)$, $0$ and $2$ are not connected, so we keep it.
+The final forest has edges $(0, 1)$ and $(2, 0)$ with total cost $1 + 1 = 2$.
+The optimal cost is 1 (the single edge $(2, 0)$ of cost 1).
+The approximation ratio is $2 / 1 = 2$. This matches the theoretical factor of 2.
+
+\section{Exercises}
+\begin{exercise}
+Construct an example showing that without the reverse-delete phase, the primal-dual algorithm can perform arbitrarily worse than a 2-approximation.
+\end{exercise}
+\begin{exercise}
+Prove that the Steiner Forest LP relaxation has an integrality gap of exactly 2.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 26: MAX 2-SAT (matches Vazirani Ch. 26)
+% ============================================================
+\setcounter{chapter}{25}
+\chapter{Max 2-SAT}
+\label{ch:max_2sat}
+
+\section{Intuition: Anchoring with a True Variable}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} Max 2-SAT generalizes Max-SAT by restricting every clause to contain at most 2 literals. While Goemans-Williamson achieves a $0.878$ ratio for Max-Cut, we can apply Semidefinite Programming (SDP) to Max 2-SAT by introducing a special \emph{anchor vector} $v_0$ representing the value True. For each variable $x_i$, we associate a unit vector $v_i$. Literals $x_i$ and $\neg x_i$ are represented by $v_i$ and $-v_i$. Under randomized rounding, we partition based on whether a vector $v_i$ falls on the same side of a random hyperplane as the anchor vector $v_0$. This yields a guaranteed $0.878$ approximation, which can be further improved to $0.940$ using LLZ rounding.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given $n$ boolean variables $x_1, \dots, x_n$ and $m$ clauses $C_1, \dots, C_m$, each containing at most 2 literals, with weights $w_j \ge 0$, the \emph{Maximum 2-Satisfiability} (Max 2-SAT) problem is to find a truth assignment to the variables that maximizes the total weight of satisfied clauses.
+
+The problem is NP-hard. We seek a randomized $0.878$-approximation using SDP.
+
+\section{Algorithm and Python Implementation}
+We solve the Max 2-SAT SDP relaxation by optimizing vectors $v_0, v_1, \dots, v_n$ on the unit sphere and rounding using sign matching against $v_0$.
+
+\begin{lstlisting}[style=python, caption=SDP Max 2-SAT Algorithm]
+def optimize_max_2sat_vectors(n_vars, clauses, weights, dim=8, lr=0.05, epochs=300):
+    """Optimizes vectors v_0, v_1, ..., v_n on the unit sphere in R^dim."""
+    n_vectors = n_vars + 1
+    v = []
+    for _ in range(n_vectors):
+        vec = [random.gauss(0.0, 1.0) for _ in range(dim)]
+        mag = math.sqrt(sum(x*x for x in vec))
+        v.append([x/mag for x in vec])
+        
+    for _ in range(epochs):
+        new_v = []
+        for i in range(n_vectors):
+            grad = [0.0] * dim
+            for j, (l1, l2) in enumerate(clauses):
+                w = weights[j]
+                s1 = 1 if l1 > 0 else -1
+                v1_idx = abs(l1)
+                if l2 == 0:
+                    if i == 0:
+                        for k in range(dim): grad[k] += 0.5 * w * s1 * v[v1_idx][k]
+                    elif i == v1_idx:
+                        for k in range(dim): grad[k] += 0.5 * w * s1 * v[0][k]
+                else:
+                    s2 = 1 if l2 > 0 else -1
+                    v2_idx = abs(l2)
+                    if i == 0:
+                        for k in range(dim): grad[k] += 0.25 * w * (s1 * v[v1_idx][k] + s2 * v[v2_idx][k])
+                    elif i == v1_idx:
+                        for k in range(dim): grad[k] += 0.25 * w * (s1 * v[0][k] - s1 * s2 * v[v2_idx][k])
+                    elif i == v2_idx:
+                        for k in range(dim): grad[k] += 0.25 * w * (s2 * v[0][k] - s1 * s2 * v[v1_idx][k])
+            updated = [v[i][k] + lr * grad[k] for k in range(dim)]
+            mag = math.sqrt(sum(x*x for x in updated))
+            new_v.append(v[i] if mag < 1e-9 else [x/mag for x in updated])
+        v = new_v
+    return v
+\end{lstlisting}
+
+\section{Analysis: The SDP Relaxation and LLZ Rounding}
+We map each variable $x_i$ to a unit vector $v_i \in \mathbb{R}^{n+1}$ and introduce a unit vector $v_0$ representing True. The literal $l$ has vector $v(l) = v_i$ if $l = x_i$, and $v(l) = -v_i$ if $l = \neg x_i$.
+The truth value of literal $l$ is relaxed to $\frac{1 + v(l) \cdot v_0}{2}$.
+For a clause $l_1 \lor l_2$, its satisfaction probability is relaxed to:
+\[
+\text{val}(l_1 \lor l_2) = \frac{3 + v(l_1) \cdot v_0 + v(l_2) \cdot v_0 - v(l_1) \cdot v(l_2)}{4}
+\]
+The SDP relaxation is:
+\[
+\text{Maximize} \quad \sum_{C_j = l_1 \lor l_2} w_j \text{val}(C_j) \quad \text{s.t.} \quad v_i \cdot v_i = 1 \; (\forall i \in \{0, \dots, n\})
+\]
+Under randomized rounding, we choose a random unit vector $r \in \mathbb{R}^{n+1}$. Variable $x_i$ is set to True if $\text{sign}(v_i \cdot r) = \text{sign}(v_0 \cdot r)$, and False otherwise.
+Goemans and Williamson proved that the probability that clause $l_1 \lor l_2$ is satisfied is at least $0.878$ times its relaxed SDP value.
+Lewin, Livnat, and Zwick (LLZ 2002) improved this by using a non-linear rotation function on the angles before hyperplane rounding, achieving a $0.940$-approximation.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Logic Circuit Optimization:} Maximizing the number of gate checks satisfied in automated hardware testing.
+    \item \textbf{Probabilistic Reasoning (Markov Logic Networks):} Finding the most probable explanation (MAP state) for a set of weighted boolean rules.
+    \item \textbf{Social Network Balance:} Finding stable divisions of communities containing positive (friendship) and negative (hostility) links.
+\end{itemize}
+
+\subsection*{Real Example: Hardware Logic Testing and Verification}
+\textbf{Scenario:} An ASIC designer (e.g. AMD) verifies a circuit block. Due to pin constraints, we can only verify a subset of logic gates simultaneously. Each test case checks 2-literal logic clauses. We want to select a test vector maximizing checked gates.
+\textbf{Model:} Max 2-SAT. Checked gates are clauses. Goemans-Williamson SDP algorithm generates the test vectors.
+\textbf{Why SDP matters:} Circuits are highly dense networks. Simple greedy strategies fail to find configurations that satisfy a high percentage of gates. SDP provides a global geometric optimization, ensuring test coverage is within a small fraction of the absolute mathematical maximum.
+
+\section{Tight Example: The All-Combinations Cycle}
+Consider 2 variables $x_1, x_2$ and 4 clauses containing all possible sign combinations: $(x_1 \lor x_2)$, $(\neg x_1 \lor x_2)$, $(x_1 \lor \neg x_2)$, and $(\neg x_1 \lor \neg x_2)$.
+No boolean assignment can satisfy all 4 clauses, so the optimal Max 2-SAT weight is 3.
+The SDP relaxation optimizes vectors $v_1, v_2$ and $v_0$.
+The objective value is $\sum_{j=0}^3 \frac{3 \pm v_1 \cdot v_0 \pm v_2 \cdot v_0 - v_1 \cdot v_2}{4} = 3 - v_1 \cdot v_2$.
+By placing $v_1, v_2$ orthogonal to each other ($v_1 \cdot v_2 = 0$) and setting their dot products with $v_0$ to maximize the sum, the SDP achieves a value of 3.
+Randomized hyperplane rounding splits the vectors, ensuring exactly 3 out of 4 clauses are satisfied. The ratio is $3/3 = 1.0$, showing perfect behavior on this symmetric instance.
+
+\section{Exercises}
+\begin{exercise}
+Show that if we assign $x_i$ to True with probability $(1 + v_i \cdot v_0)/2$, the expected number of satisfied clauses for single-literal clauses matches the LP/SDP value exactly.
+\end{exercise}
+\begin{exercise}
+Construct a Max 2-SAT instance with 3 variables and 6 clauses where the optimal assignment satisfies 5 clauses, and trace the vector updates.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 22: STEINER NETWORK (matches Vazirani Ch. 22/23)
+% ============================================================
+\setcounter{chapter}{21}
+\chapter{Steiner Network}
+\label{ch:steiner_network}
+
+\section{Intuition: LP Extreme Points and Iterative Rounding}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} Primal-dual schemas and randomized rounding are powerful, but some problems require a more direct structural exploitation of the LP relaxation. Kamal Jain (1998) introduced \emph{Iterative Rounding} for the Survivable Network Design Problem (SNDP). The key insight is that any extreme point (basic feasible solution) of the SNDP LP relaxation must contain at least one edge $e$ with fractional value $x_e^* \ge 1/2$. By rounding this edge up to 1, reducing the connectivity requirements, and solving the LP on the remaining graph iteratively, we obtain a guaranteed 2-approximation.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with edge costs $c_e \ge 0$, and connectivity requirements $r_{uv} \ge 0$ for each pair of vertices $u, v \in V$, the \emph{Steiner Network} (or Survivable Network Design) problem is to find a minimum cost subgraph $H \subseteq E$ containing at least $r_{uv}$ edge-disjoint paths between $u$ and $v$ for all $u, v \in V$.
+
+The problem is NP-hard. We seek a 2-approximation using Jain's iterative rounding algorithm.
+
+\section{Algorithm and Python Implementation}
+We solve the LP relaxation of SNDP by formulating its dual (which has a naturally feasible origin since edge costs are non-negative) and iteratively round edges with $x_e \ge 0.5$.
+
+\begin{lstlisting}[style=python, caption=Jain's Iterative Rounding Algorithm]
+def solve_sndp_lp_phase(n, edges, costs, r, fixed_edges):
+    """Solves the continuous LP relaxation for SNDP under current requirements."""
+    cuts = get_all_cuts(n)
+    n_cuts, n_edges = len(cuts), len(edges)
+    active_edges = [i for i in range(n_edges) if i not in fixed_edges]
+    n_active = len(active_edges)
+    
+    # Calculate requirements f(S) for each cut S
+    f = []
+    for cut in cuts:
+        val = max([req for (u, v), req in r.items() if (u in cut) != (v in cut)] + [0])
+        fixed_crossing = sum(1 for idx in fixed_edges if (edges[idx][0] in cut) != (edges[idx][1] in cut))
+        f.append(max(0, val - fixed_crossing))
+        
+    n_cols = n_cuts + n_active
+    A_dual, b_dual = [], []
+    for j, edge_idx in enumerate(active_edges):
+        u, v = edges[edge_idx]
+        row = [0.0] * n_cols
+        for s_idx, cut in enumerate(cuts):
+            if (u in cut) != (v in cut): row[s_idx] = 1.0
+        row[n_cuts + j] = -1.0
+        A_dual.append(row)
+        b_dual.append(costs[edge_idx])
+        
+    c_dual = [float(val) for val in f] + [-1.0] * n_active
+    solver = Simplex(A_dual, b_dual, c_dual)
+    dual_sol, dual_obj = solver.solve()
+    
+    final_obj = solver.obj_row
+    x = [0.0] * n_edges
+    for idx in fixed_edges: x[idx] = 1.0
+    for j, edge_idx in enumerate(active_edges):
+        x[edge_idx] = max(0.0, final_obj[n_cols + j])
+    return x
+\end{lstlisting}
+
+\section{Analysis: Jain's Theorem and Factor 2}
+The LP relaxation for the Steiner Network problem is:
+\[
+\min \sum_{e \in E} c_e x_e \quad \text{s.t.} \quad \sum_{e \in \delta(S)} x_e \ge f(S) \; (\forall S \subset V), \quad 0 \le x_e \le 1
+\]
+where $f(S) = \max_{u \in S, v \notin S} r_{uv}$.
+An extreme point (or basic feasible solution) of this LP is defined by a set of linearly independent tight cut constraints. Jain proved a fundamental structural property of these extreme points:
+\begin{theorem}[Jain 1998]
+For any connectivity requirement function $f$ that is weakly supermodular, any basic feasible solution to the LP relaxation has at least one edge $e$ with $x_e \ge 1/2$.
+\end{theorem}
+Based on this theorem, we round $x_e$ to 1, which increases its cost to $c_e \le 2 \cdot c_e x_e$. By induction on the iterations, the total cost of the rounded edges is bounded by:
+\[
+\sum_{e \in H} c_e \le 2 \cdot \text{OPT}_{LP} \le 2 \cdot \text{OPT}
+\]
+which proves that Jain's iterative rounding is a 2-approximation.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Survivable Network Design:} Laying communication links that can survive up to $k$ simultaneous link failures by maintaining $k$ disjoint paths between key nodes.
+    \item \textbf{Power Grid Design:} Constructing high-capacity power lines that ensure alternative routes during generator outages.
+    \item \textbf{Disaster Recovery Routing:} Deploying redundant emergency networks connecting key rescue centers.
+\end{itemize}
+
+\subsection*{Real Example: High-Availability Telecommunication Backbones}
+\textbf{Scenario:} A telecom operator (e.g. AT\&T) connects regional routing hubs. Certain hubs (e.g., Chicago and New York) require a high-availability channel with 3 edge-disjoint paths to survive up to 2 simultaneous fiber cuts. Other hubs only require 1 path.
+\textbf{Model:} Steiner Network. Hubs are vertices, connectivity requirements are $r_{uv} \in \{0, 1, 3\}$. Iterative rounding finds the optimal network.
+\textbf{Why Iterative Rounding matters:} Dual-based schemas or randomized rounding cannot handle high disjointness constraints ($r_{uv} \ge 3$) efficiently. Jain's iterative rounding algorithm handles general integer demands directly, ensuring a cost-efficient layout with a strict mathematical guarantee of being within $2 \times$ of the global optimum.
+
+\section{Tight Example: The Multi-Path Cycle}
+Consider a 4-node graph with edges $(0, 1), (1, 2), (2, 3), (3, 0)$ of costs $2, 3, 2, 3$, and a diagonal edge $(0, 2)$ of cost 4. Let the requirements be $r(0, 2) = 2$ and $r(1, 3) = 1$.
+The optimal integer solution is to select edges $(0, 1), (1, 2), (2, 3), (3, 0)$ with total cost $2 + 3 + 2 + 3 = 10$.
+Our iterative rounding algorithm solves the LP, rounds the diagonal edge $(0, 2)$ (since its LP value is $\ge 0.5$), and then rounds $(0, 1), (1, 2), (2, 3)$, yielding a total cost of $2 + 3 + 2 + 4 = 11$.
+The approximation ratio is $11/10 = 1.1$, which is well within the factor 2 performance bound.
+
+\section{Exercises}
+\begin{exercise}
+Prove that if all connectivity requirements $r_{uv}$ are at most 1, the Steiner Network problem is equivalent to the Steiner Forest problem.
+\end{exercise}
+\begin{exercise}
+Construct a basic feasible solution for a triangle graph with connectivity requirements 1, and show that at least one edge has $x_e \ge 1/2$.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 23: FEEDBACK VERTEX SET VIA PRIMAL-DUAL (matches Vazirani Ch. 23/24)
+% ============================================================
+\setcounter{chapter}{22}
+\chapter{Feedback Vertex Set via Primal-Dual}
+\label{ch:fvs_primal_dual}
+
+\section{Intuition: Cycle Hitting and Vertex Budgets}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The Feedback Vertex Set (FVS) problem can be viewed as a Hitting Set problem where we want to select a minimum weight set of vertices that intersects every cycle. In the primal-dual framework, we grow dual variables $y_C$ associated with cycles. To achieve a 2-approximation, we grow duals on cycles in the remaining graph, but we scale the dual pressure rate on vertex $v$ by $d(v) - 1$, where $d(v)$ is its degree. When a vertex's weight constraint is tight, it is added to the feedback set. Finally, we prune redundant vertices in reverse order of addition.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with non-negative vertex weights $w_v \ge 0$, the \emph{Feedback Vertex Set} (FVS) problem is to find a minimum weight subset of vertices $F \subseteq V$ such that $G \setminus F$ is acyclic (a forest).
+
+The problem is NP-hard. It admits a 2-approximation using the Bafna-Berman-Fujito primal-dual algorithm.
+
+\section{Algorithm and Python Implementation}
+We implement the primal-dual algorithm: recursively pruning vertices of degree $\le 1$, finding active cycles, growing duals at rate $d(v) - 1$, and running a reverse-delete phase.
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Feedback Vertex Set]
+def primal_dual_fvs(vertices, edges, weights):
+    """Bafna-Berman-Fujito primal-dual 2-approximation for undirected FVS."""
+    w = dict(weights)
+    S = []
+    active_vertices = set(vertices)
+    active_edges = list(edges)
+    
+    while True:
+        # Clean vertices of degree <= 1
+        while True:
+            deg = {v: 0 for v in active_vertices}
+            for u, v in active_edges:
+                deg[u] += 1; deg[v] += 1
+            to_remove = [v for v in active_vertices if deg[v] <= 1]
+            if not to_remove: break
+            for v in to_remove:
+                active_vertices.remove(v)
+                active_edges = [(u, x) for u, x in active_edges if u != v and x != v]
+                
+        if not active_vertices: break
+        cycle = find_any_cycle(active_vertices, active_edges)
+        if not cycle: break
+        
+        deg = {v: 0 for v in active_vertices}
+        for u, v in active_edges:
+            deg[u] += 1; deg[v] += 1
+            
+        # Grow dual on cycle: rate is d(v) - 1
+        delta = float('inf')
+        for v in cycle:
+            rate = deg[v] - 1
+            if rate > 0: delta = min(delta, w[v] / rate)
+            
+        # Update weights and find tight vertex
+        tight_vertex = None
+        for v in cycle:
+            rate = deg[v] - 1
+            w[v] -= delta * rate
+            if w[v] <= 1e-9 and tight_vertex is None:
+                tight_vertex = v
+        if tight_vertex is None: tight_vertex = cycle[0]
+        
+        S.append(tight_vertex)
+        active_vertices.remove(tight_vertex)
+        active_edges = [(u, v) for u, v in active_edges if u != tight_vertex and v != tight_vertex]
+        
+    # Reverse-delete pruning
+    pruned = list(S)
+    for v in reversed(S):
+        pruned.remove(v)
+        if not is_acyclic(set(vertices), edges, set(pruned)):
+            pruned.append(v)
+    return pruned
+\end{lstlisting}
+
+\section{Analysis: Dual Pressure and Factor 2}
+The FVS problem can be relaxed to the following linear program:
+\[
+\min \sum_{v \in V} w_v x_v \quad \text{s.t.} \quad \sum_{v \in C} x_v \ge 1 \; (\forall \text{ cycles } C), \quad x_v \ge 0
+\]
+The dual LP is:
+\[
+\max \sum_{C} y_C \quad \text{s.t.} \quad \sum_{C: v \in C} y_C \le w_v \; (\forall v \in V), \quad y_C \ge 0
+\]
+For any vertex $v$ in the final pruned feedback set $F$, its dual constraint is tight: $\sum_{C: v \in C} y_C (d_C(v) - 1) = w_v$, where $d_C(v) - 1$ is the dual growth rate. The total cost of the FVS is:
+\[
+\sum_{v \in F} w_v = \sum_{v \in F} \sum_{C: v \in C} y_C (d_C(v) - 1) = \sum_{C} y_C \sum_{v \in F \cap C} (d_C(v) - 1)
+\]
+A clean combinatorial charging argument shows that for any cycle $C$ chosen by the algorithm, after reverse-delete pruning, the remaining feedback set vertices in $C$ satisfy:
+\[
+\sum_{v \in F \cap C} (d_C(v) - 1) \le 2
+\]
+This holds because $F$ is a minimal feedback vertex set, and the average degree of vertices in any minimal feedback set on a cycle is at most 2. Thus, the total cost is:
+\[
+\sum_{v \in F} w_v \le 2 \sum_{C} y_C \le 2 \cdot \text{OPT}_{LP} \le 2 \cdot \text{OPT}
+\]
+which proves the 2-approximation factor.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Operating Systems and Databases Deadlock Resolution:} Identifying and terminating a minimum cost set of processes to break resource wait-for cycles.
+    \item \textbf{VLSI Circuit Layout:} Breaking feedback loops in synchronous logic circuits by opening minimum gate nodes.
+    \item \textbf{Hierarchical Social Networking:} Identifying influential users whose removal makes the relationship network hierarchical and free of opinion-echo loops.
+\end{itemize}
+
+\subsection*{Real Example: Operating System Deadlock Resolution}
+\textbf{Scenario:} A database server running on Microsoft SQL Server detects a set of deadlocks among transactional processes (represented as a wait-for cycle graph). Terminating transaction $v$ incurs a cost $w_v$ (proportional to rolled-back CPU work). We want to break all deadlocks with minimum rollback cost.
+\textbf{Model:} Feedback Vertex Set. Transactions are vertices, wait-for dependencies are edges. The primal-dual algorithm finds the minimum cost rollback set.
+\textbf{Why Primal-Dual matters:} Rollbacks must happen in real time. Running exact integer programs is too slow and can block database execution. The primal-dual schema runs in polynomial time, finds tight feedback sets instantly, and guarantees that the rolled-back work cost is at most twice the optimal minimum rollback cost.
+
+\section{Tight Example: Intersecting Loops}
+Consider a graph of vertices $0, 1, 2, 3, 4$ and two cycles $0-1-2-0$ and $2-3-4-2$ sharing vertex 2. Let the shared vertex 2 have weight $w_2 = 3.0$ and other vertices have weight $10.0$.
+The optimal feedback set is $\{2\}$ with cost 3.0.
+If we run our primal-dual algorithm, it finds cycle $0-1-2-0$. The degrees are $d(0)=2, d(1)=2, d(2)=4$. The rates are $d(v)-1$, which gives rates $1, 1, 3$.
+The maximum step is $\Delta = \min(10/1, 10/1, 3/3) = 1.0$.
+Vertex 2's weight decreases to $3 - 3 \times 1 = 0$, making it tight. We add 2 to $S$.
+Removing vertex 2 leaves the graph acyclic (with components $0-1$ and $3-4$), so the algorithm terminates.
+The final feedback set is $\{2\}$ with cost 3.0, matching the optimal cost.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the Feedback Vertex Set problem is equivalent to the Hitting Set problem on the family of all cycles in the graph.
+\end{exercise}
+\begin{exercise}
+Prove that the FVS LP relaxation has an integrality gap of exactly 2 on a simple cycle graph of length $n$ with unit vertex weights.
+\end{exercise}
+
+% ============================================================
+% CHAPTER 24: FACILITY LOCATION (matches Vazirani Ch. 24)
+% ============================================================
+\setcounter{chapter}{23}
+\chapter{Facility Location}
+\label{ch:facility}
+
+\section{Intuition: Primal-Dual with Filters}
+
+\begin{intuitionbox}
+\textbf{Facility Location:} We open facilities (pay $f_i$) and connect clients to nearest open facility (pay $c_{ij}$). The LP relaxation has facility variables $y_i$ and connection variables $x_{ij}$.
+
+\textbf{Primal-Dual (Jain-Vazirani):} Raise dual variables $\alpha_j$ for clients uniformly. When $\sum_j \alpha_j = f_i$ for some facility $i$, open it. When $\alpha_j = c_{ij}$ for some open facility, connect $j$ to $i$. This gives a 3-approximation.
+
+\textbf{LP Rounding (Shmoys-Tardos-Aardal):} Solve LP, filter clients with high connection cost, open facilities with $y_i \geq 1/2$, connect remaining clients. Also gives 3-approximation (improved to 1.5 for metric case by Byrka et al.).
+\end{intuitionbox}
+
+\section{Problem Definition}
+
+\begin{definition}[Uncapacitated Facility Location]
+Given facilities $F$ with opening costs $f_i$, clients $C$ with connection costs $c_{ij}$, find $S \subseteq F$ minimizing:
+\[
+\sum_{i \in S} f_i + \sum_{j \in C} \min_{i \in S} c_{ij}
+\]
+\end{definition}
+
+\section{Primal-Dual 3-Approximation}
+
+\begin{algorithmdef}[Facility Location — Factor 3 (Primal-Dual)]
+\begin{enumerate}
+    \item $\alpha_j = 0$ for all clients; all facilities closed
+    \item While unconnected clients exist:
+    \begin{enumerate}
+        \item Raise all $\alpha_j$ uniformly until some constraint becomes tight
+        \item If $\sum_{j \in \Gamma(i)} \alpha_j = f_i$, open facility $i$
+        \item If $\alpha_j = c_{ij}$ for open facility $i$, connect $j$ to $i$
+    \end{enumerate}
+    \item Output open facilities and connections
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This algorithm achieves a 3-approximation for Metric Facility Location.
+\end{theorem}
+
+\subsection{Other Algorithms}
+
+\begin{table}[H]
+\centering
+\caption{Facility Location Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Jain-Vazirani Primal-Dual & 3 & Primal-Dual Schema \\
+Shmoys-Tardos-Aardal LP Rounding & 3 & LP Rounding \\
+Byrka et al. (metric) & 1.5 & LP + Filtering + Matching \\
+Local Search (k-median) & $3+\epsilon$ & Local Search \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not exact?} Facility Location is NP-hard (reduction from Set Cover). The 1.5-approximation is current best for metric case; 1.463 is the lower bound (Guha-Khuller).
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Facility Location Primal-Dual]
+def facility_location_primal_dual(facilities, clients):
+    """3-approx for Facility Location (Jain-Vazirani)."""
+    alpha = {j: 0.0 for j in clients}
+    open_facilities = set()
+    connected = set()
+    active = set(facilities.keys())
+    
+    while len(connected) < len(clients):
+        # Find minimum delta to make constraint tight
+        min_delta = float('inf')
+        for i in active:
+            slack = facilities[i]['cost'] - sum(alpha[j] for j in clients 
+                if j not in connected and j in facilities[i]['clients'])
+            if slack < min_delta:
+                min_delta = slack
+        
+        for j in clients:
+            if j not in connected:
+                for i in active:
+                    if j in facilities[i]['clients']:
+                        slack = facilities[i]['clients'][j] - alpha[j]
+                        if slack < min_delta:
+                            min_delta = slack
+        
+        if min_delta == float('inf'): break
+        
+        # Raise all unconnected alphas
+        for j in clients:
+            if j not in connected:
+                alpha[j] += min_delta
+        
+        # Open tight facilities
+        for i in list(active):
+            if sum(alpha[j] for j in clients 
+                   if j not in connected and j in facilities[i]['clients']) >= facilities[i]['cost'] - 1e-9:
+                open_facilities.add(i)
+                active.remove(i)
+                for j in clients:
+                    if j not in connected and j in facilities[i]['clients']:
+                        connected.add(j)
+    
+    return open_facilities
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Supply chain:} Warehouse placement for retail
+    \item \textbf{Cloud computing:} Data center location
+    \item \textbf{Telecommunications:} Cell tower placement
+    \item \textbf{Emergency services:} Fire station / hospital location
+\end{itemize}
+
+\subsection*{Real Example: Amazon Fulfillment Center Placement}
+\textbf{Scenario:} Amazon wants to open $k=5$ new fulfillment centers in the US to serve $n=500$ zip-code demand regions. Each center has fixed opening cost $f_i$ (land, construction) and per-unit shipping cost $c_{ij}$ to region $j$.
+\textbf{Model:} Facilities = candidate locations (200 possible sites). Clients = 500 zip codes with demand $d_j$. Cost $f_i$ + $\sum_j c_{ij} \cdot d_j$. Metric: $c_{ij}$ = ground shipping cost (satisfies triangle inequality).
+\textbf{Why 3-approx matters:} If OPT = \$100M/year, our solution costs $\leq$ \$300M/year. In practice, Jain-Vazirani primal-dual often achieves $< 1.3\times$ OPT. The guarantee ensures no "catastrophic" placement.
+\textbf{Real constraint:} Centers must serve minimum volume to be profitable. This is \emph{capacitated facility location} — harder (no constant-factor unless $f_i$ uniform). Practical approach: open extra centers to handle capacity, then merge nearby ones.
+\textbf{Alternative:} $k$-median (exactly $k$ centers) — local search gives $3+\epsilon$ approx. Used when budget fixes $k$ but opening costs vary.
+
+\section{Exercises}
+\begin{exercise}
+Show that the LP relaxation integrality gap for metric facility location is at least 1.463.
+\end{exercise}
+\begin{exercise}
+Implement the $k$-median local search algorithm (swap open/closed facilities).
+\end{exercise}
+
+% ============================================================
+% CHAPTER 30: MULTICUT IN TREES (matches Vazirani Ch. 18)
+% ============================================================
+\setcounter{chapter}{29}
+\chapter{Multicut in Trees}
+\label{ch:tree_multicut}
+
+\section{Intuition: LCA Depth Sorting and Dual Growth}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The Multicut problem asks for a minimum cost set of edges whose removal disconnects given pairs of vertices. While NP-hard in general graphs, the problem in trees admits a simple and elegant primal-dual 2-approximation. We root the tree arbitrarily and compute the lowest common ancestor (LCA) for each pair. By processing the pairs in descending order of their LCA depth (from deepest to highest), we grow dual variables for uncut paths. When an edge becomes tight, we select the highest tight edge on the path (closest to the LCA) to maximize its overlap with other paths.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given a tree $T = (V, E)$ with non-negative edge costs $c_e \ge 0$, and a set of $k$ demand pairs $S = \{(s_1, t_1), \dots, (s_k, t_k)\}$, the \emph{Multicut in Trees} problem is to find a minimum cost subset of edges $C \subseteq E$ such that $s_i$ and $t_i$ are disconnected in $T \setminus C$ for all $i \in \{1, \dots, k\}$.
+
+The problem is NP-hard. It admits a 2-approximation using the tree-based primal-dual algorithm.
+
+\section{Algorithm and Python Implementation}
+We root the tree at vertex 0, sort the pairs by LCA depth, grow dual variables for uncut paths, select the highest tight edge, and apply reverse-delete pruning.
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Multicut in Trees]
+def multicut_in_trees(n, edges, costs, pairs):
+    """Primal-dual 2-approximation for Multicut in Trees."""
+    parent, depth = get_tree_properties(n, edges)
+    pair_lcas = [(depth[get_lca(u, v, parent, depth)], i) for i, (u, v) in enumerate(pairs)]
+    pair_lcas.sort(key=lambda x: x[0], reverse=True)
+    
+    edge_to_idx = {tuple(sorted(e)): idx for idx, e in enumerate(edges)}
+    load = [0.0] * len(edges)
+    chosen_edges = []
+    
+    for _, pair_idx in pair_lcas:
+        u, v = pairs[pair_idx]
+        path_edges = get_path_edges(u, v, parent)
+        if any(e in chosen_edges for e in path_edges): continue
+        
+        # Grow dual y_i for this pair
+        min_slack = float('inf')
+        best_edge = None
+        for e in path_edges:
+            e_idx = edge_to_idx[e]
+            slack = costs[e_idx] - load[e_idx]
+            if slack < min_slack:
+                min_slack, best_edge = slack, e
+            elif abs(slack - min_slack) < 1e-9:
+                # Break tie: choose higher edge (closer to root)
+                u1, v1 = e; u2, v2 = best_edge
+                if min(depth[u1], depth[v1]) < min(depth[u2], depth[v2]):
+                    best_edge = e
+                    
+        for e in path_edges:
+            load[edge_to_idx[e]] += min_slack
+        if best_edge is not None:
+            chosen_edges.append(best_edge)
+            
+    # Reverse-delete pruning
+    pruned = list(chosen_edges)
+    for e in reversed(chosen_edges):
+        pruned.remove(e)
+        if not all(any(pe in pruned for pe in get_path_edges(u, v, parent)) for u, v in pairs):
+            pruned.append(e)
+    return pruned
+\end{lstlisting}
+
+\section{Analysis: Factor 2 Approximation}
+The LP relaxation of Multicut in Trees is:
+\[
+\min \sum_{e \in E} c_e x_e \quad \text{s.t.} \quad \sum_{e \in P_i} x_e \ge 1 \; (\forall i \in \{1, \dots, k\}), \quad x_e \ge 0
+\]
+where $P_i$ is the unique path between $s_i$ and $t_i$. The dual LP is:
+\[
+\max \sum_{i=1}^k y_i \quad \text{s.t.} \quad \sum_{i: e \in P_i} y_i \le c_e \; (\forall e \in E), \quad y_i \ge 0
+\]
+For any edge $e$ in the final pruned cut $C$, the dual constraint is tight: $\sum_{i: e \in P_i} y_i = c_e$. Thus, the cost of the cut is:
+\[
+\sum_{e \in C} c_e = \sum_{e \in C} \sum_{i: e \in P_i} y_i = \sum_{i=1}^k y_i \cdot |C \cap P_i|
+\]
+To prove a 2-approximation, we show that for any pair $i$ where we grew a dual variable $y_i > 0$, the number of cut edges on its path satisfies $|C \cap P_i| \le 2$.
+Since we sorted pairs by LCA depth and chose the highest tight edge on the path $P_i$ (closest to $lca(i)$), any other cut edge on $P_i$ must belong to some path $P_j$ processed earlier, whose LCA is deeper. It can be shown that at most one such edge can lie on the branch from $s_i$ to $lca(i)$, and at most one on the branch from $t_i$ to $lca(i)$. Thus, the path $P_i$ contains at most 2 edges of $C$. Therefore:
+\[
+\sum_{e \in C} c_e \le 2 \sum_{i=1}^k y_i \le 2 \cdot \text{OPT}_{LP} \le 2 \cdot \text{OPT}
+\]
+which proves that the approximation ratio is exactly 2.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Network Subnet Isolation:} Placing firewalls on tree router links to isolate specific pairs of computers while minimizing link firewall costs.
+    \item \textbf{Content Delivery Networks (CDNs):} Placing proxy servers on tree routing nodes to decouple client-server tree paths.
+    \item \textbf{High-voltage Circuit Breakers:} Placing circuit breakers in tree-like electricity grids to isolate fault sources.
+\end{itemize}
+
+\subsection*{Real Example: Network Security Subnet Isolation}
+\textbf{Scenario:} An enterprise corporate network (e.g. Cisco) is structured as a tree. The security team wants to isolate specific pairs of sensitive subnets $(s_i, t_i)$ (e.g., Finance and Guest Wi-Fi) by installing hardware firewalls on the links. Installing a firewall on link $e$ costs $c_e$.
+\textbf{Model:} Multicut in Trees. Subnets are leaves, links are edges. The primal-dual algorithm finds the minimum cost link set to secure.
+\textbf{Why Primal-Dual matters:} Placing firewalls on every link is cost-prohibitive. Running integer programs is slow for huge corporate trees. The tree-based primal-dual algorithm runs in linear time and guarantees a security layout costing at most twice the absolute minimum firewall budget.
+
+\section{Tight Example: The Branching LCA}
+Consider a tree rooted at 0 with edges $(0, 1), (0, 2), (1, 3), (1, 4), (2, 5), (2, 6)$ of costs $2, 4, 1, 3, 2, 2$. Let the demand pairs be $(3, 4)$, $(5, 6)$, and $(3, 5)$.
+The optimal solution is to cut edges $(1, 3)$ and $(2, 5)$, with total cost $1 + 2 = 3$.
+If we run our primal-dual algorithm:
+- Pairs are sorted by LCA depth: $(3, 4)$ (LCA 1, depth 1) and $(5, 6)$ (LCA 2, depth 1) are processed first, then $(3, 5)$ (LCA 0, depth 0).
+- Processing $(3, 4)$ yields dual $y_{(3,4)} = 1.0$ and tightens edge $(1, 3)$, which is added to $C$.
+- Processing $(5, 6)$ yields dual $y_{(5,6)} = 2.0$ and tightens edge $(2, 5)$, which is added to $C$.
+- Processing $(3, 5)$, the path is already cut by $(1, 3)$ and $(2, 5)$, so we skip it.
+- Pruning keeps both edges. The final cut is $\{(1, 3), (2, 5)\}$ with cost 3.0, matching the optimal cost.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the multicut problem on a path graph is exactly equivalent to the interval hitting set problem (where we want to select a minimum number of points to hit a set of intervals).
+\end{exercise}
+\begin{exercise}
+Prove that if the tree is a star graph (a center node connected to $n$ leaf nodes), the Multicut in Trees problem is equivalent to the Vertex Cover problem.
+\end{exercise}
+
+\backmatter
+
+\begin{thebibliography}{99}
+\bibitem{vazirani01} V. V. Vazirani, \textit{Approximation Algorithms}, Springer, 2001.
+\bibitem{christofides76} N. Christofides, Worst-case analysis of a new heuristic for the travelling salesman problem, \textit{Technical Report}, CMU, 1976.
+\bibitem{feige98} U. Feige, A threshold of $\ln n$ for approximating set cover, \textit{J. ACM}, 45(4):634--652, 1998.
+\bibitem{jain-vazirani01} K. Jain and V. Vazirani, Approximation algorithms for metric facility location and k-median problems using the primal-dual schema and Lagrangian relaxation, \textit{J. ACM}, 48(2):274--296, 2001.
+\bibitem{karlin21} A. Karlin, N. Klein, S. Oveis Gharan, A (slightly) improved approximation algorithm for metric TSP, \textit{STOC}, 2021.
+\bibitem{paal} PAAL Library — Practical Approximation Algorithms Library, \url{https://paal.mimuw.edu.pl}.
+\end{thebibliography}
+
+% \printindex
+
+\end{document}
