@@ -10,9 +10,9 @@ __pycache__/
 *.pyd
 
 # C++ Build Output
-approx_algorithms_cpp/build/
-approx_algorithms_cpp/CMakeLists.txt.user
-approx_algorithms_cpp/examples/CMakeLists.txt.user
+src/cppcodes/build/
+src/cppcodes/CMakeLists.txt.user
+src/cppcodes/examples/CMakeLists.txt.user
 
 # LaTeX build residuals (in case of manual compile logs)
 *.aux

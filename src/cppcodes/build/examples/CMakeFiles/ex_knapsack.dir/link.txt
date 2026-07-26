@@ -1,1 +1,0 @@
-/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/ex_knapsack.dir/ex_knapsack.cpp.o -o ex_knapsack  ../libapprox_algo.a
