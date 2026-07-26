@@ -1,0 +1,1 @@
+/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/ex_tsp.dir/ex_tsp.cpp.o -o ex_tsp  ../libapprox_algo.a

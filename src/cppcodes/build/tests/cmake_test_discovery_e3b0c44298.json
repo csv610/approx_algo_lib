@@ -1,0 +1,66 @@
+{
+  "tests": 6,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "VertexCoverTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "EmptyGraph",
+          "file": "\/Users\/csv610\/Projects\/MyBooks\/ApproxAlgo\/approx_algorithms_cpp\/tests\/test_vertex_cover.cpp",
+          "line": 4
+        },
+        {
+          "name": "Path5approx",
+          "file": "\/Users\/csv610\/Projects\/MyBooks\/ApproxAlgo\/approx_algorithms_cpp\/tests\/test_vertex_cover.cpp",
+          "line": 11
+        }
+      ]
+    },
+    {
+      "name": "SetCoverTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "BasicCover",
+          "file": "\/Users\/csv610\/Projects\/MyBooks\/ApproxAlgo\/approx_algorithms_cpp\/tests\/test_set_cover.cpp",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "name": "KnapsackTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "ExactAndFPTAS",
+          "file": "\/Users\/csv610\/Projects\/MyBooks\/ApproxAlgo\/approx_algorithms_cpp\/tests\/test_knapsack.cpp",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "name": "SimplexTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "SimpleLP",
+          "file": "\/Users\/csv610\/Projects\/MyBooks\/ApproxAlgo\/approx_algorithms_cpp\/tests\/test_simplex.cpp",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "name": "SteinerTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "MetricTSP",
+          "file": "\/Users\/csv610\/Projects\/MyBooks\/ApproxAlgo\/approx_algorithms_cpp\/tests\/test_steiner.cpp",
+          "line": 4
+        }
+      ]
+    }
+  ]
+}
