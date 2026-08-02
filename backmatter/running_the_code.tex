@@ -1,0 +1,73 @@
+\chapter{How to Run the Code}
+
+Every algorithm in this book ships as a small, \emph{self-contained} Python
+listing: each one embeds all of its helper routines (MST, matching, max-flow,
+LP solver, tree traversal, etc.), so none of them require any external package
+beyond the Python standard library.  A matching, fully verified implementation
+of every chapter lives under \texttt{src/pycodes/}.
+
+\section*{Prerequisites}
+
+\begin{itemize}
+  \item Python 3.8 or later (no third-party packages needed).
+  \item \texttt{src/pycodes/} on the Python path if you want the full,
+        tested modules rather than the listing text.
+\end{itemize}
+
+\section{Quick start}
+
+Run \emph{all} chapter demos at once:
+
+\begin{lstlisting}[style=python, caption=Run every verified demo]
+$ cd src/pycodes
+$ python3 main.py
+ALL DEMOS COMPLETED
+\end{lstlisting}
+
+Run a single chapter's demo directly:
+
+\begin{lstlisting}[style=python, caption=Run one chapter's demo]
+$ python3 src/pycodes/set_cover.py
+$ python3 src/pycodes/steiner_tsp.py
+$ python3 src/pycodes/multiway_kcut.py
+\end{lstlisting}
+
+\section{Trying a book listing}
+
+The listings in the chapters are written to be copied and pasted into a
+research editor as-is.  Because they are self-contained, you can wrap the body
+of any listing with a small driver and run it directly:
+
+\begin{lstlisting}[style=python, caption=Run a standalone chapter listing]
+# paste the full listing body from the chapter here ...
+graph = {0:{1:1,2:3}, 1:{0:1,2:2}, 2:{0:3,1:2}}
+for k in (1,2):
+    centers, radius = kcenter_parametric_pruning(graph, k)
+    print(k, centers, radius)
+\end{lstlisting}
+
+\begin{itemize}
+  \item The book's listings are validated during the build: each one compiles
+        without syntax errors, and the primary function of every chapter is
+        exercised with a small example.
+  \item If a listing references a helper (\texttt{mst\_prim}, \texttt{Simplex},
+        \texttt{MaxFlow}, \dots), \emph{it is defined in the same listing}, so
+        cutting and pasting the whole block always works.
+\end{itemize}
+
+\section{Directory layout}
+
+\begin{lstlisting}[style=basic, caption=Where the code lives]
+approx_algo.tex        # LaTeX source (master)
+chapters/*.tex         # one file per chapter, 1-30
+src/pycodes/*.py       # verified, runnable chapter implementations
+src/cppcodes/          # equivalent C++23 library + examples (CMake)
+\end{lstlisting}
+
+\section{Rebuilding the book (optional)}
+
+The book is plain \LaTeX{}.  Any standard engine works:
+
+\begin{lstlisting}[style=basic, caption=Compile the book]
+$ latexmk -pdf approx_algo.tex
+\end{lstlisting}

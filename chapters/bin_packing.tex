@@ -1,0 +1,168 @@
+% ============================================================
+% CHAPTER 9: BIN PACKING (matches Vazirani Ch. 9)
+% ============================================================
+\chapter{Bin Packing}
+\label{ch:bin_packing}
+
+\section{Intuition: Fitting and Grouping}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The goal of Bin Packing is to pack a set of items of various sizes into the minimum number of unit-capacity bins. Online algorithms like Next-Fit (which keeps only one open bin) and First-Fit (which places an item in the first bin that can hold it) achieve constant factor approximations (2 and 1.7, respectively). To do better offline, we can construct an Asymptotic PTAS (APTAS) using linear grouping. By separating out small items ($<\epsilon$) and grouping the remaining large items into $1/\epsilon^2$ groups, we can round item sizes up to the maximum in their group. This reduces the problem to a constant number of distinct sizes, which can be solved exactly using dynamic programming.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given a list of $n$ items with sizes $s_1, \dots, s_n \in (0, 1]$, the \emph{Bin Packing} problem is to pack all items into the minimum number of bins, each of capacity 1.
+
+The problem is NP-hard. It is also NP-hard to approximate within a factor of $3/2 - \epsilon$ for any $\epsilon > 0$ in the absolute sense (due to a partition reduction). However, it admits an \emph{Asymptotic PTAS} (APTAS) which packs items into at most $(1 + \epsilon)\text{OPT} + O(1/\epsilon^2)$ bins.
+
+\section{Algorithm and Python Implementation}
+We implement standard online algorithms (Next-Fit, First-Fit) and the offline First-Fit Decreasing heuristic. We also implement the Asymptotic PTAS (APTAS) using linear grouping, which rounds large item sizes and solves the rounded instance exactly using dynamic programming.
+
+\begin{lstlisting}[style=python, caption=Asymptotic PTAS for Bin Packing]
+import math
+from itertools import product
+
+
+def first_fit(items, capacity=1.0):
+    """First-Fit online bin packing (1.7-approx)."""
+    bins = []
+    for item in items:
+        for b in bins:
+            if sum(b) + item <= capacity:
+                b.append(item)
+                break
+        else:
+            bins.append([item])
+    return bins
+
+
+def generate_configurations(sizes, cap=1.0):
+    """All valid item-count vectors that fit inside one bin."""
+    configs = []
+    n = len(sizes)
+
+    def backtrack(idx, conf, remaining):
+        if idx == n:
+            if sum(conf) > 0:
+                configs.append(tuple(conf))
+            return
+        for count in range(int(remaining // sizes[idx]) + 1):
+            backtrack(idx + 1, conf + [count],
+                      remaining - count * sizes[idx])
+
+    backtrack(0, [], cap)
+    return configs
+
+
+def pack_large_dp(counts, configs, sizes):
+    """Exact DP packing of rounded items (minimizes number of bins)."""
+    from functools import lru_cache
+
+    @lru_cache(maxsize=None)
+    def solve(state):
+        if sum(state) == 0:
+            return (0, ())
+        best = None
+        for conf in configs:
+            if all(state[i] >= conf[i] for i in range(len(state))):
+                nxt = tuple(state[i] - conf[i] for i in range(len(state)))
+                val, bins = solve(nxt)
+                cand = 1 + val
+                if best is None or cand < best[0]:
+                    new_bin = []
+                    for i, c in enumerate(conf):
+                        new_bin += [sizes[i]] * c
+                    best = (cand, (new_bin,) + bins)
+        return best
+
+    _, large_bins = solve(counts)
+    return [list(b) for b in large_bins]
+
+
+def bin_packing_aptas(items, eps=0.3, capacity=1.0):
+    """APTAS for Bin Packing via linear grouping."""
+    large_items = [x for x in items if x >= eps]
+    small_items = [x for x in items if x < eps]
+    
+    if not large_items:
+        return first_fit(small_items, capacity)
+        
+    large_items.sort()
+    n_large = len(large_items)
+    k = int(1.0 / (eps ** 2))
+    q = n_large // k
+    
+    rounded_large = []
+    if q == 0 or k == 0:
+        rounded_large = list(large_items)
+    else:
+        groups = [large_items[i*q : (i+1)*q if i < k-1 else n_large] for i in range(k)]
+        for group in groups:
+            max_size = max(group)
+            rounded_large.extend([max_size] * len(group))
+            
+    distinct_sizes = sorted(list(set(rounded_large)))
+    counts = tuple(rounded_large.count(s) for s in distinct_sizes)
+    configs = generate_configurations(distinct_sizes, capacity)
+    large_bins = pack_large_dp(counts, configs, distinct_sizes)
+    
+    # Map rounded items back to original large items
+    flattened = sorted([item for b in large_bins for item in b])
+    item_map = {s: [] for s in distinct_sizes}
+    for r_val, orig_val in zip(flattened, large_items):
+        item_map[r_val].append(orig_val)
+        
+    final_large_bins = []
+    for b in large_bins:
+        new_bin = [item_map[item].pop(0) for item in b]
+        final_large_bins.append(new_bin)
+        
+    # Place small items using First-Fit
+    for item in small_items:
+        placed = False
+        for b in final_large_bins:
+            if sum(b) + item <= capacity:
+                b.append(item)
+                placed = True
+                break
+        if not placed:
+            final_large_bins.append([item])
+    return final_large_bins
+\end{lstlisting}
+
+\section{Analysis: Linear Grouping and APTAS}
+For Next-Fit, we can prove that the number of bins $A(I) \le 2 \cdot \text{OPT}(I) + 1$, because the sum of items in any two consecutive bins must exceed 1.
+
+The Asymptotic PTAS (APTAS) works by:
+1.  Ignoring small items of size $< \epsilon$.
+2.  Grouping the remaining $n'$ large items into $k = 1/\epsilon^2$ groups, each of size $q = \lfloor n'\epsilon^2 \rfloor$.
+3.  Rounding up the size of each item in Group $i$ to the maximum in that group.
+Let $I'$ be the rounded instance. Because we rounded up, any packing for $I'$ is valid for the original large items. By discarding the first group (which has size $q \le n'\epsilon^2 \le \text{OPT}\epsilon$), we can map the packing of Group $i$ to the slots of Group $i-1$ in the optimal packing. This yields:
+\[
+\text{OPT}(I') \le \text{OPT}(I) + q \le (1 + \epsilon)\text{OPT}(I)
+\]
+Packing the discarded group adds at most $q \le 1/\epsilon^2$ bins. Finally, packing the small items using First-Fit either opens no new bins (keeping the size within $(1+\epsilon)\text{OPT} + O(1/\epsilon^2)$) or, if it does, all bins except the last are packed to at least $1-\epsilon$ density, yielding an overall $(1+\epsilon)\text{OPT} + 1$ guarantee.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Cloud Computing (VM Allocation):} Allocating virtual machines (VMs) of different CPU/memory demands (items) to physical servers of unit capacity (bins) to minimize server leasing costs.
+    \item \textbf{Logistics and Container Loading:} Packing boxes of different weights into standard shipping containers to minimize shipping costs.
+    \item \textbf{Ad Placement:} Fitting ads of different durations into standard ad slots.
+\end{itemize}
+
+\subsection*{Real Example: Virtual Machine Allocation in Cloud Data Centers}
+\textbf{Scenario:} A cloud provider (e.g. AWS) receives requests to run $n=5,000$ virtual machines of various sizes (e.g. 0.1, 0.25, 0.4 of a physical server's resources). The provider wants to host them on the minimum number of physical servers to save energy.
+\textbf{Model:} Standard Bin Packing. Physical servers are unit-capacity bins. Items are VM resource demands. First-Fit Decreasing and APTAS find the near-optimal VM-to-server allocation.
+\textbf{Why FFD and APTAS matter:} Energy cost in data centers is a major expense. First-Fit Decreasing is offline and achieves a tight 11/9-approximation in practice. The APTAS allows trading off computation time for an arbitrarily close-to-optimal packing, saving millions of dollars in infrastructure costs.
+
+\section{Tight Example: Next-Fit Heuristic}
+A tight example for Next-Fit consists of $2n$ items of alternating sizes $0.5 + \delta$ and $0.5 - \delta$ for a small $\delta > 0$. Next-Fit will place each pair in a new bin because $0.5 + \delta + 0.5 - \delta = 1.0$, but if the next item is $0.5 + \delta$, it cannot fit in the current bin of remaining capacity $0.5 - \delta$. Next-Fit will use $2n$ bins, whereas the optimal packing can pair each $0.5+\delta$ with a $0.5-\delta$, using only $n$ bins. The ratio approaches 2.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the number of bins used by Next-Fit is at most $2 \cdot \text{OPT} + 1$.
+\end{exercise}
+\begin{exercise}
+Prove that if all item sizes are strictly greater than $1/3$, then the First-Fit Decreasing algorithm finds an optimal packing.
+\end{exercise}
+

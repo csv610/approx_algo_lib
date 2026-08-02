@@ -1,0 +1,141 @@
+% ============================================================
+% CHAPTER 2: SET COVER (matches Vazirani Ch. 2)
+% ============================================================
+\setcounter{chapter}{1}
+\chapter{Set Cover}
+\label{ch:setcover}
+
+\section{Intuition: The Greedy Instinct}
+
+\begin{intuitionbox}
+\textbf{The Greedy Idea:} When you need to cover all elements, pick the set that gives you the most ``bang for your buck'' — the most new elements per unit cost. Repeat until everything is covered.
+
+\textbf{Why it works:} The price paid for each element when it's covered serves as a \emph{dual variable}. Summing all prices gives a lower bound on OPT (via LP duality, Chapter 13). The harmonic number $H_n$ emerges naturally because early elements get covered cheaply, later elements pay more.
+\end{intuitionbox}
+
+\section{Problem Definition}
+
+\begin{definition}[Set Cover]
+Given a universe $U = \{e_1, \dots, e_n\}$ and a collection of subsets $\mathcal{S} = \{S_1, \dots, S_m\}$ with costs $c(S_i) \geq 0$, find a minimum-cost subcollection $\mathcal{C} \subseteq \mathcal{S}$ such that $\bigcup_{S \in \mathcal{C}} S = U$.
+\end{definition}
+
+\section{The Greedy Algorithm}
+
+\begin{algorithmdef}[Greedy Set Cover — $H_n$ Approximation]
+\begin{enumerate}
+    \item $C \gets \emptyset$ (covered elements)
+    \item While $C \neq U$:
+    \begin{enumerate}
+        \item Pick $S \in \mathcal{S}$ minimizing $\frac{c(S)}{|S \setminus C|}$ (cost-effectiveness)
+        \item For each $e \in S \setminus C$, set $\text{price}(e) = \frac{c(S)}{|S \setminus C|}$
+        \item $C \gets C \cup S$
+    \end{enumerate}
+    \item Output the picked sets
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+The Greedy Set Cover algorithm achieves approximation factor $H_n = 1 + \frac{1}{2} + \dots + \frac{1}{n} \approx \ln n + \gamma$.
+\end{theorem}
+\begin{proof}[Proof Sketch]
+Each element's price is a lower bound on its contribution to OPT. The $k$-th element covered pays at most $\frac{\OPT}{k}$. Summing gives $H_n \cdot \OPT$.
+\end{proof}
+
+\subsection{Layering: Another 2-Approximation for Weighted Vertex Cover}
+
+Layering decomposes vertex weights into degree-weighted functions. Each layer gives a factor-2 vertex cover, and summing gives factor-2 for the weighted case. This is a preview of the primal-dual schema (Chapter 22).
+
+\subsection{Application to Shortest Superstring}
+
+The Shortest Superstring problem (find shortest string containing all given strings as substrings) reduces to Set Cover via string overlaps. Greedy gives $2H_n$-approximation; Li (1992) improved to factor 3.
+
+\section{Other Algorithms for Set Cover}
+
+\begin{table}[H]
+\centering
+\caption{Approaches to Set Cover}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Greedy (this chapter) & $H_n$ & Combinatorial \\
+LP Rounding (Ch. 14) & $f$ (max frequency) & LP + Rounding \\
+Primal-Dual (Ch. 13, 22) & $f$ & Primal-Dual Schema \\
+Randomized Rounding & $O(\log n)$ & LP + Randomization \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why Greedy?} It's simple, fast, and achieves the optimal $\ln n$ bound (Feige, 1998 proved no $(1-\epsilon)\ln n$ unless P = NP).
+
+\textbf{Why not better?} Feige (1998) showed no polynomial-time algorithm can achieve $(1-\epsilon)\ln n$ approximation unless NP $\subseteq$ DTIME$(n^{\log\log n})$.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Greedy Set Cover]
+def greedy_set_cover(universe, sets, costs):
+    """H_n-approximation for Set Cover."""
+    covered = set()
+    picked = []
+    total_cost = 0.0
+    prices = {}
+    
+    while covered != universe:
+        best_set = None
+        best_ratio = float('inf')
+        for s_id, s in sets.items():
+            new = s - covered
+            if not new: continue
+            ratio = costs[s_id] / len(new)
+            if ratio < best_ratio:
+                best_ratio = ratio
+                best_set = s_id
+        
+        if best_set is None: break
+        new_elements = sets[best_set] - covered
+        for e in new_elements:
+            prices[e] = best_ratio
+        covered |= sets[best_set]
+        picked.append(best_set)
+        total_cost += costs[best_set]
+    
+    return picked, total_cost
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Feature selection:} Minimum features covering all classes
+    \item \textbf{Antenna placement:} Cover all locations with minimum transmitters
+    \item \textbf{Test case minimization:} Cover all code paths with fewest tests
+    \item \textbf{Emergency facilities:} Fire stations covering all districts
+    \item \textbf{Data compression:} Shortest superstring via set cover
+\end{itemize}
+
+\subsection*{Real Example: A/B Test Minimization at a Tech Company}
+\textbf{Scenario:} A/B testing platform runs 10,000 experiments. Each experiment tests a variant against control on a subset of 100 metrics (click-through, revenue, retention, etc.). Running an experiment on all metrics is expensive.
+\textbf{Model:} Universe = 100 metrics. Sets = experiments (each covers $\sim$15 metrics). Cost = compute cost per experiment.
+\textbf{Why greedy:} The greedy algorithm picks the experiment covering the most \emph{new} metrics per unit cost. $H_{100} \approx 5.18$ means greedy uses $\leq 5\times$ the minimum experiments.
+\textbf{Real result:} In practice, greedy reduces experiments by $70\%$ vs. running all, with $H_n$ bound giving stakeholders confidence.
+\textbf{Set cover variant:} \emph{Budgeted maximum coverage} — given $k$ experiments, maximize metrics covered. Greedy gives $(1-1/e)$-approx (Chapter 13).
+
+\subsection*{Real Example: Feature Selection for Medical Diagnosis}
+\textbf{Scenario:} A hospital has $n=10,000$ patient features (lab results, vitals, history). They want to select the minimum subset that still predicts $m=50$ diseases with $95\%$ accuracy.
+\textbf{Model:} Universe $U$ = diseases. Each feature $f$ covers the subset $S_f \subseteq U$ it helps predict above threshold. Cost $c(f) = 1$ (each feature has equal acquisition cost).
+\textbf{Why greedy works here:} At each step, greedy picks the feature that adds the most \emph{new} diseases predicted. The $H_{50} \approx 4.5$ guarantee means if optimal uses 20 features, greedy uses $\leq 90$. In practice, greedy often finds near-optimal because features have diminishing returns (submodularity).
+\textbf{Real constraint:} Some features are expensive (MRI) vs. cheap (blood pressure). Weighted set cover handles this — greedy picks by cost-effectiveness.
+\textbf{Alternative:} LASSO (convex relaxation) gives exact recovery under restricted isometry but no worst-case guarantee; ILP is exact but slow for $n=10,000$.
+
+\section{Tight Example}
+
+\begin{example}
+Universe $\{e_1, \dots, e_n\}$. Sets: $S_0 = U$ (cost $1+\epsilon$), $S_i = \{e_i\}$ (cost $1/i$). Greedy picks all $S_i$ (total $H_n$). Optimal picks $S_0$ (cost $1+\epsilon$). Ratio $\to H_n$.
+\end{example}
+
+\section{Exercises}
+\begin{exercise}
+Show greedy achieves $H_k$ where $k = \max_i |S_i|$.
+\end{exercise}
+\begin{exercise}
+Give a factor-$f$ algorithm where $f$ is maximum element frequency.
+\end{exercise}
+

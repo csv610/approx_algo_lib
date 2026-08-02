@@ -86,14 +86,20 @@ class Simplex:
         # Extract solution
         x = [0.0] * self.n
         for i in range(self.m):
-            # Find basic variable in row i
+            # Find basic variable in row i: look for column that is
+            # approximately a unit vector (1 in row i, ~0 elsewhere)
+            best_j = -1
+            best_score = -1.0
             for j in range(self.n + self.m):
-                if abs(tab[i][j] - 1.0) < 1e-9:
-                    # Check if this is the only non-zero in column j
-                    col_nonzero = sum(1 for r in range(self.m + 1) if abs(tab[r][j]) > 1e-9)
-                    if col_nonzero == 1 and j < self.n:
-                        x[j] = tab[i][-1]
-                    break
+                if abs(tab[i][j] - 1.0) < 1e-6:
+                    # Count how "unit-vector-like" this column is
+                    col_sum = sum(abs(tab[r][j]) for r in range(self.m + 1))
+                    score = col_sum  # should be ~1.0 for a unit column
+                    if score > best_score and score < 1.0 + 1e-4:
+                        best_score = score
+                        best_j = j
+            if best_j >= 0 and best_j < self.n:
+                x[best_j] = max(0.0, tab[i][-1])
         
         self.obj_row = tab[-1]
         return x, tab[-1][-1]

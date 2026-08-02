@@ -11,7 +11,7 @@ Implements:
 import math
 from typing import List, Tuple, Dict, Set
 
-from ch12_14_lp_algorithms import Simplex
+from lp_algorithms import Simplex
 
 def get_all_cuts(n: int) -> List[Set[int]]:
     """Generates all non-empty proper cuts in a graph of size n."""

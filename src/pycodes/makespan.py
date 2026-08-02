@@ -10,7 +10,7 @@ Implements:
 
 import math
 from typing import List, Tuple
-from ch09_bin_packing import generate_configurations, pack_large_dp
+from bin_packing import generate_configurations, pack_large_dp
 
 def list_scheduling(jobs: List[float], m: int) -> List[List[float]]:
     """Graham's List Scheduling algorithm (online 2-approximation)."""

@@ -35,6 +35,7 @@ int main() {
         {"Chapter 23: Feedback Vertex Set via Primal-Dual", demo_primal_dual_fvs},
         {"Chapter 24: Facility Location", demo_facility_location},
         {"Chapter 26: Semidefinite Programming (Max 2-SAT)", demo_max_2sat},
+        {"Chapter 28: Counting Problems", demo_counting_problems},
         {"Chapter 30: Multicut in Trees (2-approx)", demo_tree_multicut}
     };
 

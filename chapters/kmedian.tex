@@ -1,0 +1,79 @@
+% ============================================================
+% CHAPTER 25: k-MEDIAN (Vazirani Ch. 25)
+% ============================================================
+\setcounter{chapter}{24}
+\chapter{k-Median}
+\label{ch:kmedian}
+
+\section{Intuition: LP Relaxation and Shifting}
+
+\begin{intuitionbox}
+\textbf{k-Median:} Given $n$ clients and $m$ facilities in a metric space, choose exactly $k$ facilities to open to minimize the total distance from each client to its nearest open facility. This is a special case of Facility Location with a cardinality constraint.
+
+\textbf{LP Relaxation:} The natural LP relaxation has facility variables $y_j \in [0,1]$ and assignment variables $x_{ij} \in [0,1]$, with constraints $x_{ij} \le y_j$ and $\sum_j x_{ij} = 1$. The integrality gap is $O(\log k)$.
+
+\textbf{LP Rounding with Shifting:} Round each $y_j^*$ to 1 if $y_j^* \ge \alpha$ for a threshold $\alpha$. By trying all shifts of $\alpha$ in steps of $1/k$, we obtain an $O(\log k)$ approximation.
+
+\textbf{Local Search:} A simpler approach: start with any $k$ facilities, then try swapping one open facility with one closed facility. If improvement found, repeat. This gives a $(3 + \epsilon)$ approximation.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given $n$ clients and $m$ facilities with metric distances $d_{ij}$, choose $S \subseteq \{1,\dots,m\}$ with $|S| = k$ minimizing:
+\[
+\sum_{i=1}^{n} \min_{j \in S} d_{ij}
+\]
+
+\section{Algorithms}
+
+\subsection{Greedy Algorithm}
+Repeatedly open the facility that reduces the total cost the most.
+
+\subsection{Local Search (Constant Factor)}
+Start with $k$ random facilities. Try all 1-swap moves (replace one open with one closed). Accept if cost decreases. Repeat until no improving swap exists. This gives a $(3 + \epsilon)$ approximation.
+
+\subsection{LP Rounding with Shifting}
+Solve the LP relaxation. For each threshold $\alpha \in \{1/k, 2/k, \dots, 1\}$, open all facilities with $y_j^* \ge \alpha$. If this opens fewer than $k$ facilities, add random facilities. If more than $k$, keep the best $k$. This gives an $O(\log k)$ approximation.
+
+\section{Analysis}
+For local search: each improving swap reduces cost by at least $\epsilon \cdot \text{OPT}$. The total number of swaps is polynomial. The 3-approximation follows from the metric property and a charging argument.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=k-Median Local Search]
+def kmedian_local_search(distances, k, max_iter=1000):
+    """Local search for k-Median: swap-based constant-factor approx."""
+    n_clients, n_facilities = len(distances), len(distances[0])
+    opened = set(range(k))
+    best_cost = sum(min(distances[i][j] for j in opened) for i in range(n_clients))
+    
+    for _ in range(max_iter):
+        improved = False
+        for j_out in opened:
+            for j_in in range(n_facilities):
+                if j_in in opened: continue
+                trial = (opened - {j_out}) | {j_in}
+                cost = sum(min(distances[i][j] for j in trial) for i in range(n_clients))
+                if cost < best_cost - 1e-9:
+                    opened, best_cost = trial, cost
+                    improved = True
+                    break
+            if improved: break
+        if not improved: break
+    return list(opened), best_cost
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Warehouse placement:} Choose $k$ warehouses to serve $n$ customers.
+    \item \textbf{Emergency services:} Place $k$ fire stations in a city.
+    \item \textbf{Data center selection:} Choose $k$ data centers from candidate locations.
+\end{itemize}
+
+\section{Exercises}
+\begin{exercise}
+Show that the LP relaxation for $k$-Median has an integrality gap of $\Omega(\log k)$.
+\end{exercise}
+\begin{exercise}
+Implement the LP rounding with shifting algorithm and compare it to local search.
+\end{exercise}
+

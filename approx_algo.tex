@@ -1,0 +1,245 @@
+% Approximation Algorithms with Python
+% LaTeX Book - Companion to Vazirani (2001)
+% Chapter numbering matches Vazirani's original
+
+\documentclass[11pt,oneside]{book}
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{epigraph}
+
+% ===== Colors =====
+\definecolor{darkblue}{rgb}{0.0, 0.2, 0.6}
+\definecolor{darkgreen}{rgb}{0.0, 0.5, 0.0}
+\definecolor{darkred}{rgb}{0.7, 0.0, 0.0}
+\definecolor{codegray}{rgb}{0.95, 0.95, 0.95}
+\definecolor{keyword}{rgb}{0.0, 0.0, 0.8}
+\definecolor{comment}{rgb}{0.0, 0.5, 0.0}
+\definecolor{string}{rgb}{0.7, 0.0, 0.0}
+\definecolor{intuition}{rgb}{0.95, 0.97, 1.0}
+
+% ===== Hyperref =====
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkblue,
+    citecolor=darkgreen,
+    urlcolor=darkred,
+    pdftitle={Approximation Algorithms with Python},
+    pdfauthor={Companion to Vazirani (2001)}
+}
+
+% ===== Listings =====
+\lstdefinestyle{python}{
+    language=Python,
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{keyword}\bfseries,
+    commentstyle=\color{comment}\itshape,
+    stringstyle=\color{string},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    framesep=5pt,
+    breaklines=true,
+    breakatwhitespace=false,
+    tabsize=4,
+    showspaces=false,
+    showstringspaces=false,
+    captionpos=b
+}
+
+% ===== Plain text / shell listings (appendix) =====
+\lstdefinestyle{basic}{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    frame=single,
+    framesep=5pt,
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=4,
+    showspaces=false,
+    showstringspaces=false,
+    captionpos=b
+}
+
+% ===== Theorems =====
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{algorithmdef}[theorem]{Algorithm}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{exercise}[theorem]{Exercise}
+
+% ===== Custom Commands =====
+\newcommand{\OPT}{\mathrm{OPT}}
+\newcommand{\poly}{\mathrm{poly}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Set}[1]{\{#1\}}
+\newcommand{\abs}[1]{\lvert #1 \rvert}
+\newcommand{\norm}[1]{\lVert #1 \rVert}
+\newcommand{\union}{\cup}
+\newcommand{\intersect}{\cap}
+\newcommand{\suchthat}{\mid}
+
+% ===== Title Format =====
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries\color{darkblue}}
+    {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}{\normalfont\Large\bfseries\color{darkblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{darkblue}}{\thesubsection}{1em}{}
+
+% ===== Intuition Box =====
+\usepackage{mdframed}
+\mdfdefinestyle{intuitionstyle}{
+    backgroundcolor=intuition,
+    linecolor=darkblue,
+    linewidth=1pt,
+    roundcorner=5pt,
+    innertopmargin=8pt,
+    innerbottommargin=8pt,
+    innerleftmargin=10pt,
+    innerrightmargin=10pt,
+}
+\newmdtheoremenv[style=intuitionstyle]{intuitionbox}{Intuition}[chapter]
+
+% ===== Headers =====
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{14pt}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\leftmark}
+\fancyhead[LO]{\rightmark}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+% ===== FRONT MATTER =====
+\frontmatter
+
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+    {\Huge\bfseries\color{darkblue} Approximation Algorithms with Python\par}
+    \vspace{1.5cm}
+    {\Large A Computational Companion to Vazirani's Classic Text\par}
+    \vspace{2cm}
+    {\large Based on \textit{Approximation Algorithms} by Vijay V. Vazirani (Springer, 2001)\par}
+    \vspace{3cm}
+    {\large Pure Python Implementations — Zero Dependencies\par}
+    \vfill
+    {\small \today\par}
+\end{titlepage}
+
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+\epigraph{``Although this may seem a paradox, all exact science is dominated by the idea of approximation.''}{— Bertrand Russell}
+
+\vspace{1em}
+
+This book is a computational companion to Vijay Vazirani's seminal text \textit{Approximation Algorithms} (Springer, 2001). Vazirani's book provides the mathematical foundations — theorems, proofs, and algorithmic frameworks. This companion provides \textbf{runnable Python implementations} of the core algorithms, along with intuitive explanations that precede the formalism.
+
+\vspace{1em}
+
+\noindent \textbf{Why this book exists:}
+\begin{itemize}
+    \item Theory and practice belong together. Understanding an approximation algorithm deeply requires implementing it.
+    \item This companion covers the \textbf{fundamental algorithms} from Vazirani's Parts I and II, with chapter numbers matching the original book exactly.
+    \item Pure Python, zero dependencies. Run anywhere, modify freely, learn by doing.
+\end{itemize}
+
+\vspace{1em}
+
+\noindent \textbf{Structure of each chapter:}
+\begin{enumerate}
+    \item \textbf{Intuition First} — Why does this work? What's the key idea?
+    \item \textbf{Problem Definition} — Formal statement with notation
+    \item \textbf{Algorithm} — Pseudocode and Python implementation
+    \item \textbf{Analysis} — Approximation factor proof sketch
+    \item \textbf{Other Approaches} — What else works? Why this one?
+    \item \textbf{Why Approximation?} — Why can't we solve exactly?
+    \item \textbf{Applications} — Real-world uses
+    \item \textbf{Tight Examples} — Instances where the bound is achieved
+    \item \textbf{Exercises} — For deeper understanding
+\end{enumerate}
+
+\vspace{1em}
+
+\noindent \textbf{Prerequisites:} Basic algorithms (sorting, graphs, DP), NP-completeness, and Python familiarity. Mathematical maturity at the level of an undergraduate algorithms course.
+
+\vspace{1em}
+
+\noindent \textbf{Acknowledgments:} This work stands on the shoulders of Vazirani's masterpiece. The PAAL library (paal.mimuw.edu.pl) provided C++ reference implementations for verification.
+
+\tableofcontents
+
+% ===== MAIN MATTER =====
+\mainmatter
+
+
+% ===== Chapters (each in its own file under chapters/) =====
+\input{chapters/introduction}
+\input{chapters/set_cover}
+\input{chapters/steiner_tree_tsp}
+\input{chapters/multiway_cut_kcut}
+\input{chapters/kcenter}
+\input{chapters/feedback_vertex_set}
+\input{chapters/shortest_superstring}
+\input{chapters/knapsack_fptas}
+\input{chapters/bin_packing}
+\input{chapters/makespan}
+\input{chapters/euclidean_tsp}
+\input{chapters/lp_duality}
+\input{chapters/set_cover_dual_fitting}
+\input{chapters/set_cover_rounding}
+\input{chapters/weighted_vc_primal_dual}
+\input{chapters/randomized_rounding}
+\input{chapters/chernoff_bounds}
+\input{chapters/semidefinite_programming}
+\input{chapters/multiway_cut_rounding}
+\input{chapters/multicut_general}
+\input{chapters/steiner_forest}
+\input{chapters/steiner_network}
+\input{chapters/fvs_primal_dual}
+\input{chapters/facility_location}
+\input{chapters/kmedian}
+\input{chapters/max_2sat}
+\input{chapters/shortest_vector}
+\input{chapters/counting_problems}
+\input{chapters/hardness_of_approximation}
+\input{chapters/multicut_in_trees}
+
+\backmatter
+
+\input{backmatter/running_the_code}
+
+\begin{thebibliography}{99}
+\bibitem{vazirani01} V. V. Vazirani, \textit{Approximation Algorithms}, Springer, 2001.
+\bibitem{christofides76} N. Christofides, Worst-case analysis of a new heuristic for the travelling salesman problem, \textit{Technical Report}, CMU, 1976.
+\bibitem{feige98} U. Feige, A threshold of $\ln n$ for approximating set cover, \textit{J. ACM}, 45(4):634--652, 1998.
+\bibitem{jain-vazirani01} K. Jain and V. Vazirani, Approximation algorithms for metric facility location and k-median problems using the primal-dual schema and Lagrangian relaxation, \textit{J. ACM}, 48(2):274--296, 2001.
+\bibitem{karlin21} A. Karlin, N. Klein, S. Oveis Gharan, A (slightly) improved approximation algorithm for metric TSP, \textit{STOC}, 2021.
+\bibitem{paal} PAAL Library — Practical Approximation Algorithms Library, \url{https://paal.mimuw.edu.pl}.
+\end{thebibliography}
+
+% \printindex
+
+\end{document}

@@ -1,0 +1,120 @@
+% ============================================================
+% CHAPTER 20: MULTICUT IN GENERAL GRAPHS (Vazirani Ch. 20)
+% ============================================================
+\setcounter{chapter}{19}
+\chapter{Multicut in General Graphs}
+\label{ch:multicut_general}
+
+\section{Intuition: Region Growing and LP Rounding}
+
+\begin{intuitionbox}
+\textbf{Region Growing:} The Multicut problem asks for a minimum cost set of edges whose removal disconnects given pairs of vertices. While NP-hard in general graphs, the problem admits an $O(\log k)$ approximation via LP rounding. The key idea is \emph{region growing}: starting from each source $s_i$, grow a ball using edge costs weighted by $1/x_e^*$ (the reciprocal of the LP solution). When the ball reaches $t_i$, we cut the boundary edges. The region growing ensures that each ball's boundary is cheap relative to the LP value.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with edge costs $c_e \ge 0$, and $k$ demand pairs $(s_1, t_1), \dots, (s_k, t_k)$, find a minimum cost subset $C \subseteq E$ such that $s_i$ and $t_i$ are in different connected components of $(V, E \setminus C)$ for all $i$.
+
+The problem is NP-hard in general graphs. It admits an $O(\log k)$ approximation.
+
+\section{LP Relaxation}
+\[
+\min \sum_{e \in E} c_e x_e \quad \text{s.t.} \quad \sum_{e \in P_i} x_e \ge 1 \; (\forall i), \quad x_e \ge 0
+\]
+where $P_i$ is the set of edges on any path from $s_i$ to $t_i$.
+
+\section{Algorithm and Python Implementation}
+The algorithm solves the LP, then uses region growing: for each pair $(s_i, t_i)$, grow a ball from $s_i$ using Dijkstra with edge weights $c_e / x_e^*$. When $t_i$ is reached, cut all boundary edges of the ball.
+
+\begin{lstlisting}[style=python, caption=Multicut in General Graphs — Region Growing]
+import heapq
+from lp_algorithms import Simplex   # Simplex from Chapter 12
+
+def solve_multicut_lp(n, edges, costs, pairs):
+    """Fractional x* for Multicut via the dual LP
+       (max sum y_j  st. sum_{j: e in path_j} y_j <= c_e, y_j >= 0)."""
+    adj = {v: [] for v in range(n)}
+    for u, v in edges:
+        adj[u].append(v); adj[v].append(u)
+    eidx = {tuple(sorted(e)): i for i, e in enumerate(edges)}
+
+    # Enumerate simple s_i-t_i paths for each demand pair
+    paths = []
+    def dfs(u, t, visited, path):
+        if u == t:
+            paths.append(list(path)); return
+        for v in adj[u]:
+            if v not in visited:
+                visited.add(v); path.append(tuple(sorted((u, v))))
+                dfs(v, t, visited, path)
+                path.pop(); visited.remove(v)
+
+    for s, t in pairs:
+        dfs(s, t, {s}, [])
+
+    if not paths:
+        return [0.0] * len(edges), 0.0
+
+    # Dual: max 1^T y   s.t.  A^T y <= costs,  y >= 0
+    A = [[0.0] * len(paths) for _ in edges]
+    for j, p in enumerate(paths):
+        for e in p:
+            A[eidx[e]][j] = 1.0
+    solver = Simplex(A, costs[:], [1.0] * len(paths))
+    y, dual_obj = solver.solve()
+    x = [max(0.0, min(1.0, v)) for v in solver.obj_row[len(paths):len(paths)+len(edges)]]
+    return x, dual_obj
+
+def multicut_region_growing(n, edges, costs, pairs):
+    """O(log k) approximation for Multicut via LP + region growing."""
+    x, _ = solve_multicut_lp(n, edges, costs, pairs)
+    adj = {v: [] for v in range(n)}
+    for u, v in edges:
+        adj[u].append(v); adj[v].append(u)
+    eidx = {tuple(sorted(e)): i for i, e in enumerate(edges)}
+    cut = set()
+    INF = float('inf')
+
+    for s, t in pairs:
+        dist = [INF] * n; dist[s] = 0.0
+        visited = [False] * n
+        pq = [(0.0, s)]
+        while pq:
+            d, u = heapq.heappop(pq)
+            if visited[u]: continue
+            visited[u] = True
+            if u == t: break
+            for v in adj[u]:
+                if not visited[v]:
+                    e = tuple(sorted((u, v)))
+                    w = costs[eidx[e]] / max(x[eidx[e]], 1e-9)
+                    if d + w < dist[v]:
+                        dist[v] = d + w; heapq.heappush(pq, (dist[v], v))
+
+        ball = {v for v in range(n) if dist[v] < dist[t] - 1e-9}
+        for u, v in edges:
+            if (u in ball) != (v in ball):
+                cut.add(tuple(sorted((u, v))))
+
+    cut_edges = list(cut)
+    total = sum(costs[eidx[e]] for e in cut_edges)
+    return cut_edges, total
+\end{lstlisting}
+
+\section{Analysis: $O(\log k)$ Approximation}
+Each ball has boundary cost at most $O(\log k)$ times the LP cost contribution for that pair. Summing over all pairs gives the $O(\log k)$ approximation ratio. The key lemma is that for any ball $B$ with boundary $\delta(B)$, the cost $\sum_{e \in \delta(B)} c_e \le O(\log k) \cdot \sum_{e \in \delta(B)} x_e^*$.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Network Security:} Isolating sensitive communication pairs by cutting edges.
+    \item \textbf{VLSI Design:} Separating signal nets on a chip.
+    \item \textbf{Image Segmentation:} Partitioning pixels into regions by cutting edges in a graph.
+\end{itemize}
+
+\section{Exercises}
+\begin{exercise}
+Show that the LP relaxation for Multicut has an integrality gap of $\Omega(\log k)$.
+\end{exercise}
+\begin{exercise}
+Implement a greedy alternative: repeatedly find the cheapest edge whose removal disconnects at least one pair that is still connected.
+\end{exercise}
+

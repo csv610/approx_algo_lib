@@ -1,0 +1,89 @@
+% ============================================================
+% CHAPTER 11: EUCLIDEAN TSP (matches Vazirani Ch. 11)
+% ============================================================
+\chapter{Euclidean TSP}
+\label{ch:euclidean_tsp}
+
+\section{Intuition: Geometric Dissection and Portals}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} General Metric TSP is hard to approximate below $1.5$. However, if vertices are points in a 2D Euclidean plane, we can use the geometric structure to construct a PTAS. Arora's PTAS works by enclosing all points in a bounding box, applying a randomized shift, and recursively partitioning the box into a quadtree. By restricting the tour to cross cell boundaries only at a small number of designated points called \emph{portals}, the problem can be solved via dynamic programming. We implement a divide-and-conquer version of this quadtree partition: solving sub-quadrants recursively and merging tours using cheapest 2-edge connections.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given $n$ points in the Euclidean plane $\mathbb{R}^2$, the \emph{Euclidean Traveling Salesman Problem} is to find a closed tour of minimum total Euclidean length that visits every point exactly once.
+
+The problem remains NP-hard. However, unlike general Metric TSP, it admits a Polynomial-Time Approximation Scheme (PTAS) that achieves a $(1 + \epsilon)$-approximation in $n^{O(1/\epsilon)}$ time.
+
+\section{Algorithm and Python Implementation}
+We implement the exact Held-Karp dynamic programming baseline, alongside the quadtree divide-and-conquer cycle merging heuristic which serves as the geometric partitioning engine.
+
+\begin{lstlisting}[style=python, caption=Cheapest swap to merge tours]
+import math
+
+
+def merge_tours(tour1, tour2, points):
+    """Cheapest connection swap between two tours or insertion of a single point."""
+    if not tour1: return tour2
+    if not tour2: return tour1
+    dist = lambda u, v: math.hypot(points[u][0]-points[v][0], points[u][1]-points[v][1])
+    
+    # Case 1 & 2: Single point insertion
+    if len(tour2) <= 2:
+        u = tour2[0]
+        best_diff, best_idx = float('inf'), -1
+        for i in range(len(tour1) - 1):
+            diff = dist(tour1[i], u) + dist(u, tour1[i+1]) - dist(tour1[i], tour1[i+1])
+            if diff < best_diff:
+                best_diff, best_idx = diff, i
+        return tour1[:best_idx + 1] + [u] + tour1[best_idx + 1:]
+    if len(tour1) <= 2:
+        return merge_tours(tour2, tour1, points)
+        
+    # Case 3: Merge two closed cycles
+    t1, t2 = list(tour1), list(tour2)
+    n1, n2 = len(t1) - 1, len(t2) - 1
+    best_diff, best_swap = float('inf'), None
+    
+    for i in range(n1):
+        for j in range(n2):
+            diff1 = dist(t1[i], t2[j]) + dist(t1[i+1], t2[j+1]) - dist(t1[i], t1[i+1]) - dist(t2[j], t2[j+1])
+            diff2 = dist(t1[i], t2[j+1]) + dist(t1[i+1], t2[j]) - dist(t1[i], t1[i+1]) - dist(t2[j], t2[j+1])
+            if diff1 < best_diff: best_diff, best_swap = diff1, (i, j, False)
+            if diff2 < best_diff: best_diff, best_swap = diff2, (i, j, True)
+            
+    i, j, reverse = best_swap
+    t2_rot = t2[j:-1] + t2[:j]
+    if reverse: t2_rot.reverse()
+    return t1[:i+1] + t2_rot + t1[i+1:]
+\end{lstlisting}
+
+\section{Analysis: Arora's PTAS and Portals}
+Arora's PTAS achieves a $(1+\epsilon)$-approximation by proving that:
+1.  **Structure Theorem:** There exists a near-optimal tour (cost $\le (1+\epsilon)\text{OPT}$) that crosses the boundary of each quadtree square at most $r = O(1/\epsilon)$ times, and only at designated \emph{portals} spaced along the square's perimeter.
+2.  **Randomized Shifting:** By shifting the quadtree coordinates randomly, we ensure that the probability of a bounding line intersecting a dense region of the tour (and thus requiring many crossings) is small. The expected cost added by routing the tour through portals is at most $\epsilon \cdot \text{OPT}$.
+3.  **Dynamic Programming:** For each quadtree cell, the number of portal configurations is small (at most $(O(1/\epsilon \log L))^{O(1/\epsilon)}$). We can find the optimal set of paths within each cell using dynamic programming, proceeding from the leaves of the quadtree up to the root.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{PCB Drilling and Tool-Path Optimization:} Minimizing the travel distance of a drill bit moving across coordinates on a circuit board.
+    \item \textbf{Robotics and Automated Navigation:} Path planning for automated warehouse forklifts or domestic vacuum cleaners.
+    \item \textbf{Neighborhood Package Delivery:} Local routing for delivery trucks within a localized zip code.
+\end{itemize}
+
+\subsection*{Real Example: High-Speed PCB Drilling Optimization}
+\textbf{Scenario:} A manufacturing line needs to drill $n = 10,000$ micro-vias on a silicon wafer. The drilling head moves in 2D space. The total production throughput is directly limited by the travel time of the drill head between via locations.
+\textbf{Model:} Euclidean TSP. Drill coordinates are points in 2D space. A fast, high-quality tour is required to minimize motor wear and cycle time.
+\textbf{Why PTAS matters:} Even a 5\% reduction in tour distance translates to thousands of dollars saved daily in high-volume electronics manufacturing. By employing a quadtree-based PTAS, we partition the drill grid recursively, optimize clusters locally, and merge them into an overall near-optimal toolpath.
+
+\section{Tight Example: Shifting Bottleneck}
+If we do not shift the quadtree boundaries, a simple configuration of points can yield a poor approximation. Consider two parallel rows of points placed very close to one another, but separated by the root division line $x = x_{mid}$. Without shifting, the algorithm is forced to solve the left half and right half independently and then merge them. The merge step must connect across the boundary line, forcing a long loop that increases the cost, whereas a simple zigzag pattern crossing the boundary line many times would be optimal. Shifting the quadtree randomly ensures that with high probability, the main split line does not separate these tightly coupled rows.
+
+\section{Exercises}
+\begin{exercise}
+Prove that for a quadtree cell of width $W$, if we place $m$ equally spaced portals on each boundary line, the distance from any point on a boundary to its nearest portal is at most $W / (2m)$.
+\end{exercise}
+\begin{exercise}
+Explain why the number of ways to match $2k$ portals into $k$ disjoint paths is $(2k)! / (2^k k!)$.
+\end{exercise}
+

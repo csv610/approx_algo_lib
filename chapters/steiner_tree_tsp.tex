@@ -1,0 +1,323 @@
+% ============================================================
+% CHAPTER 3: STEINER TREE AND TSP (matches Vazirani Ch. 3)
+% ============================================================
+\setcounter{chapter}{2}
+\chapter{Steiner Tree and TSP}
+\label{ch:steiner_tsp}
+
+\section{Intuition: Metric Closure and MST}
+
+\begin{intuitionbox}
+\textbf{Steiner Tree Intuition:} We only need to connect the \emph{terminals} (required vertices). The shortest path between two terminals in the original graph defines a distance. Build the complete graph on terminals with these distances (the \emph{metric closure}). The MST of this closure, when expanded back to shortest paths in the original graph, gives a tree connecting all terminals within factor 2.
+
+\textbf{TSP Intuition:} The MST is a lower bound on TSP (removing any edge from a TSP tour gives a spanning tree). Double the MST to make it Eulerian, find an Euler tour, then shortcut repeated vertices. Triangle inequality ensures shortcuts don't increase cost. Christofides' insight: instead of doubling \emph{all} edges, just add a matching on odd-degree vertices.
+\end{intuitionbox}
+
+\section{Metric Steiner Tree}
+
+\begin{definition}[Metric Steiner Tree]
+Given graph $G = (V, E)$ with metric edge costs and terminals $R \subseteq V$, find minimum-cost tree connecting all terminals (may use Steiner vertices $V \setminus R$).
+\end{definition}
+
+\begin{algorithmdef}[Metric Steiner Tree — Factor 2]
+\begin{enumerate}
+    \item Compute metric closure $G'$ on terminals: complete graph with $d(u,v)$ = shortest path distance in $G$
+    \item Find MST $T'$ of $G'$
+    \item Replace each edge of $T'$ with corresponding shortest path in $G$
+    \item Let $H$ be the union; find MST $T$ of $H$
+    \item Prune non-terminal leaves from $T$
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This algorithm achieves a factor-2 approximation for Metric Steiner Tree.
+\end{theorem}
+
+\section{Metric TSP}
+
+\begin{definition}[Metric TSP]
+Given complete graph with metric edge costs, find minimum-cost Hamiltonian cycle.
+\end{definition}
+
+Without metric assumption, TSP has no polynomial-time approximation unless P = NP (reduction from Hamiltonian Cycle).
+
+\subsection{Factor-2 Algorithm (Double Tree)}
+
+\begin{algorithmdef}[Metric TSP — Factor 2]
+\begin{enumerate}
+    \item Find MST $T$ of $G$
+    \item Double every edge of $T$ to get Eulerian multigraph
+    \item Find Eulerian tour
+    \item Shortcut: visit vertices in order of first appearance
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+Double-tree gives factor-2 approximation for Metric TSP.
+\end{theorem}
+
+\subsection{Christofides' 3/2-Approximation}
+
+\begin{algorithmdef}[Christofides — Factor 3/2]
+\begin{enumerate}
+    \item Find MST $T$
+    \item Let $O$ be odd-degree vertices in $T$ ($|O|$ is even)
+    \item Find minimum-weight perfect matching $M$ on $O$ (using metric closure distances)
+    \item $T \cup M$ is Eulerian; find Euler tour and shortcut
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}[Christofides, 1976]
+Christofides' algorithm achieves a $3/2$-approximation for Metric TSP.
+\end{theorem}
+\begin{proof}
+Cost(T) $\leq$ OPT (MST lower bound). Cost(M) $\leq$ OPT/2 (matching on odd vertices is at most half the optimal tour). Total $\leq$ OPT + OPT/2 = 1.5 OPT.
+\end{proof}
+
+\subsection{Other Approaches for TSP}
+
+\begin{table}[H]
+\centering
+\caption{TSP Algorithms for Metric Case}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Double-tree & 2 & MST + Euler tour \\
+Christofides & 1.5 & MST + Matching \\
+Held-Karp (LP) & $\leq 1.5$ & LP relaxation (exact value $\approx 1.09$) \\
+Iterative rounding & $< 1.5$ & Recent breakthroughs (Karlin et al., 2021: 1.5 - $\epsilon$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not exact?} Metric TSP is NP-hard (reduction from Hamiltonian Cycle). The best exact algorithm is $O(n^2 2^n)$ (Held-Karp DP).
+
+\textbf{Why 3/2 was a barrier?} For 45 years no improvement. Karlin-Klein-Gharan (2021) broke it with $1.5 - 10^{-36}$, later improved to $1.5 - \epsilon$.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Christofides TSP 3/2-Approximation]
+import heapq
+import math
+
+
+def mst_prim(graph):
+    """Prim's MST. Returns list of edges (u, v)."""
+    vertices = list(graph)
+    if not vertices:
+        return []
+    visited = {vertices[0]}
+    edges = []
+    pq = [(w, vertices[0], v) for v, w in graph[vertices[0]].items()
+          if v in graph]
+    heapq.heapify(pq)
+    while pq and len(visited) < len(vertices):
+        w, u, v = heapq.heappop(pq)
+        if v in visited:
+            continue
+        visited.add(v)
+        edges.append((u, v))
+        for w2, wgt in graph[v].items():
+            if w2 not in visited:
+                heapq.heappush(pq, (wgt, v, w2))
+    return edges
+
+
+def dijkstra(graph, source):
+    """Shortest distances from source in a non-negative weighted graph."""
+    dist = {source: 0.0}
+    pq = [(0.0, source)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > dist[u]:
+            continue
+        for v, w in graph[u].items():
+            nd = d + w
+            if nd < dist.get(v, float('inf')):
+                dist[v] = nd
+                heapq.heappush(pq, (nd, v))
+    return dist
+
+
+def metric_closure(graph, terminals):
+    """Complete graph on terminals: shortest-path distances."""
+    terminals = list(terminals)
+    closure = {u: {} for u in terminals}
+    for u in terminals:
+        dist = dijkstra(graph, u)
+        for v in terminals:
+            if u != v:
+                d = dist.get(v, float('inf'))
+                closure[u][v] = d
+                closure[v][u] = d
+    return closure
+
+
+def greedy_matching(graph, vertices):
+    """Greedy minimum-weight matching (fallback for large instances)."""
+    remaining = set(vertices)
+    edges = []
+    for i, u in enumerate(vertices):
+        for v in vertices[i + 1:]:
+            if v in graph[u]:
+                edges.append((graph[u][v], u, v))
+    edges.sort()
+    matching = []
+    for w, u, v in edges:
+        if u in remaining and v in remaining:
+            matching.append((u, v))
+            remaining.remove(u)
+            remaining.remove(v)
+    return matching
+
+
+def min_weight_perfect_matching(graph, vertices):
+    """Exact min-weight perfect matching via DP (n <= 16), else greedy."""
+    n = len(vertices)
+    if n == 0:
+        return []
+    if n > 16:
+        return greedy_matching(graph, vertices)
+    idx = {v: i for i, v in enumerate(vertices)}
+    dp = {0: 0.0}
+    parent = {}
+    for mask in range(1 << n):
+        if mask not in dp:
+            continue
+        i = 0
+        while i < n and (mask & (1 << i)):
+            i += 1
+        if i >= n:
+            continue
+        for j in range(i + 1, n):
+            if not (mask & (1 << j)):
+                u, v = vertices[i], vertices[j]
+                if v in graph[u]:
+                    nm = mask | (1 << i) | (1 << j)
+                    cand = dp[mask] + graph[u][v]
+                    if nm not in dp or cand < dp[nm]:
+                        dp[nm] = cand
+                        parent[nm] = (mask, (u, v))
+    full = (1 << n) - 1
+    if full not in dp:
+        return greedy_matching(graph, vertices)
+    matching, mask = [], full
+    while mask:
+        pmask, edge = parent[mask]
+        matching.append(edge)
+        mask = pmask
+    return matching
+
+
+def build_eulerian(mst_edges, matching):
+    """Eulerian multigraph = MST edges + perfect-matching edges."""
+    adj = {}
+    for u, v in mst_edges:
+        adj.setdefault(u, []).append(v)
+        adj.setdefault(v, []).append(u)
+    for u, v in matching:
+        adj.setdefault(u, []).append(v)
+        adj.setdefault(v, []).append(u)
+    return adj
+
+
+def eulerian_tour(adj):
+    """Hierholzer's algorithm; returns an Eulerian cycle (reversed)."""
+    start = next(iter(adj))
+    stack, tour = [start], []
+    adj2 = {u: list(v) for u, v in adj.items()}
+    while stack:
+        u = stack[-1]
+        if adj2[u]:
+            v = adj2[u].pop()
+            adj2[v].remove(u)
+            stack.append(v)
+        else:
+            tour.append(stack.pop())
+    return tour[::-1]
+
+
+def shortcut(tour):
+    """Visit each vertex once, preserving the first appearance order."""
+    seen, ham = set(), []
+    for v in tour:
+        if v not in seen:
+            seen.add(v)
+            ham.append(v)
+    return ham
+
+
+def cost(graph, ham):
+    return sum(graph[ham[i]][ham[i + 1]] for i in range(len(ham) - 1))
+
+
+def tsp_2approx(graph):
+    """2-approx (double-tree) used for the base case n <= 2."""
+    if len(graph) <= 1:
+        return list(graph), 0.0
+    u, v = list(graph)
+    return [u, v, u], 2 * graph[u][v]
+
+
+def tsp_christofides(graph):
+    """3/2-approx for Metric TSP (Christofides)."""
+    n = len(graph)
+    if n <= 2:
+        return tsp_2approx(graph)
+
+    mst_edges = mst_prim(graph)
+
+    degree = {u: 0 for u in graph}
+    for u, v in mst_edges:
+        degree[u] += 1
+        degree[v] += 1
+    odd = [u for u, d in degree.items() if d % 2 == 1]
+
+    closure = metric_closure(graph, set(odd))
+    matching = min_weight_perfect_matching(closure, odd)
+
+    euler_adj = build_eulerian(mst_edges, matching)
+    tour = eulerian_tour(euler_adj)
+    ham = shortcut(tour)
+
+    return ham, cost(graph, ham)
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{VLSI design:} Steiner tree = wire routing; TSP = drill path optimization
+    \item \textbf{Logistics:} Vehicle routing (TSP variants)
+    \item \textbf{Phylogeny:} Steiner tree = evolutionary trees
+    \item \textbf{Network design:} Connect required nodes at minimum cost
+    \item \textbf{DNA sequencing:} Shortest superstring = genome assembly
+\end{itemize}
+
+\subsection*{Real Example: Vehicle Routing for E-Commerce Delivery}
+\textbf{Scenario:} A delivery company has 1 depot, 50 packages, 5 trucks. Each truck starts/ends at depot. Minimize total distance.
+\textbf{Model:} Complete graph on 51 nodes (depot + 50 customers). Edge costs = travel time (satisfies triangle inequality). Optimal TSP tour = optimal single-truck route. For 5 trucks: split TSP tour into 5 segments (each $\leq$ capacity). Metric TSP 1.5-approx (Christofides) gives route within $1.5 \times$ optimal single-truck distance.
+\textbf{Why approximation matters:} Exact TSP (Held-Karp DP) is $O(n^2 2^n)$ — impossible for $n=50$. Christofides runs in $O(n^3)$ and gives provable $1.5\times$ bound. In practice, Christofides + 2-opt local search often achieves $< 1.1\times$ optimal.
+\textbf{Steiner Tree variant:} If only 20 of 50 locations require delivery today, Steiner Tree connects the 20 "terminals" at minimum cost — useful for ad-hoc routing.
+
+\section{Tight Examples}
+
+\begin{example}[Steiner Tree]
+Star graph: center connected to $n$ leaves (cost 1), leaf-to-leaf cost 2. Optimal = $n$ (star). Algorithm gives $2n-2$. Ratio $\to 2$.
+\end{example}
+
+\begin{example}[TSP Double-Tree]
+Star with center 0, leaves 1..n. Edges (0,i) cost 1, (i,j) cost 2. MST = star ($n-1$). Double tree = $2n-2$. Optimal tour = $n$ (0-1-2-...-n-0). Ratio $\to 2$.
+\end{example}
+
+\begin{example}[Christofides]
+Odd cycle of length $n$ (odd). MST = path ($n-1$). Odd vertices = 2 ends. Matching adds $(n+1)/2$. Total = $1.5n - 0.5$. Optimal = $n$. Ratio $\to 1.5$.
+\end{example}
+
+\section{Exercises}
+\begin{exercise}
+Show that in Euclidean plane, optimal Steiner tree has all Steiner points of degree 3 with 120° angles.
+\end{exercise}
+\begin{exercise}
+Give a factor-2 algorithm for Rectilinear Steiner Arborescence.
+\end{exercise}
+

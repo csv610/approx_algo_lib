@@ -11,7 +11,7 @@ Implements:
 
 import random
 from typing import List, Tuple, Set
-from ch12_14_lp_algorithms import Simplex
+from lp_algorithms import Simplex
 
 def solve_max_sat_lp(
     n_vars: int,

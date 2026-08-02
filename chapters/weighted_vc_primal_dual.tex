@@ -1,0 +1,90 @@
+% ============================================================
+% CHAPTER 15: WEIGHTED VERTEX COVER VIA PRIMAL-DUAL (matches Vazirani Ch. 15)
+% ============================================================
+\setcounter{chapter}{14}
+\chapter{Weighted Vertex Cover via Primal-Dual}
+\label{ch:weighted_vc_pd}
+
+\section{Intuition: The Classical Schema}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The primal-dual schema is one of the most powerful paradigms for designing approximation algorithms. Starting with a feasible dual solution (initially set to zero) and an infeasible primal solution (initially empty), the algorithm iteratively increases the dual variables of unsatisfied constraints until one or more dual constraints become tight. The tight constraints dictate which primal variables should be set. This ensures that we construct a primal cover whose cost is bounded by a constant factor of the dual objective value (which serves as a lower bound on the optimal primal cost).
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with non-negative vertex weights $w_v \ge 0$ for each $v \in V$, the \emph{Weighted Vertex Cover} problem is to find a subset of vertices $U \subseteq V$ of minimum total weight such that every edge in $E$ has at least one endpoint in $U$.
+
+The problem is NP-hard. We seek a 2-approximation using the LP primal-dual schema.
+
+\section{Algorithm and Python Implementation}
+We implement the primal-dual schema: we initialize $y_e = 0$ for all $e \in E$, and for any uncovered edge, we raise its dual variable $y_e$ until a vertex becomes tight.
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Schema for Weighted Vertex Cover]
+def vertex_cover_primal_dual(vertices, edges, weights):
+    """Primal-Dual 2-approximation for Weighted Vertex Cover."""
+    y = {(min(u, v), max(u, v)): 0.0 for u, v in edges}
+    vertex_dual_sums = {v: 0.0 for v in vertices}
+    cover = set()
+    
+    for u, v in edges:
+        e = (min(u, v), max(u, v))
+        if u not in cover and v not in cover:
+            slack_u = weights[u] - vertex_dual_sums[u]
+            slack_v = weights[v] - vertex_dual_sums[v]
+            raise_amount = min(slack_u, slack_v)
+            
+            y[e] += raise_amount
+            vertex_dual_sums[u] += raise_amount
+            vertex_dual_sums[v] += raise_amount
+            
+            if abs(vertex_dual_sums[u] - weights[u]) < 1e-9:
+                cover.add(u)
+            if abs(vertex_dual_sums[v] - weights[v]) < 1e-9:
+                cover.add(v)
+    return cover, y
+\end{lstlisting}
+
+\section{Analysis: Factor 2 Approximation}
+Let the primal LP be:
+\[
+\min \sum_{v \in V} w_v x_v \quad \text{s.t.} \quad x_u + x_v \ge 1 \; (\forall (u,v) \in E), \quad x_v \ge 0
+\]
+The dual LP is:
+\[
+\max \sum_{e \in E} y_e \quad \text{s.t.} \quad \sum_{e \ni v} y_e \le w_v \; (\forall v \in V), \quad y_e \ge 0
+\]
+By construction, our algorithm ensures that for any selected vertex $v \in \text{cover}$, its dual constraint is tight: $\sum_{e \ni v} y_e = w_v$.
+Thus, the total weight of the selected cover is:
+\[
+\sum_{v \in \text{cover}} w_v = \sum_{v \in \text{cover}} \sum_{e \ni v} y_e \le 2 \sum_{e \in E} y_e
+\]
+where the factor of 2 arises because each edge $e = (u,v)$ can have at most both of its endpoints in the cover. By weak duality, $\sum_{e \in E} y_e \le \text{OPT}$, which guarantees that:
+\[
+\text{Cost}(\text{cover}) \le 2 \cdot \text{OPT}
+\]
+This proves that the primal-dual algorithm is a 2-approximation.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Network Security:} Minimizing the cost of monitoring nodes to cover all communication links (edges).
+    \item \textbf{Resource Optimization:} Selecting the cheapest routers/servers to cover all transmission paths.
+    \item \textbf{Facilities Protection:} Placing guards at vertices of a street network to observe all streets.
+\end{itemize}
+
+\subsection*{Real Example: Network Traffic Monitoring with Cost Constraints}
+\textbf{Scenario:} An ISP wants to monitor all optical fiber links (edges) connecting a set of routers (vertices). Placing monitoring software on router $v$ costs $w_v$. The ISP wants to cover all links while minimizing the software licensing cost.
+\textbf{Model:} Weighted Vertex Cover. Routers are vertices, fiber links are edges. Primal-Dual algorithm finds the near-optimal router subset to monitor.
+\textbf{Why Primal-Dual matters:} LP solvers can be computationally expensive and may return fractional values requiring complex rounding. The primal-dual schema runs in linear time $O(|V| + |E|)$ and provides a fast, integer, and guaranteed factor 2 solution, which is ideal for real-time traffic monitoring systems.
+
+\section{Tight Example: Star Graph and Complete Bipartite Graph}
+Consider a star graph with center vertex $0$ and leaf vertices $1, 2, \dots, k$. Let the center have weight $w_0 = k$, and each leaf have weight $w_i = 1$. The optimal vertex cover is $\{0\}$ with cost $k$.
+If we process the edges $(0, 1), (0, 2), \dots, (0, k)$ in order, the primal-dual algorithm will raise $y_{(0,i)}$ to $1.0$ for each edge, tighting the leaves $1, \dots, k$ and the center vertex $0$ simultaneously. The algorithm can include both the center and all leaves in the cover, yielding a total cost of $k + k = 2k$. The ratio is $2k / k = 2$, showing the factor 2 bound is tight.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the primal-dual vertex cover algorithm is exactly equivalent to the local-ratio vertex cover algorithm (which scales vertex weights by subtraction).
+\end{exercise}
+\begin{exercise}
+Construct a tight example for the primal-dual algorithm on a path graph of length 5 with vertex weights $1, 1, 1, 1, 1$.
+\end{exercise}
+

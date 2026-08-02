@@ -1,0 +1,135 @@
+% ============================================================
+% CHAPTER 24: FACILITY LOCATION (matches Vazirani Ch. 24)
+% ============================================================
+\setcounter{chapter}{23}
+\chapter{Facility Location}
+\label{ch:facility}
+
+\section{Intuition: Primal-Dual with Filters}
+
+\begin{intuitionbox}
+\textbf{Facility Location:} We open facilities (pay $f_i$) and connect clients to nearest open facility (pay $c_{ij}$). The LP relaxation has facility variables $y_i$ and connection variables $x_{ij}$.
+
+\textbf{Primal-Dual (Jain-Vazirani):} Raise dual variables $\alpha_j$ for clients uniformly. When $\sum_j \alpha_j = f_i$ for some facility $i$, open it. When $\alpha_j = c_{ij}$ for some open facility, connect $j$ to $i$. This gives a 3-approximation.
+
+\textbf{LP Rounding (Shmoys-Tardos-Aardal):} Solve LP, filter clients with high connection cost, open facilities with $y_i \geq 1/2$, connect remaining clients. Also gives 3-approximation (improved to 1.5 for metric case by Byrka et al.).
+\end{intuitionbox}
+
+\section{Problem Definition}
+
+\begin{definition}[Uncapacitated Facility Location]
+Given facilities $F$ with opening costs $f_i$, clients $C$ with connection costs $c_{ij}$, find $S \subseteq F$ minimizing:
+\[
+\sum_{i \in S} f_i + \sum_{j \in C} \min_{i \in S} c_{ij}
+\]
+\end{definition}
+
+\section{Primal-Dual 3-Approximation}
+
+\begin{algorithmdef}[Facility Location — Factor 3 (Primal-Dual)]
+\begin{enumerate}
+    \item $\alpha_j = 0$ for all clients; all facilities closed
+    \item While unconnected clients exist:
+    \begin{enumerate}
+        \item Raise all $\alpha_j$ uniformly until some constraint becomes tight
+        \item If $\sum_{j \in \Gamma(i)} \alpha_j = f_i$, open facility $i$
+        \item If $\alpha_j = c_{ij}$ for open facility $i$, connect $j$ to $i$
+    \end{enumerate}
+    \item Output open facilities and connections
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This algorithm achieves a 3-approximation for Metric Facility Location.
+\end{theorem}
+
+\subsection{Other Algorithms}
+
+\begin{table}[H]
+\centering
+\caption{Facility Location Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Jain-Vazirani Primal-Dual & 3 & Primal-Dual Schema \\
+Shmoys-Tardos-Aardal LP Rounding & 3 & LP Rounding \\
+Byrka et al. (metric) & 1.5 & LP + Filtering + Matching \\
+Local Search (k-median) & $3+\epsilon$ & Local Search \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not exact?} Facility Location is NP-hard (reduction from Set Cover). The 1.5-approximation is current best for metric case; 1.463 is the lower bound (Guha-Khuller).
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Facility Location Primal-Dual]
+def facility_location_primal_dual(facilities, clients):
+    """3-approx for Facility Location (Jain-Vazirani)."""
+    alpha = {j: 0.0 for j in clients}
+    open_facilities = set()
+    connected = set()
+    active = set(facilities.keys())
+    
+    while len(connected) < len(clients):
+        # Find minimum delta to make constraint tight
+        min_delta = float('inf')
+        for i in active:
+            slack = facilities[i]['cost'] - sum(alpha[j] for j in clients 
+                if j not in connected and j in facilities[i]['clients'])
+            if slack < min_delta:
+                min_delta = slack
+        
+        for j in clients:
+            if j not in connected:
+                for i in active:
+                    if j in facilities[i]['clients']:
+                        slack = facilities[i]['clients'][j] - alpha[j]
+                        if slack < min_delta:
+                            min_delta = slack
+        
+        if min_delta == float('inf') or min_delta <= 0:
+            break
+        
+        # Raise all unconnected alphas
+        for j in clients:
+            if j not in connected:
+                alpha[j] += min_delta
+        
+        # Open tight facilities
+        for i in list(active):
+            if sum(alpha[j] for j in clients 
+                   if j not in connected and j in facilities[i]['clients']) >= facilities[i]['cost'] - 1e-9:
+                open_facilities.add(i)
+                active.remove(i)
+                for j in clients:
+                    if j not in connected and j in facilities[i]['clients']:
+                        connected.add(j)
+    
+    return open_facilities
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Supply chain:} Warehouse placement for retail
+    \item \textbf{Cloud computing:} Data center location
+    \item \textbf{Telecommunications:} Cell tower placement
+    \item \textbf{Emergency services:} Fire station / hospital location
+\end{itemize}
+
+\subsection*{Real Example: Amazon Fulfillment Center Placement}
+\textbf{Scenario:} Amazon wants to open $k=5$ new fulfillment centers in the US to serve $n=500$ zip-code demand regions. Each center has fixed opening cost $f_i$ (land, construction) and per-unit shipping cost $c_{ij}$ to region $j$.
+\textbf{Model:} Facilities = candidate locations (200 possible sites). Clients = 500 zip codes with demand $d_j$. Cost $f_i$ + $\sum_j c_{ij} \cdot d_j$. Metric: $c_{ij}$ = ground shipping cost (satisfies triangle inequality).
+\textbf{Why 3-approx matters:} If OPT = \$100M/year, our solution costs $\leq$ \$300M/year. In practice, Jain-Vazirani primal-dual often achieves $< 1.3\times$ OPT. The guarantee ensures no "catastrophic" placement.
+\textbf{Real constraint:} Centers must serve minimum volume to be profitable. This is \emph{capacitated facility location} — harder (no constant-factor unless $f_i$ uniform). Practical approach: open extra centers to handle capacity, then merge nearby ones.
+\textbf{Alternative:} $k$-median (exactly $k$ centers) — local search gives $3+\epsilon$ approx. Used when budget fixes $k$ but opening costs vary.
+
+\section{Exercises}
+\begin{exercise}
+Show that the LP relaxation integrality gap for metric facility location is at least 1.463.
+\end{exercise}
+\begin{exercise}
+Implement the $k$-median local search algorithm (swap open/closed facilities).
+\end{exercise}
+

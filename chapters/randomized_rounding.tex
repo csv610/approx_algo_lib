@@ -1,0 +1,160 @@
+% ============================================================
+% CHAPTER 16: RANDOMIZED ROUNDING (matches Vazirani Ch. 16)
+% ============================================================
+\setcounter{chapter}{15}
+\chapter{Randomized Rounding}
+\label{ch:randomized_rounding}
+
+\section{Intuition: LP Probabilistic Rounding}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} LP rounding algorithms are often deterministic (e.g. Set Cover rounding at threshold $1/f$). However, for problems like Max-SAT, deterministic thresholding can be suboptimal. Instead, we can interpret the fractional LP variables $y_i^*$ as \emph{probabilities}. By setting variable $x_i$ to True with probability $y_i^*$, we ensure that the expected value of the assignment is close to the LP optimal value. By combining this with a simple coin-flip assignment (which performs well on large clauses, while LP rounding performs well on small clauses), we obtain a $3/4$-approximation.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given $n$ boolean variables $x_1, \dots, x_n$ and $m$ clauses $C_1, \dots, C_m$ with weights $w_j \ge 0$, the \emph{Maximum Satisfiability} (Max-SAT) problem is to find a truth assignment to the variables that maximizes the total weight of satisfied clauses.
+
+The decision version of SAT is NP-complete. Max-SAT is NP-hard. We seek a randomized $(1 - 1/e)$-approximation (approx. 0.632) via LP rounding, and a $3/4$-approximation (0.75) by choosing the best of LP rounding and random coin-flipping.
+
+\section{Algorithm and Python Implementation}
+We formulate the Max-SAT problem as an integer program, solve its LP relaxation using our Simplex solver, and perform randomized rounding.
+
+\begin{lstlisting}[style=python, caption=Randomized Rounding for Max-SAT]
+import random
+
+
+class Simplex:
+    """Maximize c x  s.t. Ax <= b, x >= 0."""
+    def __init__(self, A, b, c):
+        self.m = len(A)
+        self.n = len(A[0]) if A else 0
+        self.A = [row[:] for row in A]
+        self.b = b[:]
+        self.c = c[:]
+
+    def solve(self):
+        tab = [self.A[i] + [1 if j == i else 0 for j in range(self.m)]
+               + [self.b[i]] for i in range(self.m)]
+        tab.append([-v for v in self.c] + [0] * self.m + [0])
+        while True:
+            e = min(range(self.n + self.m), key=lambda j: tab[-1][j])
+            if tab[-1][e] >= -1e-9:
+                break
+            l = min(range(self.m), key=lambda i: tab[i][-1] / tab[i][e]
+                    if tab[i][e] > 1e-9 else float('inf'))
+            if tab[l][e] <= 1e-9:
+                return None, float('inf')
+            p = tab[l][e]
+            tab[l] = [v / p for v in tab[l]]
+            for i in range(self.m + 1):
+                if i != l:
+                    f = tab[i][e]
+                    tab[i] = [tab[i][j] - f * tab[l][j]
+                              for j in range(len(tab[0]))]
+        x = [0.0] * self.n
+        for i in range(self.m):
+            for j in range(self.n + self.m):
+                if (abs(tab[i][j] - 1) < 1e-6 and
+                        sum(abs(tab[r][j]) for r in range(self.m + 1)) < 1.1):
+                    if j < self.n:
+                        x[j] = max(0.0, tab[i][-1])
+        return x, tab[-1][-1]
+
+
+def evaluate_assignment(assignment, clauses, weights):
+    """Total weight of clauses satisfied by a boolean assignment."""
+    total = 0.0
+    for j, (pos, neg) in enumerate(clauses):
+        satisfied = any(assignment[i] for i in pos)
+        if not satisfied:
+            satisfied = any(not assignment[i] for i in neg)
+        if satisfied:
+            total += weights[j]
+    return total
+
+
+def solve_max_sat_lp(n_vars, clauses, weights):
+    """Formulate and solve LP relaxation for Max-SAT."""
+    n_cols = n_vars + len(clauses)
+    A, b = [], []
+    
+    # Clause constraints: z_j - sum_{i in C_j^+} y_i + sum_{i in C_j^-} y_i <= |C_j^-|
+    for j, (pos, neg) in enumerate(clauses):
+        row = [0.0] * n_cols
+        row[n_vars + j] = 1.0
+        for i in pos: row[i] = -1.0
+        for i in neg: row[i] = 1.0
+        A.append(row)
+        b.append(float(len(neg)))
+        
+    # Bounds: y_i <= 1, z_j <= 1
+    for i in range(n_vars):
+        row = [0.0] * n_cols; row[i] = 1.0; A.append(row); b.append(1.0)
+    for j in range(len(clauses)):
+        row = [0.0] * n_cols; row[n_vars + j] = 1.0; A.append(row); b.append(1.0)
+        
+    c = [0.0] * n_cols
+    for j in range(len(clauses)): c[n_vars + j] = weights[j]
+    
+    solver = Simplex(A, b, c)
+    sol, obj = solver.solve()
+    return sol[:n_vars], sol[n_vars:], obj
+
+def randomized_rounding_max_sat(n_vars, clauses, weights, y_lp, trials=200):
+    """Applies randomized rounding to LP variable values."""
+    best_weight, best_assignment, total_weight = -1.0, [], 0.0
+    for _ in range(trials):
+        assignment = [random.random() < y_lp[i] for i in range(n_vars)]
+        weight = evaluate_assignment(assignment, clauses, weights)
+        total_weight += weight
+        if weight > best_weight:
+            best_weight, best_assignment = weight, assignment
+    return best_assignment, total_weight / trials, best_weight
+\end{lstlisting}
+
+\section{Analysis: Approximations and Probability}
+For a clause $C_j$ with size $k$, let its index set of positive and negative literals be $C_j^+$ and $C_j^-$. The LP relaxation includes:
+\[
+z_j \le \sum_{i \in C_j^+} y_i + \sum_{i \in C_j^-} (1 - y_i)
+\]
+Under randomized rounding, variable $x_i$ is set to True with probability $y_i^*$. The probability that clause $C_j$ is satisfied is:
+\[
+1 - \prod_{i \in C_j^+} (1 - y_i^*) \prod_{i \in C_j^-} y_i^*
+\]
+Using the arithmetic-geometric mean inequality, we can show this probability is at least:
+\[
+1 - \left(1 - \frac{z_j}{k}\right)^k
+\]
+Since $g(z) = 1 - (1 - z/k)^k$ is concave and $g(0) = 0, g(1) = 1 - (1 - 1/k)^k$, we have:
+\[
+\text{Pr}[C_j \text{ is satisfied}] \ge \left[1 - \left(1 - \frac{1}{k}\right)^k\right] z_j \ge \left(1 - \frac{1}{e}\right) z_j
+\]
+Summing over all clauses, the expected weight satisfied is $\ge (1 - 1/e) \cdot \text{OPT}_{LP} \approx 0.632 \cdot \text{OPT}$.
+For small clauses, this bound is much higher (e.g. $k=1$ gives $1 \cdot z_j$, $k=2$ gives $0.75 \cdot z_j$). For large clauses, the coin-flip baseline satisfies them with probability $1 - 2^{-k}$. Choosing the best of both algorithms yields a $3/4$-approximation (Goemans-Williamson 1994).
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Satisfiability Solvers:} Finding satisfying assignments for weighted CNF formulas in hardware design verification.
+    \item \textbf{Database Query Optimizers:} Selecting indexing configurations to satisfy as many query filters as possible under physical memory limits.
+    \item \textbf{Digital Circuit Testing:} Generating test vectors that cover maximum gate combinations.
+\end{itemize}
+
+\subsection*{Real Example: Database Query Filter Maximization}
+\textbf{Scenario:} A high-speed database system (e.g., Google Bigtable) has a set of query requests. Each query is a set of boolean filters (clauses). We want to index a subset of fields (variables) to accelerate the queries. If we index a field, it satisfies positive/negative constraints. We want to maximize queries served.
+\textbf{Model:} Max-SAT. Variables are index decisions, clauses are query filters. Randomized LP rounding finds the indexing strategy that maximizes query throughput.
+\textbf{Why Randomized Rounding matters:} Real systems cannot wait for exact integer programming solvers. Randomized LP rounding runs instantly by solving a continuous linear program and sampling variable assignments, guaranteeing that query satisfaction is within a fraction of the absolute optimal configuration.
+
+\section{Tight Example: Clause Size Bottleneck}
+A tight example for the $(1-1/e)$ bound consists of $n$ independent single-literal clauses of the form $(x_i)$ for $i=1, \dots, n$, each with weight 1.
+The LP relaxation will set $y_i^* = 1.0$ and $z_i^* = 1.0$, achieving objective $n$.
+Randomized rounding sets each $x_i$ to True with probability $y_i^* = 1.0$, satisfying all clauses exactly.
+Wait! What if we have a clause $(x_1 \lor x_2 \lor \dots \lor x_k)$? As $k$ grows, the factor $1 - (1 - 1/k)^k$ converges to $1 - 1/e \approx 0.632$. This shows the asymptotic bound is tight for large clauses under pure randomized rounding, but the coin-flip algorithm achieves $1 - 2^{-k} \approx 1$ for large clauses, which compensates for this bottleneck.
+
+\section{Exercises}
+\begin{exercise}
+Prove that for any clause $C_j$ of size $k$, the probability that it is satisfied by the coin-flip assignment is $1 - 2^{-k}$.
+\end{exercise}
+\begin{exercise}
+Show that if all clauses in a Max-SAT instance have size 1, the randomized rounding algorithm finds an exact optimal solution.
+\end{exercise}
+

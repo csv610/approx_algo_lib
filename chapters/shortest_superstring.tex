@@ -1,0 +1,157 @@
+% ============================================================
+% CHAPTER 7: SHORTEST SUPERSTRING (matches Vazirani Ch. 7)
+% ============================================================
+\chapter{Shortest Superstring}
+\label{ch:superstring}
+
+\section{Intuition: Overlaps and Cycles}
+
+\begin{intuitionbox}
+\textbf{Overlap Minimization Intuition:} Finding the shortest common superstring of a set of strings is equivalent to maximizing the total overlap between adjacent strings. If we construct a directed graph where edge weights represent the cost of transitioning between strings (i.e. prefix length of the successor not overlapping with the predecessor), the shortest superstring is a TSP-like path. While TSP path cover is hard, a cycle cover of minimum weight can be found in polynomial time. By opening the cycles of the optimal cycle cover, we obtain a set of representative strings which can then be merged to yield a guaranteed 4-approximation (or 3-approximation using greedy merges).
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given a set of strings $S = \{s_1, \dots, s_n\}$ over a finite alphabet $\Sigma$, the \emph{Shortest Common Superstring} (SCS) problem is to find a string $s$ of minimum length $|s|$ such that each $s_i \in S$ is a substring of $s$.
+
+Without loss of generality, we assume that no string $s_i \in S$ is a substring of any other string $s_j \in S$. The SCS problem is NP-hard and has direct applications in bioinformatics (de novo genome assembly) and text compression.
+
+\section{Algorithm and Python Implementation}
+The approximation algorithms construct a directed overlap graph where vertices are the input strings. The edge weight $w(u, v) = |v| - \text{ov}(u, v)$ is the cost of appending $v$ after $u$, where $\text{ov}(u, v)$ is the length of the longest suffix of $u$ that is a prefix of $v$. 
+
+\begin{lstlisting}[style=python, caption=Approximation Algorithms for Shortest Superstring]
+def compute_overlap(s1, s2):
+    """Length of longest suffix of s1 that is a prefix of s2."""
+    for l in range(min(len(s1), len(s2)), 0, -1):
+        if s1.endswith(s2[:l]):
+            return l
+    return 0
+
+
+def preprocess_substrings(strings):
+    """Drop strings properly contained in another string."""
+    filtered = []
+    for s in sorted(strings, key=len, reverse=True):
+        if not any(s in other for other in filtered):
+            filtered.append(s)
+    return filtered
+
+
+def find_minimum_cycle_cover(cost_matrix):
+    """Min-weight cycle cover via backtracking (small n)."""
+    n = len(cost_matrix)
+    best = (float('inf'), [])
+
+    def backtrack(k, perm, visited, cost):
+        nonlocal best
+        if cost >= best[0]:
+            return
+        if k == n:
+            best = (cost, list(perm))
+            return
+        for nxt in range(n):
+            if not visited[nxt]:
+                visited[nxt] = True
+                perm.append(nxt)
+                backtrack(k + 1, perm, visited, cost + cost_matrix[k][nxt])
+                perm.pop()
+                visited[nxt] = False
+
+    backtrack(0, [], [False] * n, 0.0)
+    return best[1], best[0]
+
+
+def extract_cycles(perm):
+    """Decompose the permutation into vertex-disjoint cycles."""
+    n = len(perm)
+    visited = [False] * n
+    cycles = []
+    for i in range(n):
+        if not visited[i]:
+            cyc = []
+            curr = i
+            while not visited[curr]:
+                visited[curr] = True
+                cyc.append(curr)
+                curr = perm[curr]
+            cycles.append(cyc)
+    return cycles
+
+
+def cycle_cover_to_strings(cycles, strings):
+    """Merge the strings of each cycle into one representative."""
+    out = []
+    for cyc in cycles:
+        if len(cyc) == 1:
+            out.append(strings[cyc[0]])
+            continue
+        merged = strings[cyc[0]]
+        for u, v in zip(cyc[:-1], cyc[1:]):
+            merged += strings[v][compute_overlap(strings[u], strings[v]):]
+        out.append(merged)
+    return out
+
+
+def greedy_superstring(strings):
+    """Greedy superstring merge."""
+    T = list(strings)
+    while len(T) > 1:
+        best_ov, bi, bj = -1, -1, -1
+        for i in range(len(T)):
+            for j in range(len(T)):
+                if i != j and compute_overlap(T[i], T[j]) > best_ov:
+                    best_ov, bi, bj = compute_overlap(T[i], T[j]), i, j
+        merged = T[bi] + T[bj][best_ov:]
+        T = [T[i] for i in range(len(T)) if i != bi and i != bj]
+        T.append(merged)
+    return T[0] if T else ""
+
+
+def shortest_superstring_3approx(strings):
+    """3-approx algorithm for Shortest Superstring (Modified Greedy)."""
+    cleaned = preprocess_substrings(strings)
+    if not cleaned: return ""
+    if len(cleaned) == 1: return cleaned[0]
+        
+    n = len(cleaned)
+    cost_matrix = [[0.0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            cost_matrix[i][j] = len(cleaned[j]) - compute_overlap(cleaned[i], cleaned[j])
+            
+    perm, _ = find_minimum_cycle_cover(cost_matrix)
+    cycles = extract_cycles(perm)
+    cycle_strings = cycle_cover_to_strings(cycles, cleaned)
+    return greedy_superstring(cycle_strings)
+\end{lstlisting}
+
+\section{Analysis: Cycle Covers as Lower Bounds}
+Let $\text{OPT}$ be the length of the shortest superstring. We define the prefix distance function $d(u, v) = |v| - \text{ov}(u, v)$. This distance function is metric-like: it satisfies the triangle inequality $d(u, w) \le d(u, v) + d(v, w)$.
+
+A cycle cover of the overlap graph is a set of vertex-disjoint cycles covering all vertices. The minimum cycle cover has total weight $\text{wt}(C) \le \text{OPT}$. By breaking each cycle $c_k$ at an arbitrary string to form a single merged string $s'_{c_k}$, we can show that the sum of lengths of the cycle representative strings is bounded by:
+\[
+\sum_{c_k} |s'_{c_k}| \le \text{OPT} + \text{wt}(C) \le 2 \cdot \text{OPT}
+\]
+The 4-approximation simply concatenates these representative strings (giving at most $2 \cdot 2 \cdot \text{OPT} = 4 \cdot \text{OPT}$). The 3-approximation (Modified Greedy) runs a greedy merge on these representatives, which limits the overlap loss and achieves a factor of 3.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{DNA Sequencing (De Novo Assembly):} Sanger sequencing and high-throughput sequencing generate millions of short DNA fragments (reads). The genome is assembled by finding the shortest common superstring of these reads.
+    \item \textbf{Data Compression:} Storing a dictionary of common words/patterns as a single superstring and referencing substrings via offsets.
+\end{itemize}
+
+\subsection*{Real Example: Sanger DNA Sequence Assembly}
+\textbf{Scenario:} A biologist sequences a gene and gets 5 short overlapping reads: \texttt{CATG}, \texttt{ATGT}, \texttt{TGTA}, \texttt{GTAC}, and \texttt{TACA}. Goal: reconstruct the original DNA sequence.
+\textbf{Model:} Overlap graph vertices are the 5 reads. Minimum cycle cover groups overlapping fragments. The 3-approximation algorithm merges cycle representatives greedily to yield the reconstructed sequence: \texttt{CATGTACA}.
+\textbf{Why 3-approx matters:} Finding the absolute shortest common superstring is NP-hard. The 3-approximation ensures that the reconstructed sequence length is within a factor of 3 of the optimal assembly, preventing over-compaction or redundant sequence generation.
+
+\section{Tight Example: Greedy Overlap Heuristic}
+A tight example for the standard greedy algorithm consists of strings $s_1 = a^k b$, $s_2 = b a^k$, and $s_3 = a^k$. The greedy heuristic can make choices that result in a superstring of length close to 2 times optimal. The modified greedy cycle-cover method resolves these structural bottlenecks.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the distance function $d(u, v) = |v| - \text{ov}(u, v)$ satisfies the triangle inequality $d(u, w) \le d(u, v) + d(v, w)$.
+\end{exercise}
+\begin{exercise}
+Explain why the minimum cycle cover can be solved in polynomial time using bipartite matching.
+\end{exercise}
+

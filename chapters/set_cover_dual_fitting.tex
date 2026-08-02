@@ -1,0 +1,120 @@
+% ============================================================
+% CHAPTER 13: SET COVER VIA DUAL FITTING (matches Vazirani Ch. 13)
+% ============================================================
+\setcounter{chapter}{12}
+\chapter{Set Cover via Dual Fitting}
+\label{ch:setcover_dual}
+
+\section{Intuition: Prices as Dual Variables}
+
+\begin{intuitionbox}
+\textbf{Dual Fitting:} The greedy algorithm assigns a \emph{price} to each element when it's covered. These prices don't form a feasible dual solution (they may violate $\sum_{e \in S} \text{price}(e) \leq c(S)$). But if we scale all prices down by $H_n$, they \emph{do} become feasible! This proves the $H_n$ bound without explicitly solving the LP.
+\end{intuitionbox}
+
+\section{Dual of Set Cover LP}
+
+Primal: $\min \sum_S c(S) x_S$ s.t. $\sum_{S \ni e} x_S \geq 1 \ \forall e$, $x_S \geq 0$
+
+Dual: $\max \sum_e y_e$ s.t. $\sum_{e \in S} y_e \leq c(S) \ \forall S$, $y_e \geq 0$
+
+\subsection{Dual-Fitting Analysis of Greedy}
+
+\begin{theorem}
+The prices $y_e$ assigned by the greedy algorithm, scaled by $1/H_n$, form a feasible dual solution.
+\end{theorem}
+\begin{proof}
+When element $e$ is covered, there are $k$ uncovered elements. Its price $\leq \OPT/k$. Summing over all elements in any set $S$: at most $\OPT \cdot H_n$. Scaling by $1/H_n$ makes dual feasible.
+\end{proof}
+
+\subsection{Can the Guarantee Be Improved?}
+
+Feige (1998): No polynomial-time algorithm achieves $(1-\epsilon)\ln n$ unless NP $\subseteq$ DTIME$(n^{\log\log n})$. Greedy is essentially optimal.
+
+\section{Generalizations}
+
+\subsection{Constrained Set Multicover}
+Each element $e$ has requirement $r_e$. Greedy with $H_{nr}$ bound where $r = \max r_e$.
+
+\subsection{Dual Fitting for Multicover}
+Prices assigned per unit of coverage. Same analysis extends.
+
+\section{Other Algorithms for Set Cover}
+
+\begin{table}[H]
+\centering
+\caption{Set Cover Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Greedy & $H_n$ & Combinatorial \\
+LP Rounding (Ch. 14) & $f$ (max frequency) & LP Rounding \\
+Primal-Dual (Ch. 22) & $f$ & Primal-Dual Schema \\
+Randomized Rounding & $O(\log n)$ & LP + Randomization \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Set Cover (f-approx)]
+def set_cover_primal_dual(universe, sets, costs):
+    """f-approx for Set Cover via Primal-Dual (Algo 22.3)."""
+    U = set(universe)
+    covered = set()
+    y = {e: 0.0 for e in U}
+    picked = []
+    total_cost = 0.0
+
+    sets_containing = {e: [] for e in U}
+    for s, se in sets.items():
+        for e in se:
+            if e in U:
+                sets_containing[e].append(s)
+
+    while covered != U:
+        e = next(iter(U - covered))
+
+        # Increase y[e] until some set containing e goes tight.
+        tight_set = None
+        while True:
+            min_slack = float('inf')
+            tight_set = None
+            for s in sets_containing[e]:
+                slack = (costs[s]
+                         - sum(y[ee] for ee in sets[s] if ee in U))
+                if slack < min_slack:
+                    min_slack = slack
+                    tight_set = s
+            if min_slack <= 1e-9:
+                break                      # already tight
+            y[e] += min_slack               # make it tight
+
+            for s in sets_containing[e]:
+                slack = (costs[s]
+                         - sum(y[ee] for ee in sets[s] if ee in U))
+                if abs(slack) < 1e-9:
+                    tight_set = s
+                    break
+            if tight_set is not None:
+                break
+
+        if tight_set is None:
+            break
+
+        if tight_set not in picked:
+            picked.append(tight_set)
+            total_cost += costs[tight_set]
+            covered.update(sets[tight_set])
+
+    return picked, total_cost
+\end{lstlisting}
+
+\section{Exercises}
+\begin{exercise}
+Show greedy set cover achieves $H_k$ where $k = \max |S_i|$.
+\end{exercise}
+\begin{exercise}
+Give a factor-$f$ algorithm where $f$ is maximum element frequency.
+\end{exercise}
+

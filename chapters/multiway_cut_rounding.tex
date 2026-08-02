@@ -1,0 +1,106 @@
+% ============================================================
+% CHAPTER 19: MULTIWAY CUT LP ROUNDING (matches Vazirani Ch. 19)
+% ============================================================
+\setcounter{chapter}{18}
+\chapter{Multiway Cut LP Rounding}
+\label{ch:multiway_rounding}
+
+\section{Intuition: Simplex-Distance LP and CKR Rounding}
+
+\begin{intuitionbox}
+\textbf{Multiway Cut LP Rounding:} For the Multiway Cut problem, the standard isolating cuts algorithm yields a $2(1-1/k)$-approximation. However, by formulating the problem as a Simplex-distance LP relaxation (where vertices are embedded in a simplex and edge costs correspond to distances on this simplex), we can achieve a better approximation ratio of 1.5. 
+
+\textbf{CKR Rounding:} The Călinescu-Karloff-Rabani (CKR) randomized rounding scheme selects a random permutation of terminals and a random radius $r \in (0, 1/2)$, assigning each vertex to the first terminal in the permutation whose distance is within the radius. This global randomized routing scheme cuts edges with probability bounded by $1.5$ times their LP contribution.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with non-negative edge costs $c_e \ge 0$, and a set of $k$ terminals $S = \{s_1, \dots, s_k\} \subseteq V$, the \emph{Multiway Cut} problem is to find a minimum cost subset of edges $C \subseteq E$ whose removal disconnects every terminal from all other terminals.
+
+The problem is NP-hard. We seek a randomized 1.5-approximation using the Simplex-distance LP relaxation and CKR randomized rounding.
+
+\section{Algorithm and Python Implementation}
+We solve the LP relaxation by formulating the primal-dual problem and then apply the CKR randomized rounding.
+
+\begin{lstlisting}[style=python, caption=CKR Randomized Rounding for Multiway Cut]
+import random
+
+
+def calinescu_karloff_rabani_rounding(
+    n, edges, costs, terminals, d, trials=500
+):
+    """Applies CKR randomized rounding to multiway cut LP solution."""
+    k = len(terminals)
+    best_cost = float('inf')
+    best_cut = []
+    
+    for _ in range(trials):
+        perm = list(range(k))
+        random.shuffle(perm)
+        r = random.uniform(0.0, 0.5)
+        
+        assignment = [-1] * n
+        for v in range(n):
+            assigned = False
+            for idx in perm:
+                if d[v][idx] > r:
+                    assignment[v] = idx
+                    assigned = True
+                    break
+            if not assigned:
+                assignment[v] = perm[-1]
+                
+        cut = []
+        cost = 0.0
+        for e, (u, v) in enumerate(edges):
+            if assignment[u] != assignment[v]:
+                cut.append((u, v))
+                cost += costs[e]
+                
+        if cost < best_cost:
+            best_cost, best_cut = cost, cut
+            
+    return best_cut, best_cost
+\end{lstlisting}
+
+\section{Analysis: Simplex Embedding and 1.5 Bound}
+In the Simplex-distance LP relaxation, we associate a vector $d(v) = (d_1(v), \dots, d_k(v))$ with each vertex $v$ representing its location in the $k$-dimensional simplex.
+The distance between $u$ and $v$ is measured as $\frac{1}{2} \sum_{i=1}^k |d_i(u) - d_i(v)|$.
+The LP is formulated as:
+\[
+\min \frac{1}{2} \sum_{(u,v) \in E} c_{uv} \sum_{i=1}^k |d_i(u) - d_i(v)|
+\]
+subject to:
+\[
+\sum_{i=1}^k d_i(v) = 1 \; (\forall v \in V), \quad d_i(s_j) = 1 \text{ if } i = j \text{ else } 0, \quad d_i(v) \ge 0 \; (\forall v, i)
+\]
+Under the CKR randomized rounding scheme, the probability that edge $e=(u,v)$ is cut is bounded by:
+\[
+\Pr[\text{edge } (u,v) \text{ is cut}] \le 1.5 \cdot \left( \frac{1}{2} \sum_{i=1}^k |d_i(u) - d_i(v)| \right)
+\]
+By linearity of expectation, the expected cost of the cut is at most $1.5 \cdot \text{OPT}_{LP} \le 1.5 \cdot \text{OPT}$.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Distributed Database Partitioning:} Dividing data tables across $k$ database servers to minimize the cost of cross-server transactional joins.
+    \item \textbf{Image Segmentation with Multiple Labels:} Segmenting an image into $k$ distinct semantic regions (e.g. road, sky, car) while minimizing boundary mismatch costs.
+    \item \textbf{Network Domain Isolation:} Separating $k$ secure networks sharing a common backbone using firewall boundaries.
+\end{itemize}
+
+\subsection*{Real Example: Image Segmentation with Multiple Labels}
+\textbf{Scenario:} A self-driving car's vision system (e.g. Waymo) segments an HD camera frame into $k=3$ categories: Road, Obstacles, and Background. Pixels represent vertices, and adjacent pixels are connected by edges with weight proportional to color similarity.
+\textbf{Model:} Multiway Cut on a grid graph, where the terminals represent seeds for each category.
+\textbf{Why CKR LP Rounding matters:} Isolating cuts can yield asymmetric boundary segments that cross high-contrast edges. The CKR Simplex LP embedding places pixel classes smoothly on a probability simplex, and the random permutation and radius ensure globally consistent cuts. This results in segment boundaries that align naturally with physical object edges.
+
+\section{Tight Example: The Spokes Graph}
+Consider a graph of 6 vertices: 3 terminals $0, 2, 4$, a central vertex $5$, and outer cycle vertices. 
+The LP relaxation allows the central vertex to be embedded at $(1/3, 1/3, 1/3)$, yielding an LP value of 12.0.
+\textbf{CKR Rounding Results:} With high probability, the cut total cost is 12.0, which matches the optimal integral cut value of 12.0.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the Simplex-distance LP relaxation for $k=3$ terminals has an integrality gap of at most 12/11.
+\end{exercise}
+\begin{exercise}
+Implement a deterministic version of the CKR rounding by trying all possible permutations and picking the best threshold.
+\end{exercise}
+

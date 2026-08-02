@@ -1,0 +1,116 @@
+% ============================================================
+% CHAPTER 28: COUNTING PROBLEMS (Vazirani Ch. 28)
+% ============================================================
+\setcounter{chapter}{27}
+\chapter{Counting Problems}
+\label{ch:counting}
+
+\section{Intuition: Sampling and Estimation}
+
+\begin{intuitionbox}
+\textbf{Counting vs. Decision:} Many NP problems have efficient decision algorithms but $\#$P-hard counting versions. For example, checking if a DNF formula is satisfiable is easy, but counting the number of satisfying assignments is $\#$P-hard. Similarly, checking if a graph is connected is easy, but computing the probability that a random subgraph is connected (network reliability) is $\#$P-hard.
+
+\textbf{Monte Carlo Estimation:} We can approximate $\#$P-hard counts using Monte Carlo sampling. The key is to design an efficient sampler that produces estimates with low variance. The Karp-Luby algorithm for DNF counting achieves this by importance sampling: pick a random clause, sample a satisfying assignment uniformly, and use the ratio estimator.
+\end{intuitionbox}
+
+\section{Problem Definitions}
+
+\subsection{DNF Counting}
+Given a DNF formula $\Phi = T_1 \vee T_2 \vee \cdots \vee T_m$ over $n$ variables, count the number of satisfying assignments: $\text{sat}(\Phi) = |\{x \in \{0,1\}^n : \Phi(x) = 1\}|$.
+
+\subsection{Network Reliability}
+Given a graph $G$ where each edge $e$ survives independently with probability $p_e$, compute $\Pr[G \text{ is connected}]$.
+
+\section{Algorithms}
+
+\subsection{Karp-Luby for DNF Counting}
+\begin{enumerate}
+    \item For each clause $T_i$, compute $|T_i| = 2^{n - \text{vars}(T_i)}$ (number of assignments satisfying $T_i$).
+    \item Repeat $O(n/\epsilon^2)$ times:
+    \begin{enumerate}
+        \item Pick clause $T_i$ with probability $|T_i| / \sum_j |T_j|$.
+        \item Sample assignment $x$ uniformly from satisfying assignments of $T_i$.
+        \item Compute $Y = (\sum_j |T_j|) / |T_i|$ if $\Phi(x) = 1$, else $Y = 0$.
+    \end{enumerate}
+    \item Return $\bar{Y} = \frac{1}{\text{trials}} \sum Y_t$.
+\end{enumerate}
+This gives a $(1 \pm \epsilon)$ approximation with high probability.
+
+\subsection{Monte Carlo Network Reliability}
+\begin{enumerate}
+    \item Repeat $O(1/\epsilon^2)$ times:
+    \begin{enumerate}
+        \item Include each edge $e$ independently with probability $p_e$.
+        \item Check if the resulting graph is connected.
+    \end{enumerate}
+    \item Return the fraction of trials where the graph was connected.
+\end{enumerate}
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Karp-Luby DNF Counting]
+import random
+
+
+def weighted_random(weights):
+    """Return an index in [0, len(weights)) with prob proportional to weight."""
+    total = sum(weights)
+    r = random.uniform(0.0, total)
+    acc = 0.0
+    for i, w in enumerate(weights):
+        acc += w
+        if r <= acc:
+            return i
+    return len(weights) - 1
+
+
+def clause_satisfied(clause, assignment):
+    """True if every (positive) variable of the clause is True."""
+    return all(assignment[i] for i in clause)
+
+
+def sample_satisfying(clause, n_vars):
+    """Uniform random assignment that makes `clause` True."""
+    assignment = [False] * n_vars
+    for i in clause:
+        assignment[i] = True
+    for i in range(n_vars):
+        if i not in clause:
+            assignment[i] = random.random() < 0.5
+    return assignment
+
+
+def count_dnf_karp_luby(clauses, n_vars, epsilon=0.1, trials=1000):
+    """Karp-Luby (1+epsilon)-approximation for counting DNF solutions."""
+    clause_sizes = [2**(n_vars - len(c)) for c in clauses]
+    total = sum(clause_sizes)
+    estimates = []
+    
+    for _ in range(trials):
+        # Pick clause proportional to its size
+        idx = weighted_random(clause_sizes)
+        # Sample satisfying assignment for clause idx
+        assignment = sample_satisfying(clauses[idx], n_vars)
+        # Check if it satisfies the full DNF
+        if any(clause_satisfied(clauses[j], assignment) for j in range(len(clauses))):
+            estimates.append(total / clause_sizes[idx])
+        else:
+            estimates.append(0)
+    return sum(estimates) / len(estimates)
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Probabilistic verification:} Network reliability analysis for infrastructure.
+    \item \textbf{Model counting:} Counting solutions in SAT solvers for AI planning.
+    \item \textbf{Statistical physics:} Partition function estimation in Ising models.
+\end{itemize}
+
+\section{Exercises}
+\begin{exercise}
+Prove that the Karp-Luby estimator is unbiased: $E[\bar{Y}] = \text{sat}(\Phi)$.
+\end{exercise}
+\begin{exercise}
+Show that the variance of the Karp-Luby estimator is at most $O(n \cdot \text{sat}(\Phi)^2)$.
+\end{exercise}
+

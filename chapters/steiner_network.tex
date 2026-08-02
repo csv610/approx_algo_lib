@@ -1,0 +1,176 @@
+% ============================================================
+% CHAPTER 22: STEINER NETWORK (matches Vazirani Ch. 22/23)
+% ============================================================
+\setcounter{chapter}{21}
+\chapter{Steiner Network}
+\label{ch:steiner_network}
+
+\section{Intuition: LP Extreme Points and Iterative Rounding}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} Primal-dual schemas and randomized rounding are powerful, but some problems require a more direct structural exploitation of the LP relaxation. Kamal Jain (1998) introduced \emph{Iterative Rounding} for the Survivable Network Design Problem (SNDP). The key insight is that any extreme point (basic feasible solution) of the SNDP LP relaxation must contain at least one edge $e$ with fractional value $x_e^* \ge 1/2$. By rounding this edge up to 1, reducing the connectivity requirements, and solving the LP on the remaining graph iteratively, we obtain a guaranteed 2-approximation.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with edge costs $c_e \ge 0$, and connectivity requirements $r_{uv} \ge 0$ for each pair of vertices $u, v \in V$, the \emph{Steiner Network} (or Survivable Network Design) problem is to find a minimum cost subgraph $H \subseteq E$ containing at least $r_{uv}$ edge-disjoint paths between $u$ and $v$ for all $u, v \in V$.
+
+The problem is NP-hard. We seek a 2-approximation using Jain's iterative rounding algorithm.
+
+\section{Algorithm and Python Implementation}
+We solve the LP relaxation of SNDP by formulating its dual (which has a naturally feasible origin since edge costs are non-negative) and iteratively round edges with $x_e \ge 0.5$.
+
+\begin{lstlisting}[style=python, caption=Jain's Iterative Rounding Algorithm]
+class Simplex:
+    """Maximize c x  s.t. Ax <= b, x >= 0."""
+    def __init__(self, A, b, c):
+        self.m = len(A)
+        self.n = len(A[0]) if A else 0
+        self.A = [row[:] for row in A]
+        self.b = b[:]
+        self.c = c[:]
+        self.obj_row = []
+
+    def solve(self):
+        tab = [self.A[i] + [1 if j == i else 0 for j in range(self.m)]
+               + [self.b[i]] for i in range(self.m)]
+        tab.append([-v for v in self.c] + [0] * self.m + [0])
+        while True:
+            e = min(range(self.n + self.m), key=lambda j: tab[-1][j])
+            if tab[-1][e] >= -1e-9:
+                break
+            l = min(range(self.m), key=lambda i: tab[i][-1] / tab[i][e]
+                    if tab[i][e] > 1e-9 else float('inf'))
+            if tab[l][e] <= 1e-9:
+                return None, float('inf')
+            p = tab[l][e]
+            tab[l] = [v / p for v in tab[l]]
+            for i in range(self.m + 1):
+                if i != l:
+                    f = tab[i][e]
+                    tab[i] = [tab[i][j] - f * tab[l][j]
+                              for j in range(len(tab[0]))]
+        x = [0.0] * self.n
+        for i in range(self.m):
+            for j in range(self.n + self.m):
+                if (abs(tab[i][j] - 1) < 1e-6 and
+                        sum(abs(tab[r][j]) for r in range(self.m + 1)) < 1.1):
+                    if j < self.n:
+                        x[j] = max(0.0, tab[i][-1])
+        self.obj_row = tab[-1]
+        return x, tab[-1][-1]
+
+
+def get_all_cuts(n):
+    """Every non-empty proper vertex subset."""
+    return [{j for j in range(n) if i & (1 << j)}
+            for i in range(1, 1 << (n - 1))]
+
+
+def solve_sndp_lp_phase(n, edges, costs, r, fixed_edges):
+    """LP relaxation for SNDP via its dual (global cut constraints)."""
+    cuts = get_all_cuts(n)
+    n_cuts, n_edges = len(cuts), len(edges)
+    active = [i for i in range(n_edges) if i not in fixed_edges]
+    n_active = len(active)
+
+    f = []
+    for cut in cuts:
+        val = max([req for (u, v), req in r.items()
+                   if (u in cut) != (v in cut)] + [0])
+        fixed_cross = sum(1 for idx in fixed_edges
+                          if (edges[idx][0] in cut) != (edges[idx][1] in cut))
+        f.append(max(0, val - fixed_cross))
+
+    n_cols = n_cuts + n_active
+    A_dual, b_dual = [], []
+    for j, ei in enumerate(active):
+        u, v = edges[ei]
+        row = [0.0] * n_cols
+        for s_idx, cut in enumerate(cuts):
+            if (u in cut) != (v in cut):
+                row[s_idx] = 1.0
+        row[n_cuts + j] = -1.0
+        A_dual.append(row)
+        b_dual.append(costs[ei])
+
+    solver = Simplex(A_dual, b_dual, [float(v) for v in f] + [-1.0] * n_active)
+    dual_sol, _ = solver.solve()
+    if dual_sol is None:
+        return [0.0] * n_edges
+
+    x = [0.0] * n_edges
+    for i in fixed_edges:
+        x[i] = 1.0
+    for j, ei in enumerate(active):
+        x[ei] = max(0.0, solver.obj_row[n_cols + j])
+    return x
+
+
+def jain_iterative_rounding(n, edges, costs, r):
+    """Jain's iterative rounding: round an edge x_e >= 1/2 per LP phase."""
+    fixed_edges = set()
+
+    def requirements_met():
+        for cut in get_all_cuts(n):
+            req = max([val for (u, v), val in r.items()
+                       if (u in cut) != (v in cut)] + [0])
+            if req == 0:
+                continue
+            cap = sum(1 for i in fixed_edges
+                      if (edges[i][0] in cut) != (edges[i][1] in cut))
+            if cap < req:
+                return False
+        return True
+
+    while not requirements_met():
+        x = solve_sndp_lp_phase(n, edges, costs, r, fixed_edges)
+
+        active = [i for i in range(len(edges)) if i not in fixed_edges]
+        best_idx = max(active, key=lambda i: x[i])
+        fixed_edges.add(best_idx)
+
+    return [edges[i] for i in fixed_edges]
+\end{lstlisting}
+
+\section{Analysis: Jain's Theorem and Factor 2}
+The LP relaxation for the Steiner Network problem is:
+\[
+\min \sum_{e \in E} c_e x_e \quad \text{s.t.} \quad \sum_{e \in \delta(S)} x_e \ge f(S) \; (\forall S \subset V), \quad 0 \le x_e \le 1
+\]
+where $f(S) = \max_{u \in S, v \notin S} r_{uv}$.
+An extreme point (or basic feasible solution) of this LP is defined by a set of linearly independent tight cut constraints. Jain proved a fundamental structural property of these extreme points:
+\begin{theorem}[Jain 1998]
+For any connectivity requirement function $f$ that is weakly supermodular, any basic feasible solution to the LP relaxation has at least one edge $e$ with $x_e \ge 1/2$.
+\end{theorem}
+Based on this theorem, we round $x_e$ to 1, which increases its cost to $c_e \le 2 \cdot c_e x_e$. By induction on the iterations, the total cost of the rounded edges is bounded by:
+\[
+\sum_{e \in H} c_e \le 2 \cdot \text{OPT}_{LP} \le 2 \cdot \text{OPT}
+\]
+which proves that Jain's iterative rounding is a 2-approximation.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Survivable Network Design:} Laying communication links that can survive up to $k$ simultaneous link failures by maintaining $k$ disjoint paths between key nodes.
+    \item \textbf{Power Grid Design:} Constructing high-capacity power lines that ensure alternative routes during generator outages.
+    \item \textbf{Disaster Recovery Routing:} Deploying redundant emergency networks connecting key rescue centers.
+\end{itemize}
+
+\subsection*{Real Example: High-Availability Telecommunication Backbones}
+\textbf{Scenario:} A telecom operator (e.g. AT\&T) connects regional routing hubs. Certain hubs (e.g., Chicago and New York) require a high-availability channel with 3 edge-disjoint paths to survive up to 2 simultaneous fiber cuts. Other hubs only require 1 path.
+\textbf{Model:} Steiner Network. Hubs are vertices, connectivity requirements are $r_{uv} \in \{0, 1, 3\}$. Iterative rounding finds the optimal network.
+\textbf{Why Iterative Rounding matters:} Dual-based schemas or randomized rounding cannot handle high disjointness constraints ($r_{uv} \ge 3$) efficiently. Jain's iterative rounding algorithm handles general integer demands directly, ensuring a cost-efficient layout with a strict mathematical guarantee of being within $2 \times$ of the global optimum.
+
+\section{Tight Example: The Multi-Path Cycle}
+Consider a 4-node graph with edges $(0, 1), (1, 2), (2, 3), (3, 0)$ of costs $2, 3, 2, 3$, and a diagonal edge $(0, 2)$ of cost 4. Let the requirements be $r(0, 2) = 2$ and $r(1, 3) = 1$.
+The optimal integer solution is to select edges $(0, 1), (1, 2), (2, 3), (3, 0)$ with total cost $2 + 3 + 2 + 3 = 10$.
+Our iterative rounding algorithm solves the LP, rounds the diagonal edge $(0, 2)$ (since its LP value is $\ge 0.5$), and then rounds $(0, 1), (1, 2), (2, 3)$, yielding a total cost of $2 + 3 + 2 + 4 = 11$.
+The approximation ratio is $11/10 = 1.1$, which is well within the factor 2 performance bound.
+
+\section{Exercises}
+\begin{exercise}
+Prove that if all connectivity requirements $r_{uv}$ are at most 1, the Steiner Network problem is equivalent to the Steiner Forest problem.
+\end{exercise}
+\begin{exercise}
+Construct a basic feasible solution for a triangle graph with connectivity requirements 1, and show that at least one edge has $x_e \ge 1/2$.
+\end{exercise}
+

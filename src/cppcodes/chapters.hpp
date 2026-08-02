@@ -24,3 +24,4 @@ void demo_primal_dual_fvs();
 void demo_facility_location();
 void demo_max_2sat();
 void demo_tree_multicut();
+void demo_counting_problems();

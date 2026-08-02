@@ -1,0 +1,146 @@
+% ============================================================
+% CHAPTER 1: INTRODUCTION (matches Vazirani Ch. 1)
+% ============================================================
+\setcounter{chapter}{0}
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{The Approximation Paradigm}
+
+\begin{intuitionbox}
+\textbf{The Core Problem:} Most natural optimization problems are NP-hard. Assuming P $\neq$ NP, we cannot find exact solutions efficiently. But we \emph{can} find near-optimal solutions with \emph{provable guarantees}.
+
+\textbf{The Key Insight:} To prove a guarantee like ``within 2$\times$ optimal,'' we don't need to \emph{know} the optimal value. We just need a \emph{lower bound} on OPT that we can compute efficiently. If our algorithm's solution is within a factor of that lower bound, we have our guarantee.
+\end{intuitionbox}
+
+\begin{definition}[$\alpha$-Approximation Algorithm]
+For a minimization problem, an algorithm $A$ is an $\alpha$-approximation ($\alpha \geq 1$) if for every instance $I$:
+\[
+A(I) \leq \alpha \cdot \OPT(I)
+\]
+where $\OPT(I)$ is the optimal value. For maximization: $A(I) \geq \frac{1}{\alpha}\OPT(I)$.
+\end{definition}
+
+\subsection{Vertex Cover: A Gentle Beginning}
+
+\begin{definition}[Vertex Cover]
+Given an undirected graph $G = (V, E)$, a \textbf{vertex cover} is a subset $C \subseteq V$ such that every edge has at least one endpoint in $C$. The \textbf{cardinality vertex cover problem} asks for a cover of minimum size.
+\end{definition}
+
+\subsection{Lower Bound via Maximal Matching}
+
+\begin{definition}[Matching]
+A \textbf{matching} $M \subseteq E$ is a set of edges with no shared endpoints. It is \textbf{maximal} if no edge can be added without violating the matching property.
+\end{definition}
+
+\begin{lemma}
+For any graph $G$, the size of a maximal matching $M$ is a lower bound on the minimum vertex cover: $|M| \leq \OPT$.
+\end{lemma}
+\begin{proof}
+Each edge in $M$ needs a distinct vertex in any vertex cover (edges don't share endpoints). So $|C| \geq |M|$ for any cover $C$.
+\end{proof}
+
+\begin{intuitionbox}
+\textbf{Intuition:} A maximal matching is easy to find greedily. It pairs up vertices that ``must be covered'' in some sense. Each pair contributes 2 vertices to our cover but at most 1 to the optimal cover. This 2:1 ratio is the source of the factor-2 guarantee.
+\end{intuitionbox}
+
+\subsection{The 2-Approximation Algorithm}
+
+\begin{algorithmdef}[Vertex Cover via Maximal Matching (Factor 2)]
+\begin{enumerate}
+    \item Find a maximal matching $M$ in $G$ (greedily).
+    \item Output $C = \{u, v \mid (u,v) \in M\}$ — all matched vertices.
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+Algorithm 1.1 is a factor-2 approximation for Vertex Cover.
+\end{theorem}
+\begin{proof}
+$C$ is a vertex cover because $M$ is maximal (any uncovered edge could be added to $M$). Since $|M| \leq \OPT$ and $|C| = 2|M|$, we have $|C| \leq 2\OPT$.
+\end{proof}
+
+\subsection{Why Approximation? Why Not Exact?}
+
+\begin{itemize}
+    \item \textbf{Exact Vertex Cover is NP-complete} (Karp, 1972). No polynomial-time exact algorithm exists unless P = NP.
+    \item \textbf{Fixed-parameter algorithms} exist ($O(1.2738^k + kn)$) but exponential in $k$.
+    \item \textbf{Integer Linear Programming} solves it exactly but worst-case exponential.
+    \item \textbf{Approximation gives polynomial time with a guarantee} — often the best practical choice.
+\end{itemize}
+
+\subsection{Other Approaches and Their Limits}
+
+\begin{table}[H]
+\centering
+\caption{Approaches to Vertex Cover}
+\begin{tabular}{lcc}
+\toprule
+Method & Time & Guarantee \\
+\midrule
+Brute force / ILP & Exponential & Exact \\
+Fixed-parameter & $O(1.2738^k)$ & Exact, but exponential in $k$ \\
+Maximal matching (this chapter) & $O(m)$ & Factor 2 \\
+LP rounding (Chapter 14) & Poly & Factor 2 \\
+Semidefinite programming & Poly & Factor $2-\epsilon$ (open) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not better than 2?} Under the Unique Games Conjecture, no polynomial-time algorithm can achieve $(2-\epsilon)$-approximation (Khot-Regev, 2008). The factor 2 is essentially tight.
+
+\subsection{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Vertex Cover 2-Approximation]
+def maximal_matching(graph):
+    """Greedy maximal matching: pick edges, remove endpoints."""
+    n = len(graph)
+    matched = [False] * n
+    matching = []
+    for u in range(n):
+        if not matched[u]:
+            for v in graph[u]:
+                if not matched[v]:
+                    matching.append((u, v))
+                    matched[u] = matched[v] = True
+                    break
+    return matching
+
+def vertex_cover_approx_2(graph):
+    """Factor-2 approximation for Vertex Cover."""
+    matching = maximal_matching(graph)
+    cover = set()
+    for u, v in matching:
+        cover.add(u)
+        cover.add(v)
+    return cover
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Network monitoring:} Place sensors on vertices to monitor all links
+    \item \textbf{Compiler register allocation:} Variables as vertices, conflicts as edges
+    \item \textbf{Bioinformatics:} Protein interaction networks — find minimal interacting set
+    \item \textbf{Scheduling:} Tasks as vertices, conflicts as edges
+\end{itemize}
+
+\subsection*{Real Example: Register Allocation in a Compiler}
+\textbf{Scenario:} A compiler must assign $n=50$ variables to $k=16$ CPU registers. Variables used simultaneously cannot share a register.
+\textbf{Model:} Conflict graph $G=(V,E)$ where $V$ = variables, $(u,v) \in E$ if $u,v$ are live simultaneously. Minimum vertex cover finds the minimum set of variables to \emph{spill to memory} so the remaining $k$ can fit in registers.
+\textbf{Why 2-approx matters:} If OPT spills 10 variables, our algorithm spills $\leq 20$. In practice, maximal matching often finds near-optimal solutions. The guarantee means we never spill more than twice the minimum — critical for register-starved architectures (embedded systems).
+\textbf{Alternative approach:} ILP (exact) takes exponential time; greedy degree-based gives $O(\log n)$.
+
+\subsection{Tight Example}
+
+\begin{example}[Complete Bipartite $K_{n,n}$]
+The algorithm picks all $2n$ vertices. Optimal picks one side ($n$ vertices). Ratio $= 2$.
+\end{example}
+
+\subsection{Exercises}
+\begin{exercise}
+Show that the greedy algorithm picking highest-degree vertices gives $O(\log n)$ approximation.
+\end{exercise}
+\begin{exercise}
+Design a 2-approximation for \emph{minimum cardinality maximal matching}.
+\end{exercise}
+

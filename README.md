@@ -19,7 +19,7 @@ It provides dual codebases (Python & C++23) to serve both educational and softwa
   - The C++ library integrates **Google OR-Tools (GLOP)** for solving LP relaxations efficiently (replacing standard textbook simplex implementations).
   - Includes a custom spherical gradient-projection Semidefinite Programming (SDP) optimizer built from scratch.
 * **Zero Compilation Issues**: Highly portable, zero-warning builds with CMake.
-* **100% Chapter Parity**: 24 implemented chapters containing exact algorithms and standalone example binaries.
+* **100% Chapter Parity**: 30 companion chapters containing exact algorithms, runnable Python listings, and standalone C++ example binaries.
 
 ---
 
@@ -27,25 +27,25 @@ It provides dual codebases (Python & C++23) to serve both educational and softwa
 
 ```text
 ApproxAlgo/
-├── book.tex                          # LaTeX source for the companion notes
-├── refbooks/                         # Reference books / supplementary materials
+├── approx_algo.tex                  # LaTeX master for the companion book
+├── chapters/*.tex                   # 30 chapter files, one per Vazirani chapter
+├── backmatter/                      # Appendices (e.g. how-to-run)
 ├── src/
-│   ├── pycodes/                      # Python Codebase
-│   │   ├── main.py                   # Main test suite runner for Python
-│   │   ├── book.py                   # Chapter-to-module registry
-│   │   └── intro.py ...             # 24 Chapter Python scripts
-│   └── cppcodes/                     # C++23 Codebase
+│   ├── pycodes/                     # Python Codebase (49 modules)
+│   │   ├── main.py                  # Test suite runner: runs every chapter demo
+│   │   ├── book.py                  # Chapter-to-module registry
+│   │   └── *.py                     # One module per chapter + helper libraries
+│   └── cppcodes/                     # C++23 Codebase (31 modules)
 │       ├── CMakeLists.txt            # Build configuration
 │       ├── approx_algorithms.hpp     # Unified public API header interface
 │       ├── simplex.hpp               # Google OR-Tools GLOP solver wrapper
 │       ├── main.cpp                  # Main test suite runner for C++
 │       ├── USAGE.md                  # Integration guide & code reference
-│       ├── examples/                 # 23 Standalone, compile-ready example files
+│       ├── examples/                 # 24 Standalone, compile-ready example files
 │       │   ├── CMakeLists.txt
 │       │   ├── ex_01_vertex_cover.cpp
 │       │   └── ... ex_30_tree_multicut.cpp
-│       ├── tests/                    # Unit tests (GoogleTest)
-│       └── intro.cpp ...            # 24 Chapter C++ source implementations
+│       └── tests/                    # Unit tests (GoogleTest)
 ├── README.md                         # Main repository overview
 └── .gitignore                        # Residual compile & environment exclusions
 ```
@@ -55,7 +55,7 @@ ApproxAlgo/
 ## Quick Start & Build Guide
 
 ### Running Python Demos
-Run all 24 Python demos synchronously:
+Run all Python chapter demos synchronously:
 ```bash
 cd src/pycodes
 python3 main.py
@@ -77,13 +77,22 @@ cmake --build build
 This compiles and creates:
 * **`libapprox_algo.a`** (Static Library target `approx_algo`)
 * **`approx_algo_demos`** (Global test runner executable `./build/approx_algo_demos`)
-* **23 Standalone Example Binaries** (under `./build/examples/`)
+* **24 Standalone Example Binaries** (under `./build/examples/`)
+
+### Building the Companion Book (LaTeX)
+The companion notes compile with any standard TeX engine (e.g. `latexmk`):
+```bash
+latexmk -pdf approx_algo.tex
+```
+The book contains **30 chapters**, each with a self-contained, runnable Python
+listing (dependencies: Python standard library only), plus a how-to-run appendix
+in `backmatter/running_the_code.tex`.
 
 ---
 
 ## Implemented Chapters & Approximation Bounds
 
-The repository covers 24 algorithmic chapters from Vazirani's book:
+The repository's book covers all 30 chapters of Vazirani's book; the algorithmic chapters with runnable implementations are:
 
 | Chapter | Algorithm / Topic | Approximation Bound | C++ Source | Python Source |
 | :---: | :--- | :---: | :---: | :---: |
@@ -112,7 +121,7 @@ The repository covers 24 algorithmic chapters from Vazirani's book:
 | **26** | SDP for Max 2-SAT | $\ge 0.878$-approx (Goemans-Williamson) | [sdp_sat.cpp](src/cppcodes/sdp_sat.cpp) | [sdp_sat.py](src/pycodes/sdp_sat.py) |
 | **30** | Multicut in Trees | 2-approx LCA Depth | [tree_multicut.cpp](src/cppcodes/tree_multicut.cpp) | [tree_multicut.py](src/pycodes/tree_multicut.py) |
 
-*Note: Chapters 20, 25, 27, 28, and 29 focus entirely on complexity bounds and hardness proofs (such as the PCP theorem and Unique Games Conjecture) and thus do not contain programming implementations.*
+*Note: The companion book covers all 30 chapters of Vazirani. The table above lists the algorithmic chapters with full dual (Python + C++) runnable implementations; the remaining chapters center on complexity and hardness proofs (PCP theorem, quantifier-free inapproximability, Unique Games Conjecture) and, wherever an algorithmic core exists, are accompanied by a runnable Python listing.*
 
 ---
 

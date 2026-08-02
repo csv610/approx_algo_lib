@@ -1,0 +1,107 @@
+% ============================================================
+% CHAPTER 26: MAX 2-SAT (matches Vazirani Ch. 26)
+% ============================================================
+\setcounter{chapter}{25}
+\chapter{Max 2-SAT}
+\label{ch:max_2sat}
+
+\section{Intuition: Anchoring with a True Variable}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} Max 2-SAT generalizes Max-SAT by restricting every clause to contain at most 2 literals. While Goemans-Williamson achieves a $0.878$ ratio for Max-Cut, we can apply Semidefinite Programming (SDP) to Max 2-SAT by introducing a special \emph{anchor vector} $v_0$ representing the value True. For each variable $x_i$, we associate a unit vector $v_i$. Literals $x_i$ and $\neg x_i$ are represented by $v_i$ and $-v_i$. Under randomized rounding, we partition based on whether a vector $v_i$ falls on the same side of a random hyperplane as the anchor vector $v_0$. This yields a guaranteed $0.878$ approximation, which can be further improved to $0.940$ using LLZ rounding.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given $n$ boolean variables $x_1, \dots, x_n$ and $m$ clauses $C_1, \dots, C_m$, each containing at most 2 literals, with weights $w_j \ge 0$, the \emph{Maximum 2-Satisfiability} (Max 2-SAT) problem is to find a truth assignment to the variables that maximizes the total weight of satisfied clauses.
+
+The problem is NP-hard. We seek a randomized $0.878$-approximation using SDP.
+
+\section{Algorithm and Python Implementation}
+We solve the Max 2-SAT SDP relaxation by optimizing vectors $v_0, v_1, \dots, v_n$ on the unit sphere and rounding using sign matching against $v_0$.
+
+\begin{lstlisting}[style=python, caption=SDP Max 2-SAT Algorithm]
+import math
+import random
+
+
+def optimize_max_2sat_vectors(n_vars, clauses, weights, dim=8, lr=0.05, epochs=300):
+    """Optimizes vectors v_0, v_1, ..., v_n on the unit sphere in R^dim."""
+    n_vectors = n_vars + 1
+    v = []
+    for _ in range(n_vectors):
+        vec = [random.gauss(0.0, 1.0) for _ in range(dim)]
+        mag = math.sqrt(sum(x*x for x in vec))
+        v.append([x/mag for x in vec])
+        
+    for _ in range(epochs):
+        new_v = []
+        for i in range(n_vectors):
+            grad = [0.0] * dim
+            for j, (l1, l2) in enumerate(clauses):
+                w = weights[j]
+                s1 = 1 if l1 > 0 else -1
+                v1_idx = abs(l1)
+                if l2 == 0:
+                    if i == 0:
+                        for k in range(dim): grad[k] += 0.5 * w * s1 * v[v1_idx][k]
+                    elif i == v1_idx:
+                        for k in range(dim): grad[k] += 0.5 * w * s1 * v[0][k]
+                else:
+                    s2 = 1 if l2 > 0 else -1
+                    v2_idx = abs(l2)
+                    if i == 0:
+                        for k in range(dim): grad[k] += 0.25 * w * (s1 * v[v1_idx][k] + s2 * v[v2_idx][k])
+                    elif i == v1_idx:
+                        for k in range(dim): grad[k] += 0.25 * w * (s1 * v[0][k] - s1 * s2 * v[v2_idx][k])
+                    elif i == v2_idx:
+                        for k in range(dim): grad[k] += 0.25 * w * (s2 * v[0][k] - s1 * s2 * v[v1_idx][k])
+            updated = [v[i][k] + lr * grad[k] for k in range(dim)]
+            mag = math.sqrt(sum(x*x for x in updated))
+            new_v.append(v[i] if mag < 1e-9 else [x/mag for x in updated])
+        v = new_v
+    return v
+\end{lstlisting}
+
+\section{Analysis: The SDP Relaxation and LLZ Rounding}
+We map each variable $x_i$ to a unit vector $v_i \in \mathbb{R}^{n+1}$ and introduce a unit vector $v_0$ representing True. The literal $l$ has vector $v(l) = v_i$ if $l = x_i$, and $v(l) = -v_i$ if $l = \neg x_i$.
+The truth value of literal $l$ is relaxed to $\frac{1 + v(l) \cdot v_0}{2}$.
+For a clause $l_1 \lor l_2$, its satisfaction probability is relaxed to:
+\[
+\text{val}(l_1 \lor l_2) = \frac{3 + v(l_1) \cdot v_0 + v(l_2) \cdot v_0 - v(l_1) \cdot v(l_2)}{4}
+\]
+The SDP relaxation is:
+\[
+\text{Maximize} \quad \sum_{C_j = l_1 \lor l_2} w_j \text{val}(C_j) \quad \text{s.t.} \quad v_i \cdot v_i = 1 \; (\forall i \in \{0, \dots, n\})
+\]
+Under randomized rounding, we choose a random unit vector $r \in \mathbb{R}^{n+1}$. Variable $x_i$ is set to True if $\text{sign}(v_i \cdot r) = \text{sign}(v_0 \cdot r)$, and False otherwise.
+Goemans and Williamson proved that the probability that clause $l_1 \lor l_2$ is satisfied is at least $0.878$ times its relaxed SDP value.
+Lewin, Livnat, and Zwick (LLZ 2002) improved this by using a non-linear rotation function on the angles before hyperplane rounding, achieving a $0.940$-approximation.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Logic Circuit Optimization:} Maximizing the number of gate checks satisfied in automated hardware testing.
+    \item \textbf{Probabilistic Reasoning (Markov Logic Networks):} Finding the most probable explanation (MAP state) for a set of weighted boolean rules.
+    \item \textbf{Social Network Balance:} Finding stable divisions of communities containing positive (friendship) and negative (hostility) links.
+\end{itemize}
+
+\subsection*{Real Example: Hardware Logic Testing and Verification}
+\textbf{Scenario:} An ASIC designer (e.g. AMD) verifies a circuit block. Due to pin constraints, we can only verify a subset of logic gates simultaneously. Each test case checks 2-literal logic clauses. We want to select a test vector maximizing checked gates.
+\textbf{Model:} Max 2-SAT. Checked gates are clauses. Goemans-Williamson SDP algorithm generates the test vectors.
+\textbf{Why SDP matters:} Circuits are highly dense networks. Simple greedy strategies fail to find configurations that satisfy a high percentage of gates. SDP provides a global geometric optimization, ensuring test coverage is within a small fraction of the absolute mathematical maximum.
+
+\section{Tight Example: The All-Combinations Cycle}
+Consider 2 variables $x_1, x_2$ and 4 clauses containing all possible sign combinations: $(x_1 \lor x_2)$, $(\neg x_1 \lor x_2)$, $(x_1 \lor \neg x_2)$, and $(\neg x_1 \lor \neg x_2)$.
+No boolean assignment can satisfy all 4 clauses, so the optimal Max 2-SAT weight is 3.
+The SDP relaxation optimizes vectors $v_1, v_2$ and $v_0$.
+The objective value is $\sum_{j=0}^3 \frac{3 \pm v_1 \cdot v_0 \pm v_2 \cdot v_0 - v_1 \cdot v_2}{4} = 3 - v_1 \cdot v_2$.
+By placing $v_1, v_2$ orthogonal to each other ($v_1 \cdot v_2 = 0$) and setting their dot products with $v_0$ to maximize the sum, the SDP achieves a value of 3.
+Randomized hyperplane rounding splits the vectors, ensuring exactly 3 out of 4 clauses are satisfied. The ratio is $3/3 = 1.0$, showing perfect behavior on this symmetric instance.
+
+\section{Exercises}
+\begin{exercise}
+Show that if we assign $x_i$ to True with probability $(1 + v_i \cdot v_0)/2$, the expected number of satisfied clauses for single-literal clauses matches the LP/SDP value exactly.
+\end{exercise}
+\begin{exercise}
+Construct a Max 2-SAT instance with 3 variables and 6 clauses where the optimal assignment satisfies 5 clauses, and trace the vector updates.
+\end{exercise}
+

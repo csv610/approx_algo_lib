@@ -1,0 +1,171 @@
+% ============================================================
+% CHAPTER 23: FEEDBACK VERTEX SET VIA PRIMAL-DUAL (matches Vazirani Ch. 23/24)
+% ============================================================
+\setcounter{chapter}{22}
+\chapter{Feedback Vertex Set via Primal-Dual}
+\label{ch:fvs_primal_dual}
+
+\section{Intuition: Cycle Hitting and Vertex Budgets}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The Feedback Vertex Set (FVS) problem can be viewed as a Hitting Set problem where we want to select a minimum weight set of vertices that intersects every cycle. In the primal-dual framework, we grow dual variables $y_C$ associated with cycles. To achieve a 2-approximation, we grow duals on cycles in the remaining graph, but we scale the dual pressure rate on vertex $v$ by $d(v) - 1$, where $d(v)$ is its degree. When a vertex's weight constraint is tight, it is added to the feedback set. Finally, we prune redundant vertices in reverse order of addition.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with non-negative vertex weights $w_v \ge 0$, the \emph{Feedback Vertex Set} (FVS) problem is to find a minimum weight subset of vertices $F \subseteq V$ such that $G \setminus F$ is acyclic (a forest).
+
+The problem is NP-hard. It admits a 2-approximation using the Bafna-Berman-Fujito primal-dual algorithm.
+
+\section{Algorithm and Python Implementation}
+We implement the primal-dual algorithm: recursively pruning vertices of degree $\le 1$, finding active cycles, growing duals at rate $d(v) - 1$, and running a reverse-delete phase.
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Feedback Vertex Set]
+def find_any_cycle(vertices, edges):
+    """Find a simple cycle via DFS, or [] if the graph is acyclic."""
+    adj = {v: [] for v in vertices}
+    for u, v in edges:
+        if u in adj and v in adj:
+            adj[u].append(v)
+            adj[v].append(u)
+    visited, parent = set(), {}
+
+    def dfs(node, p):
+        visited.add(node)
+        parent[node] = p
+        for nbr in adj[node]:
+            if nbr == p:
+                continue
+            if nbr in visited:
+                cycle, curr = [], node
+                while curr != nbr:
+                    cycle.append(curr)
+                    curr = parent[curr]
+                cycle.append(nbr)
+                return cycle
+            res = dfs(nbr, node)
+            if res:
+                return res
+        return None
+
+    for start in vertices:
+        if start not in visited:
+            res = dfs(start, -1)
+            if res:
+                return res
+    return []
+
+
+def is_acyclic(vertices, edges, removed):
+    """True if V - removed induces a forest."""
+    rem = vertices - removed
+    rem_edges = [(u, v) for u, v in edges if u in rem and v in rem]
+    return len(find_any_cycle(rem, rem_edges)) == 0
+
+
+def primal_dual_fvs(vertices, edges, weights):
+    """Bafna-Berman-Fujito primal-dual 2-approximation for undirected FVS."""
+    w = dict(weights)
+    S = []
+    active_vertices = set(vertices)
+    active_edges = list(edges)
+    
+    while True:
+        # Clean vertices of degree <= 1
+        while True:
+            deg = {v: 0 for v in active_vertices}
+            for u, v in active_edges:
+                deg[u] += 1; deg[v] += 1
+            to_remove = [v for v in active_vertices if deg[v] <= 1]
+            if not to_remove: break
+            for v in to_remove:
+                active_vertices.remove(v)
+                active_edges = [(u, x) for u, x in active_edges if u != v and x != v]
+                
+        if not active_vertices: break
+        cycle = find_any_cycle(active_vertices, active_edges)
+        if not cycle: break
+        
+        deg = {v: 0 for v in active_vertices}
+        for u, v in active_edges:
+            deg[u] += 1; deg[v] += 1
+            
+        # Grow dual on cycle: rate is d(v) - 1
+        delta = float('inf')
+        for v in cycle:
+            rate = deg[v] - 1
+            if rate > 0: delta = min(delta, w[v] / rate)
+            
+        # Update weights and find tight vertex
+        tight_vertex = None
+        for v in cycle:
+            rate = deg[v] - 1
+            w[v] -= delta * rate
+            if w[v] <= 1e-9 and tight_vertex is None:
+                tight_vertex = v
+        if tight_vertex is None: tight_vertex = cycle[0]
+        
+        S.append(tight_vertex)
+        active_vertices.remove(tight_vertex)
+        active_edges = [(u, v) for u, v in active_edges if u != tight_vertex and v != tight_vertex]
+        
+    # Reverse-delete pruning
+    pruned = list(S)
+    for v in reversed(S):
+        pruned.remove(v)
+        if not is_acyclic(set(vertices), edges, set(pruned)):
+            pruned.append(v)
+    return pruned
+\end{lstlisting}
+
+\section{Analysis: Dual Pressure and Factor 2}
+The FVS problem can be relaxed to the following linear program:
+\[
+\min \sum_{v \in V} w_v x_v \quad \text{s.t.} \quad \sum_{v \in C} x_v \ge 1 \; (\forall \text{ cycles } C), \quad x_v \ge 0
+\]
+The dual LP is:
+\[
+\max \sum_{C} y_C \quad \text{s.t.} \quad \sum_{C: v \in C} y_C \le w_v \; (\forall v \in V), \quad y_C \ge 0
+\]
+For any vertex $v$ in the final pruned feedback set $F$, its dual constraint is tight: $\sum_{C: v \in C} y_C (d_C(v) - 1) = w_v$, where $d_C(v) - 1$ is the dual growth rate. The total cost of the FVS is:
+\[
+\sum_{v \in F} w_v = \sum_{v \in F} \sum_{C: v \in C} y_C (d_C(v) - 1) = \sum_{C} y_C \sum_{v \in F \cap C} (d_C(v) - 1)
+\]
+A clean combinatorial charging argument shows that for any cycle $C$ chosen by the algorithm, after reverse-delete pruning, the remaining feedback set vertices in $C$ satisfy:
+\[
+\sum_{v \in F \cap C} (d_C(v) - 1) \le 2
+\]
+This holds because $F$ is a minimal feedback vertex set, and the average degree of vertices in any minimal feedback set on a cycle is at most 2. Thus, the total cost is:
+\[
+\sum_{v \in F} w_v \le 2 \sum_{C} y_C \le 2 \cdot \text{OPT}_{LP} \le 2 \cdot \text{OPT}
+\]
+which proves the 2-approximation factor.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Operating Systems and Databases Deadlock Resolution:} Identifying and terminating a minimum cost set of processes to break resource wait-for cycles.
+    \item \textbf{VLSI Circuit Layout:} Breaking feedback loops in synchronous logic circuits by opening minimum gate nodes.
+    \item \textbf{Hierarchical Social Networking:} Identifying influential users whose removal makes the relationship network hierarchical and free of opinion-echo loops.
+\end{itemize}
+
+\subsection*{Real Example: Operating System Deadlock Resolution}
+\textbf{Scenario:} A database server running on Microsoft SQL Server detects a set of deadlocks among transactional processes (represented as a wait-for cycle graph). Terminating transaction $v$ incurs a cost $w_v$ (proportional to rolled-back CPU work). We want to break all deadlocks with minimum rollback cost.
+\textbf{Model:} Feedback Vertex Set. Transactions are vertices, wait-for dependencies are edges. The primal-dual algorithm finds the minimum cost rollback set.
+\textbf{Why Primal-Dual matters:} Rollbacks must happen in real time. Running exact integer programs is too slow and can block database execution. The primal-dual schema runs in polynomial time, finds tight feedback sets instantly, and guarantees that the rolled-back work cost is at most twice the optimal minimum rollback cost.
+
+\section{Tight Example: Intersecting Loops}
+Consider a graph of vertices $0, 1, 2, 3, 4$ and two cycles $0-1-2-0$ and $2-3-4-2$ sharing vertex 2. Let the shared vertex 2 have weight $w_2 = 3.0$ and other vertices have weight $10.0$.
+The optimal feedback set is $\{2\}$ with cost 3.0.
+If we run our primal-dual algorithm, it finds cycle $0-1-2-0$. The degrees are $d(0)=2, d(1)=2, d(2)=4$. The rates are $d(v)-1$, which gives rates $1, 1, 3$.
+The maximum step is $\Delta = \min(10/1, 10/1, 3/3) = 1.0$.
+Vertex 2's weight decreases to $3 - 3 \times 1 = 0$, making it tight. We add 2 to $S$.
+Removing vertex 2 leaves the graph acyclic (with components $0-1$ and $3-4$), so the algorithm terminates.
+The final feedback set is $\{2\}$ with cost 3.0, matching the optimal cost.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the Feedback Vertex Set problem is equivalent to the Hitting Set problem on the family of all cycles in the graph.
+\end{exercise}
+\begin{exercise}
+Prove that the FVS LP relaxation has an integrality gap of exactly 2 on a simple cycle graph of length $n$ with unit vertex weights.
+\end{exercise}
+

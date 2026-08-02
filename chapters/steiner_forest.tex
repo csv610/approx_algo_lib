@@ -1,0 +1,166 @@
+% ============================================================
+% CHAPTER 21: STEINER FOREST (matches Vazirani Ch. 21)
+% ============================================================
+\setcounter{chapter}{20}
+\chapter{Steiner Forest}
+\label{ch:steiner_forest}
+
+\section{Intuition: Connective Components and Reverse Deletion}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} Steiner Forest generalizes Steiner Tree by requiring only specific pairs of terminals $(s_i, t_i)$ to be connected. In the primal-dual schema, we raise dual variables $y_C$ associated with active connected components (components separating at least one terminal pair). When an edge becomes tight, it is added to the forest. This can cause redundant connections. The crucial step is a \emph{reverse-delete phase}: we examine chosen edges in reverse order and delete any edge that is not necessary to maintain the connection of all terminal pairs.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with edge costs $c_e \ge 0$, and a set of $k$ terminal pairs $S = \{(s_1, t_1), \dots, (s_k, t_k)\}$, the \emph{Steiner Forest} problem is to find a minimum cost subgraph $F \subseteq E$ such that $s_i$ and $t_i$ are in the same connected component of $(V, F)$ for every $i \in \{1, \dots, k\}$.
+
+The problem is NP-hard. It admits a 2-approximation using the Agrawal-Klein-Ravi (AKR) primal-dual algorithm.
+
+\section{Algorithm and Python Implementation}
+We implement the AKR primal-dual schema: growing dual variables for active components, adding tight edges to the forest, and performing reverse-delete pruning.
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Steiner Forest Algorithm]
+def find_components(vertices, forest_edges):
+    """Connected components of G=(V, forest_edges)."""
+    adj = {v: [] for v in vertices}
+    for u, v in forest_edges:
+        adj[u].append(v)
+        adj[v].append(u)
+    visited, components = set(), []
+    for v in vertices:
+        if v in visited:
+            continue
+        comp = set()
+        stack = [v]
+        while stack:
+            curr = stack.pop()
+            if curr in comp:
+                continue
+            comp.add(curr)
+            visited.add(curr)
+            for nxt in adj[curr]:
+                if nxt not in visited:
+                    stack.append(nxt)
+        components.append(comp)
+    return components
+
+
+def is_connected(vertices, forest_edges, s, t):
+    """Is s connected to t in G=(V, forest_edges)?"""
+    adj = {v: [] for v in vertices}
+    for u, v in forest_edges:
+        adj[u].append(v)
+        adj[v].append(u)
+    visited, stack = {s}, [s]
+    while stack:
+        curr = stack.pop()
+        if curr == t:
+            return True
+        for nxt in adj[curr]:
+            if nxt not in visited:
+                visited.add(nxt)
+                stack.append(nxt)
+    return False
+
+
+def steiner_forest_primal_dual(vertices, edges, pairs):
+    """AKR Primal-Dual 2-approximation for Steiner Forest."""
+    chosen_edges = []
+    L = {i: 0.0 for i in range(len(edges))} # Dual values on edges
+    
+    while True:
+        components = find_components(vertices, chosen_edges)
+        node_to_comp = {node: idx for idx, comp in enumerate(components) for node in comp}
+        
+        # Identify active components
+        active = set()
+        for s, t in pairs:
+            if node_to_comp[s] != node_to_comp[t]:
+                active.add(node_to_comp[s])
+                active.add(node_to_comp[t])
+                
+        if not active: break
+        
+        # Find next tight edge
+        best_delta, best_edge_indices = float('inf'), []
+        edge_rates = []
+        for i, (u, v, cost) in enumerate(edges):
+            if (u, v) in chosen_edges or (v, u) in chosen_edges:
+                edge_rates.append(0); continue
+            c_u, c_v = node_to_comp[u], node_to_comp[v]
+            if c_u == c_v:
+                edge_rates.append(0); continue
+            rate = (1 if c_u in active else 0) + (1 if c_v in active else 0)
+            edge_rates.append(rate)
+            if rate > 0:
+                delta = (cost - L[i]) / rate
+                if delta < best_delta:
+                    best_delta, best_edge_indices = delta, [i]
+                elif abs(delta - best_delta) < 1e-9:
+                    best_edge_indices.append(i)
+                    
+        for i in range(len(edges)):
+            if edge_rates[i] > 0: L[i] += best_delta * edge_rates[i]
+        for idx in best_edge_indices:
+            u, v, _ = edges[idx]
+            chosen_edges.append((u, v))
+            
+    # Reverse-delete pruning
+    pruned = list(chosen_edges)
+    for edge in reversed(chosen_edges):
+        pruned.remove(edge)
+        if not all(is_connected(vertices, pruned, s, t) for s, t in pairs):
+            pruned.append(edge)
+    return pruned
+\end{lstlisting}
+
+\section{Analysis: Factor 2 Approximation}
+The LP relaxation of the Steiner Forest problem is:
+\[
+\min \sum_{e \in E} c_e x_e \quad \text{s.t.} \quad \sum_{e \in \delta(U)} x_e \ge 1 \; (\forall U \in \mathcal{A}), \quad x_e \ge 0
+\]
+where $\mathcal{A}$ is the set of all cuts separating some terminal pair. The dual LP is:
+\[
+\max \sum_{U \in \mathcal{A}} y_U \quad \text{s.t.} \quad \sum_{U: e \in \delta(U)} y_U \le c_e \; (\forall e \in E), \quad y_U \ge 0
+\]
+For any edge $e$ in the final pruned forest $F$, the dual constraint is tight: $\sum_{U: e \in \delta(U)} y_U = c_e$. Thus, the cost of the forest is:
+\[
+\sum_{e \in F} c_e = \sum_{e \in F} \sum_{U: e \in \delta(U)} y_U = \sum_{U \in \mathcal{A}} y_U \cdot \text{deg}_F(U)
+\]
+where $\text{deg}_F(U)$ is the number of edges of $F$ crossing the cut $\delta(U)$. To prove a 2-approximation, it suffices to show that at any step:
+\[
+\sum_{U \text{ active}} \text{deg}_F(U) \le 2 \cdot |\{U \text{ active}\}|
+\]
+This holds because if we contract each component of $G=(V, F)$ to a single node, the active components form a set of nodes in a forest where every leaf node is active, and no node of degree 1 is inactive (due to reverse-delete pruning). The average degree of active nodes in such a forest is at most 2. Thus, $\sum_{e \in F} c_e \le 2 \sum y_U \le 2 \cdot \text{OPT}$.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Telecommunication Network Design:} Laying cables to connect specific pairs of client servers while sharing as much infrastructure as possible.
+    \item \textbf{VLSI Routing:} Connecting pairs of terminals on an integrated circuit layout.
+    \item \textbf{Highways Construction:} Planning transport pathways that must connect disjoint cities of interest.
+\end{itemize}
+
+\subsection*{Real Example: Multi-Tenant Virtual Private Network Routing}
+\textbf{Scenario:} A network provider (e.g. Equinix) needs to establish secure connections for multiple enterprise tenants in a shared data center network. Tenant A needs to connect location $s_1$ to $t_1$. Tenant B needs to connect $s_2$ to $t_2$. The provider pays a cost for each physical link activated and wants to minimize the total link cost.
+\textbf{Model:} Steiner Forest. Each tenant represents a terminal pair. Activated links form the forest. The AKR primal-dual algorithm finds the cost-minimizing shared routing tree/forest.
+\textbf{Why Primal-Dual matters:} Connecting tenants individually leads to redundant duplicate links (e.g. each running its own Steiner Tree), which is highly suboptimal. Steiner Forest optimizes the entire topology globally. The primal-dual schema runs in polynomial time and guarantees a cost within a factor of 2 of the absolute optimum, even for huge transit networks.
+
+\section{Tight Example: The Redundant Cycle}
+Consider a cycle of three nodes $0, 1, 2$ with edges $(0, 1)$ of cost 1, $(1, 2)$ of cost 2, and $(2, 0)$ of cost 1. We want to connect the terminal pair $(0, 2)$.
+The optimal solution is to select $(2, 0)$ with cost 1.
+If we run primal-dual, the active components are $\{0\}$ and $\{2\}$. Edge slacks decrease. Edge $(0, 1)$ and $(2, 0)$ both have rate 1 and cost 1. They become tight simultaneously and are added to $F$. The components merge into $\{0, 1, 2\}$, which connects $0$ and $2$.
+The set of chosen edges is $F = \{(0, 1), (2, 0)\}$.
+Now we run reverse delete:
+If we try deleting $(2, 0)$, $0$ and $2$ are not connected, so we keep it. If we try deleting $(0, 1)$, $0$ and $2$ are not connected, so we keep it.
+The final forest has edges $(0, 1)$ and $(2, 0)$ with total cost $1 + 1 = 2$.
+The optimal cost is 1 (the single edge $(2, 0)$ of cost 1).
+The approximation ratio is $2 / 1 = 2$. This matches the theoretical factor of 2.
+
+\section{Exercises}
+\begin{exercise}
+Construct an example showing that without the reverse-delete phase, the primal-dual algorithm can perform arbitrarily worse than a 2-approximation.
+\end{exercise}
+\begin{exercise}
+Prove that the Steiner Forest LP relaxation has an integrality gap of exactly 2.
+\end{exercise}
+

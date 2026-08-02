@@ -12,7 +12,7 @@ import math
 import random
 from typing import List, Tuple, Dict, Set
 
-from ch12_14_lp_algorithms import Simplex
+from lp_algorithms import Simplex
 
 def solve_multiway_cut_lp(
     n: int,

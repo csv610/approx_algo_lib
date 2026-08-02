@@ -1,0 +1,75 @@
+% ============================================================
+% CHAPTER 27: SHORTEST VECTOR IN A LATTICE (Vazirani Ch. 27)
+% ============================================================
+\setcounter{chapter}{26}
+\chapter{Shortest Vector in a Lattice}
+\label{ch:shortest_vector}
+
+\section{Intuition: Basis Reduction and Orthogonality}
+
+\begin{intuitionbox}
+\textbf{Lattice Structure:} A lattice $L$ is the set of all integer linear combinations of linearly independent basis vectors $b_1, \dots, b_n$. The Shortest Vector Problem (SVP) asks for the shortest non-zero vector in $L$. While exact SVP is NP-hard for $n \ge 5$, polynomial-time algorithms exist for $n = 2$ (Gauss) and approximation algorithms exist for general $n$.
+
+\textbf{Gram-Schmidt Lower Bound:} The Gram-Schmidt orthogonalization $b_1^*, \dots, b_n^*$ provides a lower bound on the shortest vector length: $\lambda_1(L) \ge \min_i \|b_i^*\|$. This bound is tight when the basis is orthogonal.
+
+\textbf{Basis Reduction:} By iteratively reducing the basis (making vectors shorter and more orthogonal), we can find approximate shortest vectors. The LLL algorithm achieves a $2^{O(n)}$ approximation in polynomial time.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given a basis $b_1, \dots, b_n \in \R^n$ for a lattice $L$, find the shortest non-zero vector $v \in L$.
+
+\section{Algorithms}
+
+\subsection{Euclid's Algorithm (1D)}
+For $n = 1$, the shortest vector is $v = \gcd(b_1)$. Euclid's algorithm computes this in $O(\log b_1)$ time.
+
+\subsection{Gauss' Algorithm (2D)}
+For $n = 2$, repeatedly subtract the shorter vector from the longer and swap. This converges to the shortest vector in $O(\log \|b_1\|)$ iterations.
+
+\subsection{Gram-Schmidt Orthogonalization}
+Compute $b_i^* = b_i - \sum_{j < i} \mu_{ij} b_j^*$ where $\mu_{ij} = \frac{\langle b_i, b_j^* \rangle}{\langle b_j^*, b_j^* \rangle}$. The orthogonality defect $\prod_i \|b_i\| / \prod_i \|b_i^*\|$ measures how far the basis is from orthogonal.
+
+\subsection{LLL Algorithm}
+Maintain a reduced basis satisfying the Lov\'{a}sz condition: $\|b_k^*\|^2 \ge (\delta - \mu_{k,k-1}^2) \|b_{k-1}^*\|^2$ for $\delta = 3/4$. Swap vectors that violate this condition. Achieves $2^{O(n)}$ approximation in polynomial time.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Gauss' 2D Shortest Vector]
+def dot(u, v):
+    return sum(a * b for a, b in zip(u, v))
+
+
+def norm(v):
+    return (dot(v, v)) ** 0.5
+
+
+def gauss_2d(b1, b2):
+    """Gauss' algorithm for 2D lattice shortest vector."""
+    while True:
+        if norm(b1) > norm(b2):
+            b1, b2 = b2, b1
+        # Reduce b2 by b1
+        mu = dot(b1, b2) / dot(b1, b1)
+        b2_new = [b2[i] - round(mu) * b1[i] for i in range(len(b1))]
+        if norm(b2_new) < norm(b2) - 1e-9:
+            b2 = b2_new
+        else:
+            break
+    return b1 if norm(b1) <= norm(b2) else b2
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Cryptanalysis:} Breaking knapsack-based cryptosystems by finding short vectors.
+    \item \textbf{Coding theory:} Decoding linear codes (closest vector problem).
+    \item \textbf{Number theory:} Computing class groups and units in algebraic number fields.
+\end{itemize}
+
+\section{Exercises}
+\begin{exercise}
+Prove that Gauss' algorithm terminates and finds the shortest vector in 2D.
+\end{exercise}
+\begin{exercise}
+Show that the shortest vector length satisfies $\lambda_1(L) \le \sqrt{n} \cdot \min_i \|b_i^*\|$.
+\end{exercise}
+

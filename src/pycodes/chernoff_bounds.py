@@ -11,7 +11,7 @@ Implements:
 import math
 import random
 from typing import List, Set, Tuple, Dict
-from ch12_14_lp_algorithms import Simplex
+from lp_algorithms import Simplex
 
 def solve_set_cover_lp(
     universe: Set[int],

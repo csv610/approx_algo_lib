@@ -1,0 +1,89 @@
+% ============================================================
+% CHAPTER 17: CHERNOFF BOUNDS (matches Vazirani Ch. 17)
+% ============================================================
+\setcounter{chapter}{16}
+\chapter{Chernoff Bounds}
+\label{ch:chernoff_bounds}
+
+\section{Intuition: Concentration and Coverage}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} In many randomized algorithms, we want to prove that the sum of independent random variables is close to its expected value. This is achieved by \emph{Chernoff bounds}, which show that the tails of the distribution decay exponentially. When applying randomized rounding to Set Cover, we select set $S$ with probability $x_S^*$. To ensure all elements are covered, we run this selection $O(\log n)$ times. Chernoff bounds allow us to prove that the probability of failing to cover any element is extremely small, and the total cost remains within $O(\log n) \cdot \text{OPT}$.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given a universe $U$ of $n$ elements and a collection of sets $\mathcal{S}$ with costs $c_S$, the \emph{Set Cover} problem is to find a minimum cost subcollection of $\mathcal{S}$ that covers $U$.
+
+The problem is NP-hard. We seek a randomized $O(\log n)$-approximation that succeeds with high probability ($1 - 1/n$).
+
+\section{Algorithm and Python Implementation}
+We solve the LP relaxation of Set Cover and perform multiround randomized rounding, repeating the selection process $t = c \ln n$ times.
+
+\begin{lstlisting}[style=python, caption=Randomized Rounding for Set Cover]
+import math
+import random
+
+
+def set_cover_randomized_rounding(universe, sets, costs, x_lp, c_factor=1.5):
+    """Set Cover randomized rounding using multiround selection."""
+    n_elements = len(universe)
+    t = int(math.ceil(c_factor * math.log(max(2, n_elements))))
+    chosen_sets = set()
+    
+    # Run t independent selection rounds
+    for _ in range(t):
+        for s_idx in range(len(sets)):
+            if random.random() < x_lp[s_idx]:
+                chosen_sets.add(s_idx)
+                
+    covered = set()
+    for s_idx in chosen_sets:
+        covered.update(sets[s_idx])
+    cost = sum(costs[s_idx] for s_idx in chosen_sets)
+    return chosen_sets, cost, (covered == universe)
+\end{lstlisting}
+
+\section{Analysis: Chernoff Bounds and Set Cover}
+Let $x^*$ be the optimal fractional LP solution. For each element $e$, the LP constraint is $\sum_{S \ni e} x_S^* \ge 1$.
+In a single round of randomized rounding, the probability that element $e$ is not covered is:
+\[
+\prod_{S \ni e} (1 - x_S^*) \le \prod_{S \ni e} e^{-x_S^*} = e^{-\sum_{S \ni e} x_S^*} \le e^{-1} \le \frac{1}{e}
+\]
+If we repeat the selection process independently for $t = c \ln n$ rounds, the probability that $e$ remains uncovered is at most:
+\[
+(e^{-1})^t = e^{-c \ln n} = \frac{1}{n^c}
+\]
+Applying the union bound over all $n$ elements, the probability that *any* element is left uncovered is:
+\[
+\text{Pr}[\text{some element is uncovered}] \le n \cdot \frac{1}{n^c} = \frac{1}{n^{c-1}}
+\]
+For $c = 2$, this probability is at most $1/n$, meaning all elements are covered with probability at least $1 - 1/n$.
+The expected cost of the chosen sets is:
+\[
+E[\text{Cost}] \le t \cdot \sum_{S \in \mathcal{S}} c_S x_S^* = O(\log n) \cdot \text{OPT}_{LP}
+\]
+By Markov's inequality, the cost is within $2 t \cdot \text{OPT}_{LP}$ with probability at least $1/2$. By running the algorithm a few times, we obtain a valid cover of cost $O(\log n) \cdot \text{OPT}$ with high probability.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Randomized Load Balancing:} Allocating client queries to servers to prevent congestion and guarantee even CPU distribution.
+    \item \textbf{High-Speed Packet Routing:} Selecting paths for network packets to minimize link congestions.
+    \item \textbf{Coverage of Wireless Sensor Networks:} Activating sensor groups to cover a target field while maximizing battery life.
+\end{itemize}
+
+\subsection*{Real Example: Query Server Load Balancing}
+\textbf{Scenario:} A web service (e.g., Netflix) distributes incoming client requests to $m = 100$ parallel servers. Each request demands CPU. We want to distribute them randomly such that no server has CPU load exceeding $1.2 \times$ average.
+\textbf{Model:} Randomized load allocation. The sum of task loads on server $i$ is a sum of independent random variables.
+\textbf{Why Chernoff Bounds matter:} Without bounds, a simple random assignment could lead to temporary server crash due to congestion. Chernoff bounds mathematically guarantee that with $n = 10,000$ requests, the probability that any single server becomes overloaded is less than $10^{-6}$, ensuring system reliability.
+
+\section{Tight Example: The Grid Partition}
+Consider a universe of $n$ elements where sets are structured such that the LP solution is $x_S^* = 1/k$ for $k$ overlapping sets. If we only run 1 round of randomized rounding, each element has a failure probability of $(1-1/k)^k \approx 1/e \approx 0.368$. For $n = 1000$ elements, this would leave about 368 elements uncovered. Running $t = c \ln n$ rounds is mathematically required to bring this down to zero.
+
+\section{Exercises}
+\begin{exercise}
+State the multiplicative Chernoff bound for the sum of independent Bernoulli trials $X = \sum X_i$ with mean $\mu$.
+\end{exercise}
+\begin{exercise}
+Prove that if we run $t = 3 \ln n$ rounds, the probability that any element remains uncovered is at most $1/n^2$.
+\end{exercise}
+

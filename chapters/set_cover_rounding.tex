@@ -1,0 +1,153 @@
+% ============================================================
+% CHAPTER 14: ROUNDING APPLIED TO SET COVER (matches Vazirani Ch. 14)
+% ============================================================
+\setcounter{chapter}{13}
+\chapter{Rounding Applied to Set Cover}
+\label{ch:setcover_rounding}
+
+\section{Intuition: Threshold Rounding}
+
+\begin{intuitionbox}
+\textbf{LP Rounding:} Solve the LP relaxation, get fractional $x^*_S$. Pick all sets with $x^*_S \geq 1/f$ where $f$ is maximum element frequency. Since each element appears in at most $f$ sets, and $\sum_{S \ni e} x^*_S \geq 1$, at least one set containing $e$ must have $x^*_S \geq 1/f$. So $e$ is covered!
+\end{intuitionbox}
+
+\section{LP Relaxation for Set Cover}
+
+\[
+\min \sum_S c(S) x_S \quad \text{s.t.} \quad \sum_{S \ni e} x_S \geq 1 \ \forall e, \quad x_S \geq 0
+\]
+
+\begin{algorithmdef}[Set Cover via LP Rounding — Factor $f$]
+\begin{enumerate}
+    \item Solve LP relaxation, get optimal $x^*$
+    \item Let $f = \max_e |\{S : e \in S\}|$ (maximum frequency)
+    \item Pick all sets with $x^*_S \geq 1/f$
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This gives an $f$-approximation for Set Cover.
+\end{theorem}
+\begin{proof}
+For any $e$, $\sum_{S \ni e} x^*_S \geq 1$. With at most $f$ terms, at least one $x^*_S \geq 1/f$, so $e$ is covered. Cost $\leq f \sum c(S) x^*_S = f \cdot \OPT_{LP} \leq f \cdot \OPT_{IP}$.
+\end{proof}
+
+\subsection{Vertex Cover via LP Rounding (Factor 2)}
+
+Vertex Cover is Set Cover with $f=2$ (each edge in exactly 2 sets). LP rounding gives a clean 2-approximation.
+
+\begin{algorithmdef}[Vertex Cover via LP Rounding — Factor 2]
+\begin{enumerate}
+    \item Solve LP: $\min \sum_v x_v$ s.t. $x_u + x_v \geq 1 \ \forall (u,v) \in E$, $x_v \geq 0$
+    \item Pick all vertices with $x_v \geq 1/2$
+\end{enumerate}
+\end{algorithmdef}
+
+This matches the combinatorial 2-approximation from Chapter 1 but via LP duality.
+
+\subsection{Integrality Gap}
+
+The integrality gap of the Set Cover LP is $H_n$ (tight example from Chapter 2). So no rounding-based algorithm can beat $H_n$.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=LP Rounding for Set Cover]
+class Simplex:
+    """Maximize c^T x  s.t. Ax <= b, x >= 0."""
+    def __init__(self, A, b, c):
+        self.m = len(A)
+        self.n = len(A[0]) if A else 0
+        self.A = [row[:] for row in A]
+        self.b = b[:]
+        self.c = c[:]
+        self.obj_row = []
+
+    def solve(self):
+        # Slack-variable tableau: rows = constraints, cols = x + s + RHS.
+        tab = [self.A[i] + [1 if j == i else 0 for j in range(self.m)]
+               + [self.b[i]] for i in range(self.m)]
+        tab.append([-v for v in self.c] + [0] * self.m + [0])
+
+        while True:
+            entering = min(range(self.n + self.m),
+                           key=lambda j: tab[-1][j])
+            if tab[-1][entering] >= -1e-9:
+                break                       # optimal
+            leaving = min(range(self.m),
+                          key=lambda i: tab[i][-1] / tab[i][entering]
+                          if tab[i][entering] > 1e-9 else float('inf'))
+            if tab[leaving][entering] <= 1e-9:
+                return None, float('inf')   # unbounded
+            piv = tab[leaving][entering]
+            tab[leaving] = [v / piv for v in tab[leaving]]
+            for i in range(self.m + 1):
+                if i != leaving:
+                    f = tab[i][entering]
+                    tab[i] = [tab[i][j] - f * tab[leaving][j]
+                              for j in range(len(tab[0]))]
+
+        x = [0.0] * self.n
+        for i in range(self.m):
+            for j in range(self.n + self.m):
+                if (abs(tab[i][j] - 1.0) < 1e-6 and
+                        sum(abs(tab[r][j]) for r in range(self.m + 1)) < 1.0 + 1e-4):
+                    if j < self.n:
+                        x[j] = max(0.0, tab[i][-1])
+        self.obj_row = tab[-1]
+        return x, tab[-1][-1]
+
+
+def set_cover_lp(universe, sets, costs):
+    """Set Cover LP relaxation via its dual (max sum y_e)."""
+    U = list(universe)
+    S = list(sets.keys())
+    m, n = len(S), len(U)
+    if m == 0:
+        return [0.0] * m, float('inf')
+    A_dual = [[1.0 if e in sets[s] else 0.0 for e in U] for s in S]
+    sp = Simplex(A_dual, [costs[s] for s in S], [1.0] * n)
+    y, opt = sp.solve()
+    if y is None:
+        return [0.0] * m, float('inf')
+    # Primal x_s* appear as the reduced costs of the dual slack variables.
+    x = [max(0.0, min(1.0, v)) for v in sp.obj_row[n: n + m]]
+    return x, opt
+
+
+def set_cover_lp_rounding(universe, sets, costs):
+    """f-approx for Set Cover via LP Rounding."""
+    x, opt = set_cover_lp(universe, sets, costs)
+    if not x: return [], 0.0
+    
+    S = list(sets.keys())
+    f = max(sum(1 for s in S if e in sets[s]) for e in universe)
+    threshold = 1.0 / f
+    
+    picked = [s for i, s in enumerate(S) if x[i] >= threshold]
+    total_cost = sum(costs[s] for s in picked)
+    return picked, total_cost
+
+def vertex_cover_lp_rounding(graph):
+    """2-approx for Vertex Cover via LP Rounding."""
+    # Map to Set Cover to solve via Dual LP
+    edges = [(u,v) for u in graph for v in graph[u] if u < v]
+    universe = set(range(len(edges)))
+    edge_to_idx = {e: i for i, e in enumerate(edges)}
+    
+    vertices = list(graph.keys())
+    sets = {v: {edge_to_idx[(min(v,w), max(v,w))] for w in graph[v]} 
+            for v in vertices}
+    costs = {v: 1.0 for v in vertices}
+    
+    x, opt = set_cover_lp(universe, sets, costs)
+    return {vertices[i] for i in range(len(vertices)) if x[i] >= 0.5}
+\end{lstlisting}
+
+\section{Exercises}
+\begin{exercise}
+Show that the integrality gap of the Set Cover LP is $H_n$.
+\end{exercise}
+\begin{exercise}
+Prove that the LP rounding for Vertex Cover gives a 2-approximation.
+\end{exercise}
+

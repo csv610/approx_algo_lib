@@ -1,0 +1,120 @@
+% ============================================================
+% CHAPTER 8: KNAPSACK AND FPTAS (matches Vazirani Ch. 8)
+% ============================================================
+\chapter{Knapsack and FPTAS}
+\label{ch:knapsack}
+
+\section{Intuition: Scaling Values}
+
+\begin{intuitionbox}
+\textbf{FPTAS Idea:} Knapsack has a pseudo-polynomial DP in $O(nW)$ time. If we scale down the \emph{values} by a factor $K$, the DP runs in $O(n^2/K)$ time. The optimal value decreases by at most $nK$. Setting $K = \epsilon V_{\max}/n$ gives $(1-\epsilon)$-approximation in $O(n^3/\epsilon)$ time.
+\end{intuitionbox}
+
+\section{Problem Definition}
+
+\begin{definition}[0/1 Knapsack]
+Given $n$ items with weights $w_i$ and values $v_i$, capacity $W$, maximize $\sum v_i x_i$ s.t. $\sum w_i x_i \leq W$, $x_i \in \{0,1\}$.
+\end{definition}
+
+\subsection{Exact DP (Pseudo-polynomial)}
+
+$dp[i][w] = \max$ value using first $i$ items with weight $\leq w$. Runs in $O(nW)$.
+
+\subsection{FPTAS via Value Scaling}
+
+\begin{algorithmdef}[Knapsack FPTAS — $(1-\epsilon)$-Approximation]
+\begin{enumerate}
+    \item Let $V_{\max} = \max_i v_i$, $K = \frac{\epsilon V_{\max}}{n}$
+    \item Scale values: $v'_i = \lfloor v_i / K \rfloor$
+    \item Run exact DP on scaled instance: $dp[v] = \min$ weight to achieve scaled value $v$
+    \item Find max $v$ with $dp[v] \leq W$, reconstruct solution
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+The solution value is at least $(1-\epsilon)\OPT$.
+\end{theorem}
+\begin{proof}
+Each value reduced by $< K$. Total reduction $\leq nK = \epsilon V_{\max} \leq \epsilon \OPT$.
+\end{proof}
+
+\subsection{Other Approaches}
+
+\begin{table}[H]
+\centering
+\caption{Knapsack Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Time \\
+\midrule
+Exact DP & Exact & $O(nW)$ \\
+FPTAS (value scaling) & $1-\epsilon$ & $O(n^3/\epsilon)$ \\
+FPTAS (weight scaling) & $1-\epsilon$ & $O(n^2/\epsilon)$ \\
+Greedy by value/weight & 2 (fractional) & $O(n \log n)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not exact?} Knapsack is weakly NP-hard. Exact requires pseudo-polynomial time. FPTAS gives polynomial time for any fixed $\epsilon$.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Knapsack FPTAS]
+def knapsack_fptas(weights, values, capacity, epsilon):
+    """(1-epsilon)-approx for 0/1 Knapsack."""
+    n = len(weights)
+    Vmax = max(values)
+    K = epsilon * Vmax / n
+    if K == 0: K = 1
+    
+    scaled = [int(v / K) for v in values]
+    max_scaled = sum(scaled)
+    
+    # dp[v] = min weight to achieve value v
+    dp = [float('inf')] * (max_scaled + 1)
+    dp[0] = 0
+    choice = [[False] * (max_scaled + 1) for _ in range(n + 1)]
+    
+    for i in range(1, n + 1):
+        v, w = scaled[i-1], weights[i-1]
+        for val in range(max_scaled, v - 1, -1):
+            if dp[val - v] + w < dp[val]:
+                dp[val] = dp[val - v] + w
+                choice[i][val] = True
+    
+    best_val = max(v for v in range(max_scaled + 1) if dp[v] <= capacity)
+    
+    # Reconstruct
+    selected = []
+    val = best_val
+    for i in range(n, 0, -1):
+        if choice[i][val]:
+            selected.append(i-1)
+            val -= scaled[i-1]
+    
+    return selected, sum(values[i] for i in selected)
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Resource allocation:} Budget-constrained project selection
+    \item \textbf{Portfolio optimization:} Risk-constrained investment
+    \item \textbf{Logistics:} Cargo loading with weight limit
+    \item \textbf{Cloud computing:} VM placement with capacity constraints
+\end{itemize}
+
+\subsection*{Real Example: IT Budget Allocation for Cloud Migration}
+\textbf{Scenario:} A company has $\$500,000$ budget to migrate $n=200$ on-premise applications to the cloud. Each app $i$ has migration cost $w_i$ and business value $v_i$ (revenue impact, risk reduction). Maximize total value within budget.
+\textbf{Why FPTAS:} Exact DP with $W=500,000$ takes $O(nW) = 10^8$ operations — too slow for interactive planning. FPTAS with $\epsilon=0.05$ runs in $O(n^3/\epsilon) \approx 1.6 \times 10^6$ operations — instant.
+\textbf{Guarantee:} The selected apps achieve $\geq 95\%$ of optimal business value. CFO can trust the plan.
+\textbf{Real constraint:} Some apps are interdependent (if A moves, B must move). This is \emph{knapsack with dependencies} — can be modeled as tree-knapsack with FPTAS.
+\textbf{Alternative:} Greedy by $v_i/w_i$ ratio gives 2-approx for fractional but can be arbitrarily bad for 0/1 (e.g., one item with value $100$, weight $101$; budget $100$; greedy picks nothing).
+
+\section{Exercises}
+\begin{exercise}
+Implement the FPTAS using weight scaling instead of value scaling.
+\end{exercise}
+\begin{exercise}
+Show that the greedy algorithm by value/weight ratio gives a 2-approximation for fractional knapsack but can be arbitrarily bad for 0/1 knapsack.
+\end{exercise}
+

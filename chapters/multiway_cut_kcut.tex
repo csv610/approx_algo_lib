@@ -1,0 +1,280 @@
+% ============================================================
+% CHAPTER 4: MULTIWAY CUT AND k-CUT (matches Vazirani Ch. 4)
+% ============================================================
+\setcounter{chapter}{3}
+\chapter{Multiway Cut and k-Cut}
+\label{ch:multiway}
+
+\section{Intuition: Isolating Cuts}
+
+\begin{intuitionbox}
+\textbf{Multiway Cut:} We have $k$ terminals that must be separated. For each terminal $s_i$, find the minimum cut isolating $s_i$ from all other terminals (merge other terminals into a super-terminal). Take the union of the $k-1$ lightest isolating cuts.
+
+\textbf{Why it works:} In the optimal multiway cut, each terminal sits in its own component. The cut separating component $i$ from the rest is an isolating cut for $s_i$. The sum of all $k$ isolating cuts in OPT is exactly $2 \times$ OPT (each edge counted twice). Discarding the heaviest leaves at most $2(1-1/k)\OPT$.
+\end{intuitionbox}
+
+\section{Multiway Cut}
+
+\begin{definition}[Multiway Cut]
+Given graph $G = (V, E)$ with edge weights and terminals $S = \{s_1, \dots, s_k\}$, find minimum-weight edge set whose removal disconnects all terminals from each other.
+\end{definition}
+
+\begin{algorithmdef}[Multiway Cut — Factor $2-2/k$]
+\begin{enumerate}
+    \item For each $i = 1..k$, compute minimum isolating cut $C_i$ separating $s_i$ from $S \setminus \{s_i\}$
+    \item Discard the heaviest $C_i$
+    \item Output union of remaining $k-1$ cuts
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This algorithm achieves a $2 - \frac{2}{k}$ approximation for Multiway Cut.
+\end{theorem}
+
+\subsection{Minimum k-Cut}
+
+\begin{definition}[$k$-Cut]
+Find minimum-weight edge set whose removal partitions $G$ into at least $k$ components.
+\end{definition}
+
+The Gomory-Hu tree represents all pairwise minimum cuts in a tree with $n-1$ edges. Removing the $k-1$ lightest edges gives a $k$-cut.
+
+\begin{algorithmdef}[Minimum $k$-Cut — Factor $2-2/k$]
+\begin{enumerate}
+    \item Compute Gomory-Hu tree $T$ of $G$
+    \item Remove $k-1$ lightest edges from $T$
+    \item Output union of corresponding cuts in $G$
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This achieves a $2 - \frac{2}{k}$ approximation for Minimum $k$-Cut.
+\end{theorem}
+
+\subsection{Other Approaches}
+
+\begin{table}[H]
+\centering
+\caption{Multiway Cut / k-Cut Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Isolating cuts (this chapter) & $2-2/k$ & Min-cut subroutine \\
+Gomory-Hu tree (this chapter) & $2-2/k$ & Min-cut + tree \\
+LP rounding (Ch. 19) & $1.5$ & LP relaxation \\
+Region growing & $2$ & Continuous relaxation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=Multiway Cut and k-Cut]
+import heapq
+
+
+class MaxFlow:
+    """Edmonds-Karp max flow / min cut on an undirected graph."""
+    def __init__(self, n):
+        self.n = n
+        self.adj = [[] for _ in range(n)]
+        self.cap = [[0] * n for _ in range(n)]
+
+    def add_edge(self, u, v, c):
+        self.cap[u][v] += c
+        if v not in self.adj[u]:
+            self.adj[u].append(v)
+        if u not in self.adj[v]:
+            self.adj[v].append(u)
+
+    def bfs(self, s, t, parent):
+        parent[:] = [-1] * self.n
+        parent[s] = -2
+        q = [(s, float('inf'))]
+        while q:
+            u, flow = q.pop(0)
+            for v in self.adj[u]:
+                if parent[v] == -1 and self.cap[u][v] > 0:
+                    parent[v] = u
+                    nf = min(flow, self.cap[u][v])
+                    if v == t:
+                        return nf
+                    q.append((v, nf))
+        return 0
+
+    def max_flow(self, s, t):
+        flow = 0
+        parent = [-1] * self.n
+        while True:
+            nf = self.bfs(s, t, parent)
+            if nf == 0:
+                break
+            flow += nf
+            v = t
+            while v != s:
+                u = parent[v]
+                self.cap[u][v] -= nf
+                self.cap[v][u] += nf
+                v = u
+        return flow
+
+    def reachable(self, s):
+        seen, stack = {s}, [s]
+        while stack:
+            u = stack.pop()
+            for v in self.adj[u]:
+                if self.cap[u][v] > 0 and v not in seen:
+                    seen.add(v)
+                    stack.append(v)
+        return seen
+
+
+def min_s_t_cut(graph, s, t):
+    """Min s-t cut; returns (S, T, weight)."""
+    vertices = list(graph.keys())
+    idx = {v: i for i, v in enumerate(vertices)}
+    mf = MaxFlow(len(vertices))
+    for u in graph:
+        for v, c in graph[u].items():
+            if u < v:
+                mf.add_edge(idx[u], idx[v], c)
+                mf.add_edge(idx[v], idx[u], c)
+    mf.max_flow(idx[s], idx[t])
+    S = {vertices[i] for i in mf.reachable(idx[s])}
+    T = set(vertices) - S
+    w = sum(graph[u][v] for u in S for v in T if v in graph[u])
+    return S, T, w
+
+
+def isolating_cut(graph, s, other_terminals):
+    """Min cut separating s from all other terminals (super-source trick)."""
+    vertices = list(graph.keys())
+    idx = {v: i for i, v in enumerate(vertices)}
+    n = len(vertices)
+    INF = float('inf')
+    mf = MaxFlow(n + 1)
+    for u in graph:
+        for v, c in graph[u].items():
+            if u < v:
+                mf.add_edge(idx[u], idx[v], c)
+                mf.add_edge(idx[v], idx[u], c)
+    for t in other_terminals:
+        mf.add_edge(n, idx[t], INF)          # super-source -> other terminals
+    mf.max_flow(n, idx[s])
+    S = {vertices[i] for i in mf.reachable(n) if i != n}
+    T = set(vertices) - S
+    edges = {(min(u, v), max(u, v)) for u in S for v in T if v in graph[u]}
+    w = sum(graph[u][v] for u in S for v in T if v in graph[u])
+    return S, T, edges, w
+
+
+def multiway_cut_2_2k(graph, terminals):
+    """2-2/k approx for Multiway Cut."""
+    k = len(terminals)
+    if k <= 2:
+        s, t = list(terminals)
+        S, T, w = min_s_t_cut(graph, s, t)
+        edges = {(min(u, v), max(u, v)) for u in S for v in T if v in graph[u]}
+        return edges, w
+
+    terminals = list(terminals)
+    cuts, weights = [], []
+    for i, s in enumerate(terminals):
+        other = [t for j, t in enumerate(terminals) if j != i]
+        _, _, edges, w = isolating_cut(graph, s, other)
+        cuts.append(edges)
+        weights.append(w)
+
+    skip = max(range(k), key=lambda i: weights[i])
+    result_edges = set()
+    result_weight = 0.0
+    for i in range(k):
+        if i != skip:
+            result_edges.update(cuts[i])
+            result_weight += weights[i]
+    return result_edges, result_weight
+
+
+def gomory_hu_tree(graph):
+    """Gomory-Hu tree; returns (edges, weights) keyed by (u, v)."""
+    vertices = list(graph.keys())
+    n = len(vertices)
+    if n <= 1:
+        return [], {}
+    idx = {v: i for i, v in enumerate(vertices)}
+    parent = {i: 0 for i in range(1, n)}
+    tree_edges, tree_weights = [], {}
+    for i in range(1, n):
+        s, t = i, parent[i]
+        mf = MaxFlow(n)
+        for u in graph:
+            for v, c in graph[u].items():
+                if u < v:
+                    mf.add_edge(idx[u], idx[v], c)
+                    mf.add_edge(idx[v], idx[u], c)
+        mf.max_flow(s, t)
+        visited = mf.reachable(s)
+        u, v = vertices[s], vertices[t]
+        w = sum(graph[vertices[x]][vertices[y]]
+                for x in visited for y in range(n)
+                if y not in visited and vertices[y] in graph[vertices[x]])
+        tree_edges.append((u, v))
+        tree_weights[(min(u, v), max(u, v))] = w
+        for j in range(i + 1, n):
+            if parent[j] == t and j in visited:
+                parent[j] = i
+    return tree_edges, tree_weights
+
+
+def min_k_cut_2_2k(graph, k):
+    """2 - 2/k approx for Minimum k-Cut."""
+    if k <= 1:
+        return set(), 0.0
+    if k >= len(graph):
+        edges = {(min(u, v), max(u, v)) for u in graph for v in graph[u] if u < v}
+        w = sum(graph[u][v] for u in graph for v in graph[u] if u < v)
+        return edges, w
+
+    tree_edges, tree_weights = gomory_hu_tree(graph)
+    key = lambda e: tree_weights[(min(e[0], e[1]), max(e[0], e[1]))]
+    to_remove = sorted(tree_edges, key=key)[:k - 1]
+
+    result_edges, result_weight = set(), 0.0
+    for u, v in to_remove:
+        S, T, w = min_s_t_cut(graph, u, v)
+        for x in S:
+            for y in T:
+                if y in graph[x]:
+                    result_edges.add((min(x, y), max(x, y)))
+        result_weight += w
+    return result_edges, result_weight
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Image segmentation:} Multiway cut = partition pixels into regions
+    \item \textbf{Network reliability:} $k$-cut = minimum edges to disconnect into $k$ parts
+    \item \textbf{Clustering:} Multiway cut with similarity weights
+    \item \textbf{VLSI partitioning:} Divide circuit into modules
+\end{itemize}
+
+\subsection*{Real Example: Medical Image Segmentation}
+\textbf{Scenario:} MRI brain scan with $k=4$ tissue types (gray matter, white matter, CSF, tumor). Each pixel must be assigned to one type.
+\textbf{Model:} Graph where vertices = pixels, edges = adjacency. Terminals = seed pixels labeled by radiologist for each tissue type. Edge weights = similarity (inverse intensity difference). Multiway cut separates the 4 terminals with minimum boundary cost = maximum coherence within each tissue region.
+\textbf{Why multiway cut:} Unlike $k$-means, multiway cut respects boundary continuity — cuts follow intensity gradients. The $2-2/4 = 1.5$-approximation guarantees the segmentation boundary is at most $1.5\times$ the optimal length.
+\textbf{In practice:} With pre-seeded terminals from a CNN, the multiway cut refines boundaries better than pure CNN output (post-processing step in medical imaging pipelines).
+\textbf{$k$-cut variant:} No pre-labeled seeds — find $k$ components of minimum boundary. Used for unsupervised segmentation.
+
+\section{Tight Example}
+
+$2k$ vertices in a cycle: $k$ terminals alternating with $k$ Steiner vertices. Terminal-Steiner edges weight $2-\epsilon$, Steiner-Steiner edges weight 1. Algorithm picks $k-1$ heavy edges; optimal picks $k$ light edges. Ratio $\to 2-2/k$.
+
+\section{Exercises}
+\begin{exercise}
+Show Algorithm 4.3 can find a $k$-cut within $2-2/k$ using multiway cut as subroutine.
+\end{exercise}
+\begin{exercise}
+Prove the greedy multiway cut algorithm (iteratively remove lightest $s_i$-$s_j$ cut) also achieves $2-2/k$.
+\end{exercise}
+

@@ -1,0 +1,174 @@
+% ============================================================
+% CHAPTER 30: MULTICUT IN TREES (matches Vazirani Ch. 18)
+% ============================================================
+\setcounter{chapter}{29}
+\chapter{Multicut in Trees}
+\label{ch:tree_multicut}
+
+\section{Intuition: LCA Depth Sorting and Dual Growth}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The Multicut problem asks for a minimum cost set of edges whose removal disconnects given pairs of vertices. While NP-hard in general graphs, the problem in trees admits a simple and elegant primal-dual 2-approximation. We root the tree arbitrarily and compute the lowest common ancestor (LCA) for each pair. By processing the pairs in descending order of their LCA depth (from deepest to highest), we grow dual variables for uncut paths. When an edge becomes tight, we select the highest tight edge on the path (closest to the LCA) to maximize its overlap with other paths.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given a tree $T = (V, E)$ with non-negative edge costs $c_e \ge 0$, and a set of $k$ demand pairs $S = \{(s_1, t_1), \dots, (s_k, t_k)\}$, the \emph{Multicut in Trees} problem is to find a minimum cost subset of edges $C \subseteq E$ such that $s_i$ and $t_i$ are disconnected in $T \setminus C$ for all $i \in \{1, \dots, k\}$.
+
+The problem is NP-hard. It admits a 2-approximation using the tree-based primal-dual algorithm.
+
+\section{Algorithm and Python Implementation}
+We root the tree at vertex 0, sort the pairs by LCA depth, grow dual variables for uncut paths, select the highest tight edge, and apply reverse-delete pruning.
+
+\begin{lstlisting}[style=python, caption=Primal-Dual Multicut in Trees]
+def get_tree_properties(n, edges, root=0):
+    """BFS from root; returns (parent, depth) dicts."""
+    adj = {i: [] for i in range(n)}
+    for u, v in edges:
+        adj[u].append(v)
+        adj[v].append(u)
+    parent = {root: -1}
+    depth = {root: 0}
+    queue = [root]
+    while queue:
+        curr = queue.pop(0)
+        for nbr in adj[curr]:
+            if nbr != parent[curr]:
+                parent[nbr] = curr
+                depth[nbr] = depth[curr] + 1
+                queue.append(nbr)
+    return parent, depth
+
+
+def get_lca(u, v, parent, depth):
+    """Lowest common ancestor of u and v."""
+    while depth[u] > depth[v]:
+        u = parent[u]
+    while depth[v] > depth[u]:
+        v = parent[v]
+    while u != v:
+        u = parent[u]
+        v = parent[v]
+    return u
+
+
+def get_path_edges(u, v, parent):
+    """Edges on the unique u-v path in the rooted tree."""
+    path_u = []
+    curr = u
+    while curr != -1:
+        path_u.append(curr)
+        curr = parent[curr]
+    path_v = []
+    curr = v
+    while curr != -1:
+        path_v.append(curr)
+        curr = parent[curr]
+    lca_node = next(node for node in path_u if node in set(path_v))
+
+    res = []
+    curr = u
+    while curr != lca_node:
+        p = parent[curr]
+        res.append(tuple(sorted((curr, p))))
+        curr = p
+    curr = v
+    while curr != lca_node:
+        p = parent[curr]
+        res.append(tuple(sorted((curr, p))))
+        curr = p
+    return res
+
+
+def multicut_in_trees(n, edges, costs, pairs):
+    """Primal-dual 2-approximation for Multicut in Trees."""
+    parent, depth = get_tree_properties(n, edges)
+    pair_lcas = [(depth[get_lca(u, v, parent, depth)], i) for i, (u, v) in enumerate(pairs)]
+    pair_lcas.sort(key=lambda x: x[0], reverse=True)
+    
+    edge_to_idx = {tuple(sorted(e)): idx for idx, e in enumerate(edges)}
+    load = [0.0] * len(edges)
+    chosen_edges = []
+    
+    for _, pair_idx in pair_lcas:
+        u, v = pairs[pair_idx]
+        path_edges = get_path_edges(u, v, parent)
+        if any(e in chosen_edges for e in path_edges): continue
+        
+        # Grow dual y_i for this pair
+        min_slack = float('inf')
+        best_edge = None
+        for e in path_edges:
+            e_idx = edge_to_idx[e]
+            slack = costs[e_idx] - load[e_idx]
+            if slack < min_slack:
+                min_slack, best_edge = slack, e
+            elif abs(slack - min_slack) < 1e-9:
+                # Break tie: choose higher edge (closer to root)
+                u1, v1 = e; u2, v2 = best_edge
+                if min(depth[u1], depth[v1]) < min(depth[u2], depth[v2]):
+                    best_edge = e
+                    
+        for e in path_edges:
+            load[edge_to_idx[e]] += min_slack
+        if best_edge is not None:
+            chosen_edges.append(best_edge)
+            
+    # Reverse-delete pruning
+    pruned = list(chosen_edges)
+    for e in reversed(chosen_edges):
+        pruned.remove(e)
+        if not all(any(pe in pruned for pe in get_path_edges(u, v, parent)) for u, v in pairs):
+            pruned.append(e)
+    return pruned
+\end{lstlisting}
+
+\section{Analysis: Factor 2 Approximation}
+The LP relaxation of Multicut in Trees is:
+\[
+\min \sum_{e \in E} c_e x_e \quad \text{s.t.} \quad \sum_{e \in P_i} x_e \ge 1 \; (\forall i \in \{1, \dots, k\}), \quad x_e \ge 0
+\]
+where $P_i$ is the unique path between $s_i$ and $t_i$. The dual LP is:
+\[
+\max \sum_{i=1}^k y_i \quad \text{s.t.} \quad \sum_{i: e \in P_i} y_i \le c_e \; (\forall e \in E), \quad y_i \ge 0
+\]
+For any edge $e$ in the final pruned cut $C$, the dual constraint is tight: $\sum_{i: e \in P_i} y_i = c_e$. Thus, the cost of the cut is:
+\[
+\sum_{e \in C} c_e = \sum_{e \in C} \sum_{i: e \in P_i} y_i = \sum_{i=1}^k y_i \cdot |C \cap P_i|
+\]
+To prove a 2-approximation, we show that for any pair $i$ where we grew a dual variable $y_i > 0$, the number of cut edges on its path satisfies $|C \cap P_i| \le 2$.
+Since we sorted pairs by LCA depth and chose the highest tight edge on the path $P_i$ (closest to $lca(i)$), any other cut edge on $P_i$ must belong to some path $P_j$ processed earlier, whose LCA is deeper. It can be shown that at most one such edge can lie on the branch from $s_i$ to $lca(i)$, and at most one on the branch from $t_i$ to $lca(i)$. Thus, the path $P_i$ contains at most 2 edges of $C$. Therefore:
+\[
+\sum_{e \in C} c_e \le 2 \sum_{i=1}^k y_i \le 2 \cdot \text{OPT}_{LP} \le 2 \cdot \text{OPT}
+\]
+which proves that the approximation ratio is exactly 2.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Network Subnet Isolation:} Placing firewalls on tree router links to isolate specific pairs of computers while minimizing link firewall costs.
+    \item \textbf{Content Delivery Networks (CDNs):} Placing proxy servers on tree routing nodes to decouple client-server tree paths.
+    \item \textbf{High-voltage Circuit Breakers:} Placing circuit breakers in tree-like electricity grids to isolate fault sources.
+\end{itemize}
+
+\subsection*{Real Example: Network Security Subnet Isolation}
+\textbf{Scenario:} An enterprise corporate network (e.g. Cisco) is structured as a tree. The security team wants to isolate specific pairs of sensitive subnets $(s_i, t_i)$ (e.g., Finance and Guest Wi-Fi) by installing hardware firewalls on the links. Installing a firewall on link $e$ costs $c_e$.
+\textbf{Model:} Multicut in Trees. Subnets are leaves, links are edges. The primal-dual algorithm finds the minimum cost link set to secure.
+\textbf{Why Primal-Dual matters:} Placing firewalls on every link is cost-prohibitive. Running integer programs is slow for huge corporate trees. The tree-based primal-dual algorithm runs in linear time and guarantees a security layout costing at most twice the absolute minimum firewall budget.
+
+\section{Tight Example: The Branching LCA}
+Consider a tree rooted at 0 with edges $(0, 1), (0, 2), (1, 3), (1, 4), (2, 5), (2, 6)$ of costs $2, 4, 1, 3, 2, 2$. Let the demand pairs be $(3, 4)$, $(5, 6)$, and $(3, 5)$.
+The optimal solution is to cut edges $(1, 3)$ and $(2, 5)$, with total cost $1 + 2 = 3$.
+If we run our primal-dual algorithm:
+- Pairs are sorted by LCA depth: $(3, 4)$ (LCA 1, depth 1) and $(5, 6)$ (LCA 2, depth 1) are processed first, then $(3, 5)$ (LCA 0, depth 0).
+- Processing $(3, 4)$ yields dual $y_{(3,4)} = 1.0$ and tightens edge $(1, 3)$, which is added to $C$.
+- Processing $(5, 6)$ yields dual $y_{(5,6)} = 2.0$ and tightens edge $(2, 5)$, which is added to $C$.
+- Processing $(3, 5)$, the path is already cut by $(1, 3)$ and $(2, 5)$, so we skip it.
+- Pruning keeps both edges. The final cut is $\{(1, 3), (2, 5)\}$ with cost 3.0, matching the optimal cost.
+
+\section{Exercises}
+\begin{exercise}
+Prove that the multicut problem on a path graph is exactly equivalent to the interval hitting set problem (where we want to select a minimum number of points to hit a set of intervals).
+\end{exercise}
+\begin{exercise}
+Prove that if the tree is a star graph (a center node connected to $n$ leaf nodes), the Multicut in Trees problem is equivalent to the Vertex Cover problem.
+\end{exercise}
+

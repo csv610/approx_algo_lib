@@ -1,0 +1,198 @@
+% ============================================================
+% CHAPTER 6: FEEDBACK VERTEX SET (matches Vazirani Ch. 6)
+% ============================================================
+\chapter{Feedback Vertex Set}
+\label{ch:fvs}
+
+\section{Intuition: Peeling and Layering}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} Feedback Vertex Set (FVS) is the problem of breaking all cycles in a graph by deleting a minimum-weight set of vertices. Low-degree vertices cannot support cycles: degree 0 or 1 vertices are useless for cycles, and degree 2 vertices can be contracted. In a ``clean'' graph (minimum degree $\ge 3$), the average degree of any forest is less than 2, meaning any cycle-free subgraph must connect heavily to the deleted feedback vertices. By reducing weights proportionally to a vertex's cycle-breaking contribution (measured by its cyclomatic weight $\delta_G(v)$), we pay at most twice the optimal cost to hit every cycle.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given an undirected graph $G = (V, E)$ with non-negative vertex weights $w: V \to \mathbb{R}^+$, the \emph{Minimum Feedback Vertex Set} (FVS) problem is to find a subset $F \subseteq V$ of minimum total weight $\sum_{v \in F} w(v)$ such that the induced subgraph $G[V \setminus F]$ contains no cycles (i.e., it is a forest).
+
+The decision version of FVS is one of Karp's 21 NP-complete problems. It has applications in database deadlock resolution, circuit design, and Bayesian network inference (loop cutsets).
+
+\section{Algorithm and Python Implementation}
+The 2-approximation algorithm uses the local-ratio technique. It first simplifies the graph by removing vertices of degree $\le 1$ and contracting vertices of degree 2. It then scales weights based on the cyclomatic weight $\delta_H(v) = \text{cyc}(H) - \text{cyc}(H \setminus \{v\})$, where $\text{cyc}(H) = |E(H)| - |V(H)| + \text{cc}(H)$ is the cyclomatic number of graph $H$.
+
+\begin{lstlisting}[style=python, caption=Local Ratio Algorithm for Feedback Vertex Set]
+def connected_components_count(graph):
+    """Number of connected components of the multigraph."""
+    visited, count = set(), 0
+    for v in graph:
+        if v in visited:
+            continue
+        count += 1
+        q = [v]
+        visited.add(v)
+        while q:
+            curr = q.pop(0)
+            for nxt in graph[curr]:
+                if nxt in graph and nxt not in visited:
+                    visited.add(nxt)
+                    q.append(nxt)
+    return count
+
+
+def cyclomatic_number(graph):
+    """Cyclomatic number m - n + cc of the multigraph."""
+    n = len(graph)
+    if n == 0:
+        return 0
+    m = sum(len(graph[v]) for v in graph) // 2
+    return m - n + connected_components_count(graph)
+
+
+def is_feedback_vertex_set(graph, fvs):
+    """Is graph - fvs acyclic (a forest)?"""
+    remaining = set(graph) - fvs
+    visited = set()
+    for start in remaining:
+        if start in visited:
+            continue
+        q = [(start, -1)]
+        visited.add(start)
+        while q:
+            curr, parent = q.pop(0)
+            neighbors = [x for x in graph[curr] if x in remaining]
+            if len(neighbors) != len(set(neighbors)):
+                return False          # 2-cycle
+            for nxt in neighbors:
+                if nxt == parent:
+                    continue
+                if nxt in visited:
+                    return False      # cycle
+                visited.add(nxt)
+                q.append((nxt, curr))
+    return True
+
+
+def feedback_vertex_set_approx(graph, weights):
+    """2-approx for undirected weighted Feedback Vertex Set."""
+    g = {v: list(neighbors) for v, neighbors in graph.items()}
+    
+    # 0. If any vertex has weight <= 0, remove and recurse
+    for v in list(g.keys()):
+        if weights.get(v, 0.0) <= 1e-9:
+            g_sub = {x: [y for y in neighbors if y != v] for x, neighbors in g.items() if x != v}
+            sub_fvs = feedback_vertex_set_approx(g_sub, weights)
+            sub_fvs.add(v)
+            # Prune before returning
+            final_fvs = set(sub_fvs)
+            for x in list(final_fvs):
+                if is_feedback_vertex_set(graph, final_fvs - {x}):
+                    final_fvs.remove(x)
+            return final_fvs
+            
+    # 1. Clean the graph (remove degree <= 1, contract degree 2)
+    changed = True
+    while changed:
+        changed = False
+        to_remove = [v for v in g if len(g[v]) <= 1]
+        if to_remove:
+            for v in to_remove:
+                for nxt in g[v]:
+                    if nxt in g:
+                        while v in g[nxt]: g[nxt].remove(v)
+                del g[v]
+            changed = True
+            continue
+            
+        deg2_vertices = [v for v in g if len(g[v]) == 2]
+        for v in deg2_vertices:
+            if v not in g: continue
+            u, w = g[v]
+            if u != w:
+                del g[v]
+                g[u] = [w if x == v else x for x in g[u]]
+                g[w] = [u if x == v else x for x in g[w]]
+                changed = True
+                break
+
+    if not g or cyclomatic_number(g) == 0:
+        return set()
+
+    # 2. Check for self-loops (cycle of length 1)
+    for v in g:
+        if v in g[v]:
+            g_sub = {x: [y for y in neighbors if y != v] for x, neighbors in g.items() if x != v}
+            sub_fvs = feedback_vertex_set_approx(g_sub, weights)
+            sub_fvs.add(v)
+            return sub_fvs
+
+    # 3. Check for multi-edges (cycle of length 2)
+    for u in g:
+        for v in g[u]:
+            if g[u].count(v) > 1:
+                eps = min(weights[u], weights[v])
+                weights_next = dict(weights)
+                weights_next[u] -= eps
+                weights_next[v] -= eps
+                g_sub = {x: list(neighbors) for x, neighbors in g.items()}
+                sub_fvs = feedback_vertex_set_approx(g_sub, weights_next)
+                if u not in sub_fvs and v not in sub_fvs:
+                    sub_fvs.add(u if weights_next[u] <= 1e-9 else v)
+                return sub_fvs
+
+    # 4. Normal local ratio step
+    cyc_g = cyclomatic_number(g)
+    deltas = {}
+    for v in g:
+        g_without_v = {x: [y for y in neighbors if y != v] for x, neighbors in g.items() if x != v}
+        deltas[v] = cyc_g - cyclomatic_number(g_without_v)
+        if deltas[v] <= 0: deltas[v] = 1
+
+    eps = min(weights[v] / deltas[v] for v in g)
+    weights_next = dict(weights)
+    for v in g:
+        weights_next[v] -= eps * deltas[v]
+        
+    sub_fvs = feedback_vertex_set_approx(g, weights_next)
+    for v in [v for v in g if weights_next[v] <= 1e-9]:
+        if v not in sub_fvs: sub_fvs.add(v)
+            
+    final_fvs = set(sub_fvs)
+    for v in list(final_fvs):
+        if is_feedback_vertex_set(graph, final_fvs - {v}):
+            final_fvs.remove(v)
+    return final_fvs
+\end{lstlisting}
+
+\section{Analysis: Local Ratio and Cyclomatic Weights}
+The cyclomatic number $\text{cyc}(G) = |E| - |V| + \text{cc}(G)$ represents the maximum number of independent cycles in $G$.
+The value $\delta_G(v) = \text{cyc}(G) - \text{cyc}(G \setminus \{v\})$ measures how many cycles are broken by deleting $v$. We have:
+\[
+\delta_G(v) = d_G(v) - 1 - (k(G \setminus \{v\}) - k(G))
+\]
+Since a minimal feedback vertex set $F$ leaves a forest $T = G[V \setminus F]$, the average degree in $T$ is less than 2. From this, we can show that the sum of cyclomatic weights of any minimal FVS is bounded:
+\[
+\sum_{v \in F} \delta_G(v) \le 2 \cdot \text{OPT}_{IP}
+\]
+By the Local Ratio Theorem, decomposing the weights $w(v)$ into $w'(v) + \epsilon \cdot \delta_G(v)$ guarantees that the final minimal FVS satisfies $w(F) \le 2 \cdot \text{OPT}$.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Bayesian Inference (Loop Cutsets):} Pearl's belief propagation algorithm is exact on trees. For graphs with cycles, belief propagation can be run by conditioning on a loop cutset (which is an FVS). Finding a minimum-weight FVS minimizes the conditioning overhead.
+    \item \textbf{Deadlock Resolution:} In database transactions, the wait-for graph tracks transaction dependencies. Cycles represent deadlocks. An FVS represents a set of transactions to abort to resolve all deadlocks with minimal cost.
+    \item \textbf{Dependency Resolution in Compilers:} Breaking cyclic package dependencies in package managers or modular architectures.
+\end{itemize}
+
+\subsection*{Real Example: Deadlock Resolution in Distributed Databases}
+\textbf{Scenario:} A database has $n=100$ concurrent transactions. Cyclic dependencies (deadlocks) occur when transaction $A$ waits for $B$, $B$ waits for $C$, and $C$ waits for $A$. Aborting a transaction has a weight (representing processing time lost). We want to break all deadlocks with minimal total weight aborted.
+\textbf{Model:} Directed graph of dependencies. For undirected cycles (simplifying directed FVS to undirected FVS when cycles are symmetric), the FVS algorithm finds the minimum-cost set of transactions to abort.
+\textbf{Why 2-approx matters:} Minimizing transaction abort cost is NP-hard. A 2-approximation guarantees that we abort transactions costing no more than $2\times$ the absolute minimum abort cost required to free the database from deadlocks.
+
+\section{Tight Example: Bipartite Graph}
+For a bipartite graph $K_{3,3}$ where all vertex weights are 1, the optimal FVS is of size 2. If the algorithm selects a suboptimal set or order, the local ratio step can yield a set of size 4 if vertices are not chosen carefully. The ratio approaches 2 for larger instances.
+
+\section{Exercises}
+\begin{exercise}
+Prove that for any tree $T$, the Feedback Vertex Set is empty.
+\end{exercise}
+\begin{exercise}
+Prove that for any graph $G$, the average degree of a forest $T \subset G$ is less than 2.
+\end{exercise}
+

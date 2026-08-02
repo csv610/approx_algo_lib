@@ -20,3 +20,9 @@ src/cppcodes/examples/CMakeLists.txt.user
 *.out
 *.toc
 *.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Compiled book PDFs (generated from approx_algo.tex)
+approx_algo.pdf
+book.pdf

@@ -1,0 +1,98 @@
+% ============================================================
+% CHAPTER 29: HARDNESS OF APPROXIMATION (Vazirani Ch. 29)
+% ============================================================
+\setcounter{chapter}{28}
+\chapter{Hardness of Approximation}
+\label{ch:hardness}
+
+\section{Intuition: PCP and Inapproximability}
+
+\begin{intuitionbox}
+\textbf{The PCP Theorem:} The Probabilistically Checkable Proof (PCP) theorem is one of the deepest results in complexity theory: $\text{NP} = \text{PCP}(O(\log n), O(1))$. This means every NP problem has a proof that can be verified by reading only $O(1)$ bits, using $O(\log n)$ random bits.
+
+\textbf{Hardness of Approximation:} The PCP theorem implies that many optimization problems cannot be approximated within any constant factor unless P = NP. The key technique is \emph{gap-producing reductions}: starting from a PCP for SAT, we construct an optimization problem where the gap between YES and NO instances creates an inapproximability threshold.
+\end{intuitionbox}
+
+\section{The PCP Theorem}
+\begin{theorem}[PCP Theorem]
+$\text{NP} = \text{PCP}(O(\log n), O(1))$.
+\end{theorem}
+
+Equivalently: NP-complete problems have PCPs where the verifier uses $O(\log n)$ random bits and queries $O(1)$ proof bits.
+
+\section{Hardness Results}
+
+\begin{table}[H]
+\centering
+\caption{Hardness of Approximation Results (assuming P $\neq$ NP)}
+\begin{tabular}{lcc}
+\toprule
+Problem & Hardness & Reference \\
+\midrule
+MAX-3SAT & $7/8 + \epsilon$ & Håstad (1997) \\
+Vertex Cover & $2 - \epsilon$ & Dinur (2005, UGC) \\
+Clique & $n^{1-\epsilon}$ & Hastad (1999) \\
+Set Cover & $(1-\epsilon)\ln n$ & Feige (1998) \\
+Graph Coloring & $n^{1-\epsilon}$ & Hastad (1999) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{MAX-3SAT Hardness}
+Random 3-SAT with $m$ clauses on $n$ variables satisfies $\frac{7}{8}m$ clauses in expectation (each clause of 3 literals fails with probability $1/8$). The PCP theorem implies that distinguishing satisfiable instances from those satisfying at most $7/8 + \epsilon$ fraction of clauses is NP-hard.
+
+\subsection{Vertex Cover Hardness}
+Assuming the Unique Games Conjecture (UGC), vertex cover cannot be approximated within $2 - \epsilon$. The UGC states that certain constraint satisfaction problems are hard to solve even when a $(1-\epsilon)$ fraction of constraints can be simultaneously satisfied.
+
+\subsection{Set Cover Hardness}
+Feige (1998) showed that approximating set cover within $(1-\epsilon)\ln n$ is NP-hard. This matches the $O(\ln n)$ upper bound from the greedy algorithm.
+
+\section{Gap-Producing Reductions}
+The key technique: given a PCP verifier $V$ for an NP-complete language $L$, construct an optimization problem $\Pi$ such:
+\begin{itemize}
+    \item If $x \in L$, there is a proof accepted with probability 1, giving $\text{OPT}(\Pi_x) \ge 1$.
+    \item If $x \notin L$, every proof is rejected with probability $\ge \delta$, giving $\text{OPT}(\Pi_x) \le 1 - \delta$.
+\end{itemize}
+This creates a gap of $1/(1-\delta)$, implying hardness of approximation within $1/(1-\delta)$.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=PCP Verifier Simulation]
+def check_predicate(r, queried):
+    """Accept iff the queried bits agree with the planted 'correct' proof.
+
+    Our toy proof encodes a fixed parity predicate on the queried positions;
+    the verifier accepts with high probability when the proof is correct and
+    rejects with good probability when a proof bit is flipped."""
+    return sum(queried) % 2 == (r % 2)
+
+
+def verify_pcp(proof_bits, n_random_bits, n_queries):
+    """Simulate a PCP verifier with O(log n) random bits and O(1) queries."""
+    import random
+    accept_count = 0
+    trials = 1000
+    for _ in range(trials):
+        r = random.getrandbits(n_random_bits)
+        # Use r to determine which bits to query
+        queried = [proof_bits[(r + i) % len(proof_bits)] for i in range(n_queries)]
+        if check_predicate(r, queried):
+            accept_count += 1
+    return accept_count / trials
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Cryptography:} Proving cryptographic primitives are optimally hard.
+    \item \textbf{Algorithm design:} Guiding the search for best possible approximation ratios.
+    \item \textbf{Complexity theory:} Understanding the computational difficulty landscape.
+\end{itemize}
+
+\section{Exercises}
+\begin{exercise}
+Explain why the PCP theorem implies that MAX-3SAT cannot be approximated within $7/8 + \epsilon$.
+\end{exercise}
+\begin{exercise}
+Construct a gap-producing reduction from 3SAT to MAX-3SAT that creates a $7/8$ gap.
+\end{exercise}
+

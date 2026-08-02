@@ -1,0 +1,153 @@
+% ============================================================
+% CHAPTER 10: MINIMUM MAKESPAN SCHEDULING (matches Vazirani Ch. 10)
+% ============================================================
+\chapter{Minimum Makespan Scheduling}
+\label{ch:makespan}
+
+\section{Intuition: Load Balancing and Dual Approximation}
+
+\begin{intuitionbox}
+\textbf{Peeling and Layering Intuition:} The goal of Minimum Makespan Scheduling is to allocate $n$ jobs on $m$ identical machines to minimize the maximum machine completion time (makespan). A simple online greedy rule (Graham's List Scheduling) achieves a 2-approximation by assigning each job to the least loaded machine. Sort-based greedy (LPT rule) improves this to a 4/3-approximation by scheduling larger jobs first. For a PTAS, we use Hochbaum-Shmoys dual approximation: we guess the makespan $T$, round large job sizes down to reduce the distinct sizes to a constant, pack them using DP, and then place small jobs greedily. Binary searching $T$ yields a $(1+\epsilon)$ schedule.
+\end{intuitionbox}
+
+\section{Problem Definition}
+Given $n$ jobs with processing times $p_1, \dots, p_n \ge 0$ and $m$ identical parallel machines, the \emph{Minimum Makespan Scheduling} problem is to assign each job to a machine such that the maximum total processing time of any machine is minimized.
+
+The problem is NP-hard. It admits a Polynomial-Time Approximation Scheme (PTAS), which finds a schedule of makespan at most $(1 + \epsilon)\text{OPT}$ in time polynomial in $n$ for any fixed $\epsilon > 0$.
+
+\section{Algorithm and Python Implementation}
+We implement Graham's List Scheduling, the LPT heuristic, and the Hochbaum-Shmoys PTAS using dual approximation via bin packing.
+
+\begin{lstlisting}[style=python, caption=Hochbaum-Shmoys PTAS for Minimum Makespan]
+import math
+
+
+def generate_configurations(sizes, cap):
+    """All valid item-count vectors that fit inside one machine of load cap."""
+    configs = []
+    n = len(sizes)
+
+    def backtrack(idx, conf, remaining):
+        if idx == n:
+            if sum(conf) > 0:
+                configs.append(tuple(conf))
+            return
+        for count in range(int(remaining // sizes[idx]) + 1):
+            backtrack(idx + 1, conf + [count],
+                      remaining - count * sizes[idx])
+
+    backtrack(0, [], cap)
+    return configs
+
+
+def pack_large_dp(counts, configs, sizes):
+    """Exact DP: pack rounded jobs into the fewest machines."""
+    from functools import lru_cache
+
+    @lru_cache(maxsize=None)
+    def solve(state):
+        if sum(state) == 0:
+            return (0, ())
+        best = None
+        for conf in configs:
+            if all(state[i] >= conf[i] for i in range(len(state))):
+                nxt = tuple(state[i] - conf[i] for i in range(len(state)))
+                val, bins = solve(nxt)
+                cand = 1 + val
+                if best is None or cand < best[0]:
+                    new_bin = []
+                    for i, c in enumerate(conf):
+                        new_bin += [sizes[i]] * c
+                    best = (cand, (new_bin,) + bins)
+        return best
+
+    _, large_bins = solve(counts)
+    return [list(b) for b in large_bins]
+
+
+def check_schedule(jobs, m, T, eps):
+    """Feasible to schedule all jobs within makespan (1+eps)*T ?"""
+    large = [p for p in jobs if p > eps * T]
+    small = [p for p in jobs if p <= eps * T]
+    if not large:
+        schedule = [[] for _ in range(m)]
+        for job in small:
+            schedule[min(range(m), key=lambda i: sum(schedule[i]))].append(job)
+        return max(sum(s) for s in schedule) <= (1 + eps) * T, schedule
+
+    delta = eps ** 2 * T
+    rounded = [max(math.floor(p / delta) * delta, eps * T) for p in sorted(large)]
+    distinct = sorted(set(rounded))
+    counts = tuple(rounded.count(s) for s in distinct)
+    bins = pack_large_dp(counts, generate_configurations(distinct, T), distinct)
+
+    if len(bins) > m:
+        return False, [[] for _ in range(m)]
+
+    flat = sorted([x for b in bins for x in b])
+    pool = {s: [] for s in distinct}
+    for r_val, orig_val in zip(flat, sorted(large)):
+        pool[r_val].append(orig_val)
+
+    schedule = [[] for _ in range(m)]
+    for i, b in enumerate(bins):
+        for item in b:
+            schedule[i].append(pool[item].pop(0))
+    for job in small:
+        schedule[min(range(m), key=lambda i: sum(schedule[i]))].append(job)
+
+    return max(sum(s) for s in schedule) <= (1 + eps) * T, schedule
+
+
+def makespan_ptas(jobs, m, eps=0.25):
+    """Hochbaum-Shmoys PTAS for minimum makespan scheduling."""
+    lb = max(max(jobs), sum(jobs) / m)
+    ub = max(max(jobs), 2 * sum(jobs) / m)
+
+    best_schedule = None
+    for _ in range(15):
+        mid = (lb + ub) / 2
+        ok, schedule = check_schedule(jobs, m, mid, eps)
+        if ok:
+            best_schedule = schedule
+            ub = mid
+        else:
+            lb = mid
+
+    if not best_schedule:
+        _, best_schedule = check_schedule(jobs, m, ub, eps)
+    return best_schedule
+\end{lstlisting}
+
+\section{Analysis: LPT and Hochbaum-Shmoys PTAS}
+Graham's List Scheduling achieves an approximation factor of $2 - 1/m$. The LPT heuristic achieves a factor of $4/3 - 1/(3m)$ by sorting jobs.
+
+The PTAS uses dual approximation: instead of minimizing makespan directly, it solves the dual decision problem: ``Can we schedule all jobs within makespan $T$?''
+1.  Jobs of size $\le \epsilon T$ are ``small'' and can be placed greedily.
+2.  Jobs of size $> \epsilon T$ are ``large.'' We round each large job down to the nearest multiple of $\epsilon^2 T$. This yields at most $1/\epsilon^2$ distinct large sizes.
+3.  We test if the rounded large jobs can be packed into $m$ bins of capacity $T$ using dynamic programming.
+If they can, the rounding error adds at most $(1/\epsilon) \times \epsilon^2 T = \epsilon T$ to the load of any machine, giving a makespan $\le (1+\epsilon)T$ for the original large jobs. Placing small jobs keeps the makespan $\le (1+\epsilon)T$ or proves $T < \text{OPT}$. Binary searching $T$ in $[LB, UB]$ yields the $(1+\epsilon)$ PTAS.
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{CPU / GPU Task Scheduling:} Assigning threads or compute tasks to identical CPU/GPU cores to minimize total execution time (latency).
+    \item \textbf{Manufacturing:} Allocating identical production lines to process a batch of customer orders.
+    \item \textbf{Distributed Computing MapReduce:} Distributing map or reduce tasks to cluster nodes.
+\end{itemize}
+
+\subsection*{Real Example: Multicore CPU Load Balancing}
+\textbf{Scenario:} An OS scheduler has $n=50$ computational tasks with known durations (e.g. 5ms, 12ms, 30ms) to run on a quad-core CPU ($m=4$). Goal: distribute tasks to minimize total execution time.
+\textbf{Model:} Minimum Makespan Scheduling. Tasks are jobs, CPU cores are identical machines. FFD/LPT or PTAS provides the optimal scheduling.
+\textbf{Why PTAS matters:} Maximizing CPU utilization is key to overall system performance. A PTAS guarantees that the multicore scheduling is within $\epsilon$ of the theoretical minimum latency possible, which avoids core idling and maximizes throughput.
+
+\section{Tight Example: LPT Heuristic}
+A tight example for LPT on 2 machines consists of 5 jobs of sizes $3, 3, 2, 2, 2$. LPT sorts them and schedules the two 3s on separate machines, then places the 2s, yielding a schedule of loads $3+2+2 = 7$ and $3+2 = 5$. The makespan is 7. The optimal schedule pairs a 3 and a 2 on each machine, and places the remaining 2 on one of them, achieving loads $3+2 = 5$ and $3+2+2 = 7$? No, optimal is loads $3+3 = 6$ and $2+2+2 = 6$, makespan 6. The ratio is $7/6 \approx 1.167$, which matches $4/3 - 1/(3m) = 4/3 - 1/6 = 7/6$.
+
+\section{Exercises}
+\begin{exercise}
+Prove that Graham's List Scheduling achieves an approximation factor of exactly $2 - 1/m$.
+\end{exercise}
+\begin{exercise}
+Construct a tight example for LPT scheduling on $m=3$ machines showing the ratio is $4/3 - 1/(3m) = 11/9$.
+\end{exercise}
+

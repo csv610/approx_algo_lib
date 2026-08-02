@@ -1,0 +1,149 @@
+% ============================================================
+% CHAPTER 5: k-CENTER (matches Vazirani Ch. 5)
+% ============================================================
+\setcounter{chapter}{4}
+\chapter{k-Center}
+\label{ch:kcenter}
+
+\section{Intuition: Parametric Pruning}
+
+\begin{intuitionbox}
+\textbf{The Idea:} We don't know the optimal radius $r^*$, but we can guess it. For a guess $r$, build graph $G_r$ with edges of length $\leq r$. Can we cover all vertices with $k$ centers of radius $r$? This means finding a dominating set of size $k$ in $G_r$. Checking this is NP-hard, but we can approximate: find a maximal independent set in $G_r^2$ (square graph). If its size $\leq k$, its neighborhoods in $G_r$ cover everything.
+
+\textbf{Why Square Graph?} If $M$ is an MIS in $G^2$, then every vertex is within distance 2 of $M$ in $G$. In metric spaces, distance 2 means radius $\leq 2r$ in the original metric. So we get a 2-approximation.
+\end{intuitionbox}
+
+\section{Problem Definition}
+
+\begin{definition}[Metric $k$-Center]
+Given complete graph with metric distances, choose $k$ centers minimizing the maximum distance from any vertex to its nearest center:
+\[
+\min_{S \subseteq V, |S|=k} \max_{v \in V} \min_{u \in S} \text{dist}(u, v)
+\]
+\end{definition}
+
+This is the \emph{warehouse location} problem: minimize worst-case delivery distance.
+
+\subsection{Parametric Pruning Algorithm}
+
+\begin{algorithmdef}[Metric $k$-Center — Factor 2]
+\begin{enumerate}
+    \item Sort distinct edge weights; for each threshold $r$, build $G_r$ (edges $\leq r$)
+    \item For each $G_r$, compute $G_r^2$ (square: edges for distance $\leq 2$)
+    \item Find maximal independent set $M$ in $G_r^2$
+    \item If $|M| \leq k$ and $M$'s neighborhoods in $G_r$ cover all vertices, output neighborhoods as centers with radius $2r$
+\end{enumerate}
+\end{algorithmdef}
+
+\begin{theorem}
+This algorithm achieves a factor-2 approximation for Metric $k$-Center.
+\end{theorem}
+
+\subsection{Weighted $k$-Center}
+
+Vertices have weights; total weight of centers $\leq W$. Same parametric pruning with weight-aware selection gives factor-3 approximation.
+
+\subsection{Other Approaches}
+
+\begin{table}[H]
+\centering
+\caption{k-Center Algorithms}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Approximation & Technique \\
+\midrule
+Parametric pruning (this chapter) & 2 & Combinatorial \\
+Farthest-first traversal & 2 & Greedy \\
+LP rounding & 2 & LP relaxation \\
+High-dimensional $\ell_p$ & $1+\epsilon$ & Coresets \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why not exact?} $k$-Center is NP-hard even for $k=2$ (reduction from Dominating Set). Without metric assumption, no $\alpha(n)$-approximation exists.
+
+\section{Python Implementation}
+
+\begin{lstlisting}[style=python, caption=k-Center Parametric Pruning]
+def build_graphs_by_threshold(graph):
+    """Sorted set of edge weights and the subgraphs G_i of edges <= t."""
+    edges = [w for u in graph for v, w in graph[u].items() if u < v]
+    thresholds = sorted(set(edges))
+    graphs = []
+    for t in thresholds:
+        g = {u: {} for u in graph}
+        for u in graph:
+            for v, w in graph[u].items():
+                if w <= t:
+                    g[u][v] = w
+        graphs.append(g)
+    return thresholds, graphs
+
+
+def graph_square(graph):
+    """Return G^2: edges between vertices reachable in <= 2 hops."""
+    g2 = {u: {} for u in graph}
+    for u in graph:
+        g2[u] = dict(graph[u])                 # distance 1 neighbors
+        for v in graph[u]:                     # distance 2 neighbors
+            for w in graph[v]:
+                if w != u:
+                    s = graph[u][v] + graph[v][w]
+                    if s < g2[u].get(w, float('inf')):
+                        g2[u][w] = s
+    return g2
+
+
+def maximal_independent_set(graph):
+    """Greedy maximal independent set."""
+    indep, remaining = set(), set(graph)
+    while remaining:
+        v = next(iter(remaining))
+        indep.add(v)
+        remaining -= {v} | set(graph[v])
+    return indep
+
+
+def kcenter_parametric_pruning(graph, k):
+    """2-approx for metric k-Center via parametric pruning (Algo 5.3)."""
+    thresholds, graphs = build_graphs_by_threshold(graph)
+
+    for t, g in zip(thresholds, graphs):
+        mis = maximal_independent_set(graph_square(g))
+        if len(mis) <= k:
+            centers = set(mis)
+            if len(centers) < k:
+                remaining = set(graph) - centers
+                centers.update(list(remaining)[:k - len(centers)])
+            return centers, t
+
+    return set(graph), max(thresholds)
+\end{lstlisting}
+
+\section{Applications}
+\begin{itemize}
+    \item \textbf{Facility location:} Fire stations, warehouses, cell towers
+    \item \textbf{Clustering:} Minimize cluster radius ($k$-center = bottleneck $k$-means)
+    \item \textbf{Load balancing:} Distribute tasks to minimize max load
+    \item \textbf{Robotics:} Multi-robot coverage of an area
+\end{itemize}
+
+\subsection*{Real Example: Cell Tower Placement for 5G}
+\textbf{Scenario:} Telecom placing $k=15$ new 5G towers in a city of $n=2,000$ potential sites. Each site covers a radius $r$. Goal: minimize $r$ so every subscriber is covered.
+\textbf{Model:} Complete graph with metric distances (lat/long $\to$ haversine). $k$-center finds $k$ centers minimizing maximum distance to nearest center = maximum subscriber-tower distance.
+\textbf{Why 2-approx matters:} If OPT radius = 800m, our towers have radius $\leq$ 1.6km. Guarantee ensures no subscriber is more than 2$\times$ the minimum possible distance from a tower.
+\textbf{Real constraint:} Some sites are unavailable (zoning, cost). Remove those vertices from graph — parametric pruning handles this naturally.
+\textbf{Comparison:} $k$-means minimizes \emph{sum} of squared distances (average case), $k$-center minimizes \emph{maximum} distance (worst case). For coverage guarantees, $k$-center is correct model.
+\textbf{Weighted $k$-center (Ch. 5):} Towers have different capacities (weights). Total capacity budget $W$. 3-approx algorithm extends directly.
+
+\section{Tight Example: Wheel Graph}
+Center connected to $n$ outer vertices (weight 1), outer cycle weight 2. For $k=1$, optimal center = hub (radius 1). Algorithm may pick outer vertex (radius 2). Ratio = 2.
+
+\section{Exercises}
+\begin{exercise}
+Show that without triangle inequality, $k$-center has no $\alpha(n)$-approximation.
+\end{exercise}
+\begin{exercise}
+Modify Algorithm 5.3 to use minimal dominating set instead of MIS in $G_i^2$.
+\end{exercise}
+

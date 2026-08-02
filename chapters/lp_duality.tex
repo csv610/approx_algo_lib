@@ -1,0 +1,95 @@
+% ============================================================
+% CHAPTER 12: INTRODUCTION TO LP-DUALITY (matches Vazirani Ch. 12)
+% ============================================================
+\setcounter{chapter}{11}
+\chapter{Introduction to LP-Duality}
+\label{ch:lp_duality}
+
+\section{Intuition: Two Sides of the Same Coin}
+
+\begin{intuitionbox}
+\textbf{Primal-Dual Intuition:} Every minimization problem has a maximization ``dual'' that provides lower bounds. The primal variables are the algorithm's decisions (which sets to pick, which vertices to cover). The dual variables are \emph{prices} or \emph{charges} assigned to constraints (elements to cover, edges to cut).
+
+\textbf{Weak Duality:} Any feasible dual solution gives a lower bound on the primal optimum. This is the engine of approximation algorithms — we construct primal and dual solutions together, ensuring the primal cost is within a constant factor of the dual value.
+\end{intuitionbox}
+
+\section{The LP-Duality Theorem}
+
+\begin{theorem}[LP Duality]
+Let primal (P) be $\min \{c^T x : Ax \geq b, x \geq 0\}$ and dual (D) be $\max \{b^T y : A^T y \leq c, y \geq 0\}$. Then:
+\begin{enumerate}
+    \item \textbf{Weak Duality:} $c^T x \geq b^T y$ for all feasible $x, y$
+    \item \textbf{Strong Duality:} If (P) has finite optimum, so does (D), and $\min = \max$
+    \item \textbf{Complementary Slackness:} $x_i^* (c - A^T y^*)_i = 0$ and $y_j^* (A x^* - b)_j = 0$
+\end{enumerate}
+\end{theorem}
+
+\section{Min-Max Relations as LP Duality}
+
+Classic theorems are LP duality in disguise:
+\begin{itemize}
+    \item \textbf{Max-flow Min-cut:} Primal = max flow, Dual = min cut
+    \item \textbf{König-Egerváry:} Primal = max matching, Dual = min vertex cover (bipartite)
+    \item \textbf{Menger's Theorem:} Max disjoint paths = Min separator
+\end{itemize}
+
+\section{Two Fundamental Algorithm Design Techniques}
+
+\begin{enumerate}
+    \item \textbf{Rounding (Chapters 14, 16-21):} Solve LP relaxation, round fractional $x^*$ to integer $\hat{x}$. Approximation factor $\leq$ integrality gap.
+    \item \textbf{Primal-Dual Schema (Chapters 13, 22-23):} Construct primal and dual solutions simultaneously. Start with dual $y=0$, increase until a constraint becomes tight, then add corresponding primal variable.
+\end{enumerate}
+
+\subsection{Integrality Gap}
+
+The integrality gap of an LP relaxation is $\sup \frac{\text{IP opt}}{\text{LP opt}}$. No rounding-based algorithm can beat the integrality gap.
+
+\section{Python: Simple Simplex Solver}
+
+\begin{lstlisting}[style=python, caption=Simplex for Small LPs]
+class Simplex:
+    """Maximize c^T x s.t. Ax <= b, x >= 0"""
+    def __init__(self, A, b, c):
+        self.m, self.n = len(A), len(A[0])
+        self.A, self.b, self.c = A, b, c
+    
+    def solve(self):
+        # Add slack variables, build tableau
+        tab = [self.A[i] + [1 if j==i else 0 for j in range(self.m)] + [self.b[i]]
+               for i in range(self.m)]
+        tab.append([-ci for ci in self.c] + [0]*self.m + [0])
+        
+        while True:
+            # Entering variable (most negative in obj row)
+            entering = min(range(self.n + self.m), key=lambda j: tab[-1][j])
+            if tab[-1][entering] >= -1e-9: break
+            
+            # Leaving variable (min ratio test)
+            leaving = min(range(self.m), 
+                key=lambda i: tab[i][-1]/tab[i][entering] if tab[i][entering] > 1e-9 else float('inf'))
+            if tab[leaving][entering] <= 1e-9: return None, float('inf')
+            
+            # Pivot
+            piv = tab[leaving][entering]
+            tab[leaving] = [v/piv for v in tab[leaving]]
+            for i in range(self.m + 1):
+                if i != leaving:
+                    factor = tab[i][entering]
+                    tab[i] = [tab[i][j] - factor*tab[leaving][j] for j in range(len(tab[0]))]
+        
+        x = [0]*self.n
+        for i in range(self.m):
+            for j in range(self.n + self.m):
+                if abs(tab[i][j] - 1) < 1e-9 and all(abs(tab[r][j]) < 1e-9 for r in range(self.m+1) if r != i):
+                    if j < self.n: x[j] = tab[i][-1]
+        return x, tab[-1][-1]
+\end{lstlisting}
+
+\section{Exercises}
+\begin{exercise}
+Write the dual of the Set Cover LP and interpret the variables as prices.
+\end{exercise}
+\begin{exercise}
+Show that the integrality gap of the Set Cover LP is $H_n$.
+\end{exercise}
+
