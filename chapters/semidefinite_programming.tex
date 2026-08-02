@@ -98,7 +98,7 @@ Thus, the expected cut weight is at least $0.878 \cdot \text{OPT}_{SDP} \ge 0.87
 \textbf{Model:} Max-Cut. Transistors are vertices, cross-talk interferences are edge weights. Layer division is the cut. The Goemans-Williamson algorithm partitions the circuit layers.
 \textbf{Why SDP matters:} Deterministic algorithms easily get stuck in local minima on highly interconnected networks. The Goemans-Williamson SDP algorithm embeds the netlist geometrically, placing highly interfering nodes on opposite sides of a sphere, and partitions them globally with a guaranteed $87.8\%$ efficiency.
 
-\section{Tight Example: The 5-Cycle Graph}
+\section{Example: The 5-Cycle Graph}
 Consider the 5-cycle graph $C_5$ with unit edge weights. The optimal Max-Cut value is 4 (achieved by partitioning into sets of size 2 and 3).
 The optimal 2D embedding of $C_5$ places the vectors on a circle with angle $\theta = 4\pi/5 = 144^\circ$ between adjacent nodes.
 The SDP objective value is:
@@ -109,7 +109,7 @@ The expected cut weight under random hyperplane rounding is:
 \[
 E[\text{Weight}] = 5 \cdot \frac{144^\circ}{180^\circ} = 4.0000
 \]
-The ratio of the expected cut weight to the SDP optimal value is $4.0 / 4.5225 \approx 0.8844$, which is extremely close to the theoretical bound of $0.878$.
+So on this instance the ratio of the expected cut to the SDP value is $4.0 / 4.5225 \approx 0.8844$. This is \emph{above} the worst-case constant $\alpha \approx 0.87856$: the $5$-cycle gives a specific attainable ratio but does \emph{not} attain the exact minimum. The constant $\alpha$ arises as the infimum of $\theta/\pi \div (1-\cos\theta)/2$; it is approached in the limit by a family of instances whose angles cluster near the minimum of that function, not by $C_5$ itself.
 
 \section{Exercises}
 \begin{exercise}

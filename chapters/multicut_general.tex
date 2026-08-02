@@ -27,7 +27,46 @@ The algorithm solves the LP, then uses region growing: for each pair $(s_i, t_i)
 
 \begin{lstlisting}[style=python, caption=Multicut in General Graphs — Region Growing]
 import heapq
-from lp_algorithms import Simplex   # Simplex from Chapter 12
+
+
+class Simplex:
+    """Maximize c^T x  s.t. Ax <= b, x >= 0."""
+    def __init__(self, A, b, c):
+        self.m = len(A)
+        self.n = len(A[0]) if A else 0
+        self.A = [row[:] for row in A]
+        self.b = b[:]
+        self.c = c[:]
+
+    def solve(self):
+        tab = [self.A[i] + [1 if j == i else 0 for j in range(self.m)]
+               + [self.b[i]] for i in range(self.m)]
+        tab.append([-v for v in self.c] + [0] * self.m + [0])
+        while True:
+            e = min(range(self.n + self.m), key=lambda j: tab[-1][j])
+            if tab[-1][e] >= -1e-9:
+                break
+            l = min(range(self.m), key=lambda i: tab[i][-1] / tab[i][e]
+                    if tab[i][e] > 1e-9 else float('inf'))
+            if tab[l][e] <= 1e-9:
+                return None, float('inf')
+            p = tab[l][e]
+            tab[l] = [v / p for v in tab[l]]
+            for i in range(self.m + 1):
+                if i != l:
+                    f = tab[i][e]
+                    tab[i] = [tab[i][j] - f * tab[l][j]
+                              for j in range(len(tab[0]))]
+        x = [0.0] * self.n
+        for i in range(self.m):
+            for j in range(self.n + self.m):
+                if (abs(tab[i][j] - 1) < 1e-6 and
+                        sum(abs(tab[r][j]) for r in range(self.m + 1)) < 1.1):
+                    if j < self.n:
+                        x[j] = max(0.0, tab[i][-1])
+        self.obj_row = tab[-1]
+        return x, tab[-1][-1]
+
 
 def solve_multicut_lp(n, edges, costs, pairs):
     """Fractional x* for Multicut via the dual LP

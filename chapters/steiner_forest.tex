@@ -148,13 +148,13 @@ This holds because if we contract each component of $G=(V, F)$ to a single node,
 \section{Tight Example: The Redundant Cycle}
 Consider a cycle of three nodes $0, 1, 2$ with edges $(0, 1)$ of cost 1, $(1, 2)$ of cost 2, and $(2, 0)$ of cost 1. We want to connect the terminal pair $(0, 2)$.
 The optimal solution is to select $(2, 0)$ with cost 1.
-If we run primal-dual, the active components are $\{0\}$ and $\{2\}$. Edge slacks decrease. Edge $(0, 1)$ and $(2, 0)$ both have rate 1 and cost 1. They become tight simultaneously and are added to $F$. The components merge into $\{0, 1, 2\}$, which connects $0$ and $2$.
-The set of chosen edges is $F = \{(0, 1), (2, 0)\}$.
-Now we run reverse delete:
-If we try deleting $(2, 0)$, $0$ and $2$ are not connected, so we keep it. If we try deleting $(0, 1)$, $0$ and $2$ are not connected, so we keep it.
-The final forest has edges $(0, 1)$ and $(2, 0)$ with total cost $1 + 1 = 2$.
-The optimal cost is 1 (the single edge $(2, 0)$ of cost 1).
-The approximation ratio is $2 / 1 = 2$. This matches the theoretical factor of 2.
+
+Initially the components are the singletons $\{0\}, \{1\}, \{2\}$. The pair $(0,2)$ marks $\{0\}$ and $\{2\}$ active, so the edge rates are:
+$(0,2)$ has rate $2$ (both endpoints lie in active components), while $(0,1)$ and $(1,2)$ each have rate $1$.
+The time to tightness is $\delta = \min\left( \frac{1-0}{2}, \frac{1-0}{1}, \frac{2-0}{1} \right) = \frac{1}{2}$.
+At $\delta = 1/2$, exactly one edge becomes tight: $(0,2)$ (cost 1, raised at rate 2 for $1/2$). The other edges retain slack (their loads rise to $1/2$ but remain below cost). We add only $(0,2)$. Now $0$ and $2$ lie in one component, and no pair spans different components, so the loop ends.
+Reverse-delete tries removing $(0,2)$; that would disconnect $0$ from $2$, so it is kept. The final forest has the single edge $(2, 0)$, cost $1$ = OPT, ratio 1.
+The factor-2 guarantee is a worst case of the primal-dual schema; it requires a more involved instance (e.g. two disjoint pairs sharing an edge budget) to be approached. The essential phenomenon enabling factor 2 is that a tight component can be counted by up to two dual variables, which is what the charging argument in the analysis uses.
 
 \section{Exercises}
 \begin{exercise}

@@ -156,7 +156,14 @@ Packing the discarded group adds at most $q \le 1/\epsilon^2$ bins. Finally, pac
 \textbf{Why FFD and APTAS matter:} Energy cost in data centers is a major expense. First-Fit Decreasing is offline and achieves a tight 11/9-approximation in practice. The APTAS allows trading off computation time for an arbitrarily close-to-optimal packing, saving millions of dollars in infrastructure costs.
 
 \section{Tight Example: Next-Fit Heuristic}
-A tight example for Next-Fit consists of $2n$ items of alternating sizes $0.5 + \delta$ and $0.5 - \delta$ for a small $\delta > 0$. Next-Fit will place each pair in a new bin because $0.5 + \delta + 0.5 - \delta = 1.0$, but if the next item is $0.5 + \delta$, it cannot fit in the current bin of remaining capacity $0.5 - \delta$. Next-Fit will use $2n$ bins, whereas the optimal packing can pair each $0.5+\delta$ with a $0.5-\delta$, using only $n$ bins. The ratio approaches 2.
+The guarantee for Next-Fit is the absolute bound $\text{NF}(I) \le 2\,\text{OPT}(I) + 1$ (any two consecutive Next-Fit bins have total size $> 1$). A common but \emph{incorrect} attempt at a tight example pairs items of sizes $0.5+\delta$ and $0.5-\delta$; those always fit together exactly (sum $= 1$), so they pack into the same number of bins under both Next-Fit and OPT. That instance has ratio 1, not 2.
+
+A correct example showing Next-Fit loses a constant factor is obtained from two sizes $a = \frac38$ and $b = \frac58$, with $a + b = 1$. Take $n$ items of size $a$ followed by $n$ items of size $b$.
+Next-Fit packs the $a$'s two per bin (three would exceed capacity), using $\lceil n/2 \rceil$ bins; each such bin is left with $2/8 < b$ free, so none of the $b$'s fits into the current open bin and each $b$ receives its own bin ($n$ bins). The optimal packing pairs every $a$ with a $b$ into exactly $n$ bins. Thus
+\[
+\frac{\text{NF}(I)}{\text{OPT}(I)} = \frac{n/2 + n}{n} = \frac32 ,
+\]
+so Next-Fit can be a factor $3/2$ worse. Its true worst case reaches $2$ only as a limit; the absolute guarantee above remains the correct statement of its performance.
 
 \section{Exercises}
 \begin{exercise}

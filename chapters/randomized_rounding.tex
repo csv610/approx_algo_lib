@@ -145,10 +145,13 @@ For small clauses, this bound is much higher (e.g. $k=1$ gives $1 \cdot z_j$, $k
 \textbf{Why Randomized Rounding matters:} Real systems cannot wait for exact integer programming solvers. Randomized LP rounding runs instantly by solving a continuous linear program and sampling variable assignments, guaranteeing that query satisfaction is within a fraction of the absolute optimal configuration.
 
 \section{Tight Example: Clause Size Bottleneck}
-A tight example for the $(1-1/e)$ bound consists of $n$ independent single-literal clauses of the form $(x_i)$ for $i=1, \dots, n$, each with weight 1.
-The LP relaxation will set $y_i^* = 1.0$ and $z_i^* = 1.0$, achieving objective $n$.
-Randomized rounding sets each $x_i$ to True with probability $y_i^* = 1.0$, satisfying all clauses exactly.
-Wait! What if we have a clause $(x_1 \lor x_2 \lor \dots \lor x_k)$? As $k$ grows, the factor $1 - (1 - 1/k)^k$ converges to $1 - 1/e \approx 0.632$. This shows the asymptotic bound is tight for large clauses under pure randomized rounding, but the coin-flip algorithm achieves $1 - 2^{-k} \approx 1$ for large clauses, which compensates for this bottleneck.
+Single-literal clauses are easy: for a unit clause $(x_i)$ the LP sets $y_i^* = 1$ and $z_i^* = 1$, and randomized rounding sets $x_i = 1$ with probability 1, satisfying it exactly. So unit clauses do not stress the bound.
+
+The gap is driven by \emph{large} clauses. For a clause of size $k$, the LP rounding guarantee is the factor
+\[
+1 - \left(1 - \frac{1}{k}\right)^k \;\xrightarrow[k\to\infty]{}\; 1 - \frac1e \approx 0.632 .
+\]
+A family of $k$-clauses with $k$ large makes this factor the binding one, so the $1-1/e$ ratio is tight for pure LP rounding in the limit of large clauses. The coin-flip baseline, by contrast, satisfies a $k$-clause with probability $1 - 2^{-k} \to 1$, which is what lets the combination of the two (choosing the better) escape the $\approx 0.632$ ceiling and reach $3/4$.
 
 \section{Exercises}
 \begin{exercise}

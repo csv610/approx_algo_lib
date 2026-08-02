@@ -306,11 +306,11 @@ Star graph: center connected to $n$ leaves (cost 1), leaf-to-leaf cost 2. Optima
 \end{example}
 
 \begin{example}[TSP Double-Tree]
-Star with center 0, leaves 1..n. Edges (0,i) cost 1, (i,j) cost 2. MST = star ($n-1$). Double tree = $2n-2$. Optimal tour = $n$ (0-1-2-...-n-0). Ratio $\to 2$.
+Consider the $n$-vertex cycle $C_n$ with every edge of cost 1 (this is a metric). The MST is the $n-1$-edge path obtained by dropping one edge, so $\text{cost}(MST) = n-1$. Doubling every edge gives an Eulerian tour of cost $2 \cdot (n-1)$. The optimal TSP tour is simply going around the cycle once, costing $n$. Ratio $= \frac{2(n-1)}{n} \to 2$.
 \end{example}
 
 \begin{example}[Christofides]
-Odd cycle of length $n$ (odd). MST = path ($n-1$). Odd vertices = 2 ends. Matching adds $(n+1)/2$. Total = $1.5n - 0.5$. Optimal = $n$. Ratio $\to 1.5$.
+An important point about the bound: on the $n$-cycle of unit-cost edges, the minimum spanning tree is a path whose only odd-degree vertices are its two endpoints. Those endpoints are adjacent via the single dropped cycle edge, so the min-weight perfect matching on the odd set has cost $1$ (not $(n+1)/2$). Christofides then returns a tour of cost $(n-1) + 1 = n = \text{OPT}$, i.e. the algorithm is optimal here. The factor-$3/2$ guarantee is a worst case, attained only on instances where the odd-set matching contributes roughly $\text{OPT}/2$ in addition to an $\text{OPT}$-sized spanning tree; a plain uniform cycle does not exhibit this.
 \end{example}
 
 \section{Exercises}

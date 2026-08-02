@@ -268,7 +268,9 @@ def min_k_cut_2_2k(graph, k):
 
 \section{Tight Example}
 
-$2k$ vertices in a cycle: $k$ terminals alternating with $k$ Steiner vertices. Terminal-Steiner edges weight $2-\epsilon$, Steiner-Steiner edges weight 1. Algorithm picks $k-1$ heavy edges; optimal picks $k$ light edges. Ratio $\to 2-2/k$.
+An important remark on tightness. A tempting construction is a $2k$-vertex cycle with terminals alternating with Steiner vertices, giving the false impression that the algorithm buys $k-1$ "heavy" edges while OPT buys $k$ "light" ones. But in such an alternating ring every edge is incident to a terminal, so there are no "Steiner to Steiner" edges of weight 1; the description cannot be realized.
+
+The correct derivation of the bound is direct. In an optimal multiway cut, each terminal $s_i$ lies in its own component $C_i$, and the edge set $\delta(C_i)$ is exactly an isolating cut for $s_i$. Summing over all $i$, every cut edge is counted exactly twice, so $\sum_i \delta(C_i) = 2\,\OPT$. The algorithm keeps the $k-1$ cheapest isolating cuts, hence its cost is at most $\frac{k-1}{k} \cdot 2\,\OPT = 2(1-\frac1k)\OPT$. This is an equality whenever all $k$ cutting isolating cuts have comparable weight, so the constant $2-2/k$ is tight for this algorithm. For $k=2$ the problem is the ordinary minimum $s$-$t$ cut and the ratio is exactly $1 = 2 - 2/2$.
 
 \section{Exercises}
 \begin{exercise}
