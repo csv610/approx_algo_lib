@@ -7,7 +7,7 @@
 \section{Intuition: Load Balancing and Dual Approximation}
 
 \begin{intuitionbox}
-\textbf{Peeling and Layering Intuition:} The goal of Minimum Makespan Scheduling is to allocate $n$ jobs on $m$ identical machines to minimize the maximum machine completion time (makespan). A simple online greedy rule (Graham's List Scheduling) achieves a 2-approximation by assigning each job to the least loaded machine. Sort-based greedy (LPT rule) improves this to a 4/3-approximation by scheduling larger jobs first. For a PTAS, we use Hochbaum-Shmoys dual approximation: we guess the makespan $T$, round large job sizes down to reduce the distinct sizes to a constant, pack them using DP, and then place small jobs greedily. Binary searching $T$ yields a $(1+\epsilon)$ schedule.
+\textbf{Peeling and Layering Intuition:} The goal of Minimum Makespan Scheduling is to allocate $n$ jobs on $m$ identical machines to minimize the maximum machine completion time (makespan). A simple online greedy rule (Graham's List Scheduling~\cite{graham66}) achieves a 2-approximation by assigning each job to the least loaded machine. Sort-based greedy (LPT rule) improves this to a 4/3-approximation by scheduling larger jobs first. For a PTAS, we use Hochbaum and Shmoys dual approximation~\cite{hochbaum-shmoys87}: we guess the makespan $T$, round large job sizes down to reduce the distinct sizes to a constant, pack them using DP, and then place small jobs greedily. Binary searching $T$ yields a $(1+\epsilon)$ schedule.
 \end{intuitionbox}
 
 \section{Problem Definition}

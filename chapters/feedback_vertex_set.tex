@@ -13,7 +13,7 @@
 \section{Problem Definition}
 Given an undirected graph $G = (V, E)$ with non-negative vertex weights $w: V \to \mathbb{R}^+$, the \emph{Minimum Feedback Vertex Set} (FVS) problem is to find a subset $F \subseteq V$ of minimum total weight $\sum_{v \in F} w(v)$ such that the induced subgraph $G[V \setminus F]$ contains no cycles (i.e., it is a forest).
 
-The decision version of FVS is one of Karp's 21 NP-complete problems. It has applications in database deadlock resolution, circuit design, and Bayesian network inference (loop cutsets).
+The decision version of FVS is one of Karp's 21 NP-complete problems~\cite{karp72}. It has applications in database deadlock resolution, circuit design, and Bayesian network inference (loop cutsets).
 
 \section{Algorithm and Python Implementation}
 The 2-approximation algorithm uses the local-ratio technique. It first simplifies the graph by removing vertices of degree $\le 1$ and contracting vertices of degree 2. It then scales weights based on the cyclomatic weight $\delta_H(v) = \text{cyc}(H) - \text{cyc}(H \setminus \{v\})$, where $\text{cyc}(H) = |E(H)| - |V(H)| + \text{cc}(H)$ is the cyclomatic number of graph $H$.

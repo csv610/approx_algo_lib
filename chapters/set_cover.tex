@@ -47,7 +47,7 @@ Layering decomposes vertex weights into degree-weighted functions. Each layer gi
 
 \subsection{Application to Shortest Superstring}
 
-The Shortest Superstring problem (find shortest string containing all given strings as substrings) reduces to Set Cover via string overlaps. Greedy gives $2H_n$-approximation; Li (1992) improved to factor 3.
+The Shortest Superstring problem (find shortest string containing all given strings as substrings) reduces to Set Cover via string overlaps. Greedy gives $2H_n$-approximation; Li~\cite{li92} improved to factor 3.
 
 \section{Other Algorithms for Set Cover}
 
@@ -66,9 +66,9 @@ Randomized Rounding & $O(\log n)$ & LP + Randomization \\
 \end{tabular}
 \end{table}
 
-\textbf{Why Greedy?} It's simple, fast, and achieves the optimal $\ln n$ bound (Feige, 1998 proved no $(1-\epsilon)\ln n$ unless P = NP).
+\textbf{Why Greedy?} It's simple, fast, and achieves the optimal $\ln n$ bound (Feige~\cite{feige98} proved no $(1-\epsilon)\ln n$ unless P = NP).
 
-\textbf{Why not better?} Feige (1998) showed no polynomial-time algorithm can achieve $(1-\epsilon)\ln n$ approximation unless NP $\subseteq$ DTIME$(n^{\log\log n})$.
+\textbf{Why not better?} Feige~\cite{feige98} showed no polynomial-time algorithm can achieve $(1-\epsilon)\ln n$ approximation unless NP $\subseteq$ DTIME$(n^{\log\log n})$.
 
 \section{Python Implementation}
 

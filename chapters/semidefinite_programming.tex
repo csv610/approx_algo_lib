@@ -14,7 +14,7 @@
 \section{Problem Definition}
 Given an undirected graph $G = (V, E)$ with non-negative edge weights $w_{ij} \ge 0$, the \emph{Maximum Cut} (Max-Cut) problem is to find a partition of the vertices $V$ into two sets $S$ and $V \setminus S$ such that the total weight of edges crossing the partition is maximized.
 
-The problem is NP-hard. We seek a randomized $0.878$-approximation using the Goemans-Williamson algorithm.
+The problem is NP-hard. We seek a randomized $0.878$-approximation using the Goemans-Williamson algorithm~\cite{goemans-williamson94}.
 
 \section{Algorithm and Python Implementation}
 We implement a lightweight gradient projection optimizer to find the vector embeddings on the unit sphere and apply randomized hyperplane rounding to partition the vertices.
@@ -75,7 +75,7 @@ By relaxing the scalar variables $y_i \in \{-1, 1\}$ to unit vectors $v_i \in \m
 \[
 \text{Maximize} \quad \frac{1}{2} \sum_{(i,j) \in E} w_{ij} (1 - v_i \cdot v_j) \quad \text{s.t.} \quad v_i \cdot v_i = 1 \; (\forall i \in V)
 \]
-Under Goemans-Williamson randomized rounding, we choose a random unit vector $r$ and partition based on $\text{sign}(v_i \cdot r)$. The probability that edge $(i, j)$ is cut (i.e. $v_i, v_j$ are separated by the random hyperplane) is exactly $\theta_{ij}/\pi$, where $\theta_{ij} = \arccos(v_i \cdot v_j)$ is the angle between $v_i$ and $v_j$.
+Under Goemans and Williamson~\cite{goemans-williamson94} randomized rounding, we choose a random unit vector $r$ and partition based on $\text{sign}(v_i \cdot r)$. The probability that edge $(i, j)$ is cut (i.e. $v_i, v_j$ are separated by the random hyperplane) is exactly $\theta_{ij}/\pi$, where $\theta_{ij} = \arccos(v_i \cdot v_j)$ is the angle between $v_i$ and $v_j$.
 By linearity of expectation, the expected weight of the cut is:
 \[
 E[\text{Weight}] = \sum_{(i,j) \in E} w_{ij} \frac{\theta_{ij}}{\pi}

@@ -58,7 +58,7 @@ Double-tree gives factor-2 approximation for Metric TSP.
 
 \subsection{Christofides' 3/2-Approximation}
 
-\begin{algorithmdef}[Christofides — Factor 3/2]
+\begin{algorithmdef}[Christofides --- Factor 3/2]
 \begin{enumerate}
     \item Find MST $T$
     \item Let $O$ be odd-degree vertices in $T$ ($|O|$ is even)
@@ -67,7 +67,7 @@ Double-tree gives factor-2 approximation for Metric TSP.
 \end{enumerate}
 \end{algorithmdef}
 
-\begin{theorem}[Christofides, 1976]
+\begin{theorem}[Christofides~\cite{christofides76}]
 Christofides' algorithm achieves a $3/2$-approximation for Metric TSP.
 \end{theorem}
 \begin{proof}
@@ -81,19 +81,19 @@ Cost(T) $\leq$ OPT (MST lower bound). Cost(M) $\leq$ OPT/2 (matching on odd vert
 \caption{TSP Algorithms for Metric Case}
 \begin{tabular}{lccc}
 \toprule
-Algorithm & Approximation & Technique \\
+Algorithm & Approximation & Technique \\\\
 \midrule
-Double-tree & 2 & MST + Euler tour \\
-Christofides & 1.5 & MST + Matching \\
-Held-Karp (LP) & $\leq 1.5$ & LP relaxation (exact value $\approx 1.09$) \\
-Iterative rounding & $< 1.5$ & Recent breakthroughs (Karlin et al., 2021: 1.5 - $\epsilon$) \\
+Double-tree & 2 & MST + Euler tour \\\\
+Christofides & 1.5 & MST + Matching \\\\
+Held-Karp (LP) & $\leq 1.5$ & LP relaxation (exact value $\approx 1.09$) \\\\
+Iterative rounding & $< 1.5$ & Recent breakthroughs (Karlin et al.~\cite{karlin21}: 1.5 - $\epsilon$) \\\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Why not exact?} Metric TSP is NP-hard (reduction from Hamiltonian Cycle). The best exact algorithm is $O(n^2 2^n)$ (Held-Karp DP).
+\textbf{Why not exact?} Metric TSP is NP-hard (reduction from Hamiltonian Cycle). The best exact algorithm is $O(n^2 2^n)$ (Held-Karp DP~\cite{held-karp62}).
 
-\textbf{Why 3/2 was a barrier?} For 45 years no improvement. Karlin-Klein-Gharan (2021) broke it with $1.5 - 10^{-36}$, later improved to $1.5 - \epsilon$.
+\textbf{Why 3/2 was a barrier?} For 45 years no improvement. Karlin, Klein, and Gharan~\cite{karlin21} broke it with $1.5 - 10^{-36}$, later improved to $1.5 - \epsilon$.
 
 \section{Python Implementation}
 
@@ -295,8 +295,8 @@ def tsp_christofides(graph):
 
 \subsection*{Real Example: Vehicle Routing for E-Commerce Delivery}
 \textbf{Scenario:} A delivery company has 1 depot, 50 packages, 5 trucks. Each truck starts/ends at depot. Minimize total distance.
-\textbf{Model:} Complete graph on 51 nodes (depot + 50 customers). Edge costs = travel time (satisfies triangle inequality). Optimal TSP tour = optimal single-truck route. For 5 trucks: split TSP tour into 5 segments (each $\leq$ capacity). Metric TSP 1.5-approx (Christofides) gives route within $1.5 \times$ optimal single-truck distance.
-\textbf{Why approximation matters:} Exact TSP (Held-Karp DP) is $O(n^2 2^n)$ — impossible for $n=50$. Christofides runs in $O(n^3)$ and gives provable $1.5\times$ bound. In practice, Christofides + 2-opt local search often achieves $< 1.1\times$ optimal.
+\textbf{Model:} Complete graph on 51 nodes (depot + 50 customers). Edge costs = travel time (satisfies triangle inequality). Optimal TSP tour = optimal single-truck route. For 5 trucks: split TSP tour into 5 segments (each $\leq$ capacity). Metric TSP 1.5-approx (Christofides~\cite{christofides76}) gives route within $1.5 \times$ optimal single-truck distance.
+\textbf{Why approximation matters:} Exact TSP (Held-Karp DP~\cite{held-karp62}) is $O(n^2 2^n)$ --- impossible for $n=50$. Christofides runs in $O(n^3)$ and gives provable $1.5\times$ bound. In practice, Christofides + 2-opt local search often achieves $< 1.1\times$ optimal.
 \textbf{Steiner Tree variant:} If only 20 of 50 locations require delivery today, Steiner Tree connects the 20 "terminals" at minimum cost — useful for ad-hoc routing.
 
 \section{Tight Examples}

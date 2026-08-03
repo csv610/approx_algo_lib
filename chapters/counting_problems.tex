@@ -10,7 +10,7 @@
 \begin{intuitionbox}
 \textbf{Counting vs. Decision:} Many NP problems have efficient decision algorithms but $\#$P-hard counting versions. For example, checking if a DNF formula is satisfiable is easy, but counting the number of satisfying assignments is $\#$P-hard. Similarly, checking if a graph is connected is easy, but computing the probability that a random subgraph is connected (network reliability) is $\#$P-hard.
 
-\textbf{Monte Carlo Estimation:} We can approximate $\#$P-hard counts using Monte Carlo sampling. The key is to design an efficient sampler that produces estimates with low variance. The Karp-Luby algorithm for DNF counting achieves this by importance sampling: pick a random clause, sample a satisfying assignment uniformly, and use the ratio estimator.
+\textbf{Monte Carlo Estimation:} We can approximate $\#$P-hard counts using Monte Carlo sampling. The key is to design an efficient sampler that produces estimates with low variance. The Karp-Luby algorithm~\cite{karp-luby83} for DNF counting achieves this by importance sampling: pick a random clause, sample a satisfying assignment uniformly, and use the ratio estimator.
 \end{intuitionbox}
 
 \section{Problem Definitions}
@@ -23,7 +23,7 @@ Given a graph $G$ where each edge $e$ survives independently with probability $p
 
 \section{Algorithms}
 
-\subsection{Karp-Luby for DNF Counting}
+\subsection{Karp-Luby for DNF Counting~\cite{karp-luby83}}
 \begin{enumerate}
     \item For each clause $T_i$, compute $|T_i| = 2^{n - \text{vars}(T_i)}$ (number of assignments satisfying $T_i$).
     \item Repeat $O(n/\epsilon^2)$ times:
@@ -48,7 +48,7 @@ This gives a $(1 \pm \epsilon)$ approximation with high probability.
 
 \section{Python Implementation}
 
-\begin{lstlisting}[style=python, caption=Karp-Luby DNF Counting]
+\begin{lstlisting}[style=python, caption=Karp-Luby DNF Counting~\cite{karp-luby83}]
 import random
 
 

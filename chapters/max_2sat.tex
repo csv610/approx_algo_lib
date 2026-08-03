@@ -74,8 +74,8 @@ The SDP relaxation is:
 \text{Maximize} \quad \sum_{C_j = l_1 \lor l_2} w_j \text{val}(C_j) \quad \text{s.t.} \quad v_i \cdot v_i = 1 \; (\forall i \in \{0, \dots, n\})
 \]
 Under randomized rounding, we choose a random unit vector $r \in \mathbb{R}^{n+1}$. Variable $x_i$ is set to True if $\text{sign}(v_i \cdot r) = \text{sign}(v_0 \cdot r)$, and False otherwise.
-Goemans and Williamson proved that the probability that clause $l_1 \lor l_2$ is satisfied is at least $0.878$ times its relaxed SDP value.
-Lewin, Livnat, and Zwick (LLZ 2002) improved this by using a non-linear rotation function on the angles before hyperplane rounding, achieving a $0.940$-approximation.
+Goemans and Williamson~\cite{goemans-williamson94} proved that the probability that clause $l_1 \lor l_2$ is satisfied is at least $0.878$ times its relaxed SDP value.
+Lewin, Livnat, and Zwick~\cite{lewin-livnat-zwick02} improved this by using a non-linear rotation function on the angles before hyperplane rounding, achieving a $0.940$-approximation.
 
 \section{Applications}
 \begin{itemize}

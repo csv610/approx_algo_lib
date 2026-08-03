@@ -63,7 +63,7 @@ $C$ is a vertex cover because $M$ is maximal (any uncovered edge could be added 
 \subsection{Why Approximation? Why Not Exact?}
 
 \begin{itemize}
-    \item \textbf{Exact Vertex Cover is NP-complete} (Karp, 1972). No polynomial-time exact algorithm exists unless P = NP.
+    \item \textbf{Exact Vertex Cover is NP-complete} (Karp~\cite{karp72}). No polynomial-time exact algorithm exists unless P = NP.
     \item \textbf{Fixed-parameter algorithms} exist ($O(1.2738^k + kn)$) but exponential in $k$.
     \item \textbf{Integer Linear Programming} solves it exactly but worst-case exponential.
     \item \textbf{Approximation gives polynomial time with a guarantee} — often the best practical choice.
@@ -87,7 +87,7 @@ Semidefinite programming & Poly & Factor $2-\epsilon$ (open) \\
 \end{tabular}
 \end{table}
 
-\textbf{Why not better than 2?} Under the Unique Games Conjecture, no polynomial-time algorithm can achieve $(2-\epsilon)$-approximation (Khot-Regev, 2008). The factor 2 is essentially tight.
+\textbf{Why not better than 2?} Under the Unique Games Conjecture, no polynomial-time algorithm can achieve $(2-\epsilon)$-approximation (Khot and Regev~\cite{khot-regev08}). The factor 2 is essentially tight.
 
 \subsection{Python Implementation}
 

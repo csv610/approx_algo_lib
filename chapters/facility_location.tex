@@ -12,7 +12,7 @@
 
 \textbf{Primal-Dual (Jain-Vazirani):} Raise dual variables $\alpha_j$ for clients uniformly. When $\sum_j \alpha_j = f_i$ for some facility $i$, open it. When $\alpha_j = c_{ij}$ for some open facility, connect $j$ to $i$. This gives a 3-approximation.
 
-\textbf{LP Rounding (Shmoys-Tardos-Aardal):} Solve LP, filter clients with high connection cost, open facilities with $y_i \geq 1/2$, connect remaining clients. Also gives 3-approximation (improved to 1.5 for metric case by Byrka et al.).
+\textbf{LP Rounding (Shmoys-Tardos-Aardal):} Solve LP, filter clients with high connection cost, open facilities with $y_i \geq 1/2$, connect remaining clients. Also gives 3-approximation (improved to 1.5 for metric case by Byrka et al.~\cite{byrka10}).
 \end{intuitionbox}
 
 \section{Problem Definition}
@@ -50,17 +50,17 @@ This algorithm achieves a 3-approximation for Metric Facility Location.
 \caption{Facility Location Algorithms}
 \begin{tabular}{lccc}
 \toprule
-Algorithm & Approximation & Technique \\
+Algorithm & Approximation & Technique \\\\
 \midrule
-Jain-Vazirani Primal-Dual & 3 & Primal-Dual Schema \\
-Shmoys-Tardos-Aardal LP Rounding & 3 & LP Rounding \\
-Byrka et al. (metric) & 1.5 & LP + Filtering + Matching \\
-Local Search (k-median) & $3+\epsilon$ & Local Search \\
+Jain-Vazirani Primal-Dual & 3 & Primal-Dual Schema \\\\
+Shmoys-Tardos-Aardal LP Rounding & 3 & LP Rounding \\\\
+Byrka et al. (metric) & 1.5 & LP + Filtering + Matching \\\\
+Local Search (k-median) & $3+\epsilon$ & Local Search \\\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Why not exact?} Facility Location is NP-hard (reduction from Set Cover). The 1.5-approximation is current best for metric case; 1.463 is the lower bound (Guha-Khuller).
+\textbf{Why not exact?} Facility Location is NP-hard (reduction from Set Cover). The 1.5-approximation is current best for metric case; 1.463 is the lower bound (Guha and Khuller~\cite{guha-khuller99}).
 
 \section{Python Implementation}
 

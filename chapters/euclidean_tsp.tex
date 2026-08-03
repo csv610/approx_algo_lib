@@ -16,7 +16,7 @@ Given $n$ points in the Euclidean plane $\mathbb{R}^2$, the \emph{Euclidean Trav
 The problem remains NP-hard. However, unlike general Metric TSP, it admits a Polynomial-Time Approximation Scheme (PTAS) that achieves a $(1 + \epsilon)$-approximation in $n^{O(1/\epsilon)}$ time.
 
 \section{Algorithm and Python Implementation}
-We implement the exact Held-Karp dynamic programming baseline, alongside the quadtree divide-and-conquer cycle merging heuristic which serves as the geometric partitioning engine.
+We implement the exact Held-Karp dynamic programming baseline~\cite{held-karp62}, alongside the quadtree divide-and-conquer cycle merging heuristic which serves as the geometric partitioning engine.
 
 \begin{lstlisting}[style=python, caption=Cheapest swap to merge tours]
 import math

@@ -130,7 +130,7 @@ Since $g(z) = 1 - (1 - z/k)^k$ is concave and $g(0) = 0, g(1) = 1 - (1 - 1/k)^k$
 \text{Pr}[C_j \text{ is satisfied}] \ge \left[1 - \left(1 - \frac{1}{k}\right)^k\right] z_j \ge \left(1 - \frac{1}{e}\right) z_j
 \]
 Summing over all clauses, the expected weight satisfied is $\ge (1 - 1/e) \cdot \text{OPT}_{LP} \approx 0.632 \cdot \text{OPT}$.
-For small clauses, this bound is much higher (e.g. $k=1$ gives $1 \cdot z_j$, $k=2$ gives $0.75 \cdot z_j$). For large clauses, the coin-flip baseline satisfies them with probability $1 - 2^{-k}$. Choosing the best of both algorithms yields a $3/4$-approximation (Goemans-Williamson 1994).
+For small clauses, this bound is much higher (e.g. $k=1$ gives $1 \cdot z_j$, $k=2$ gives $0.75 \cdot z_j$). For large clauses, the coin-flip baseline satisfies them with probability $1 - 2^{-k}$. Choosing the best of both algorithms yields a $3/4$-approximation (Goemans and Williamson~\cite{goemans-williamson94}).
 
 \section{Applications}
 \begin{itemize}

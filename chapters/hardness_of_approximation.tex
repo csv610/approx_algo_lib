@@ -27,13 +27,13 @@ Equivalently: NP-complete problems have PCPs where the verifier uses $O(\log n)$
 \caption{Hardness of Approximation Results (assuming P $\neq$ NP)}
 \begin{tabular}{lcc}
 \toprule
-Problem & Hardness & Reference \\
+Problem & Hardness & Reference \\\\
 \midrule
-MAX-3SAT & $7/8 + \epsilon$ & Håstad (1997) \\
-Vertex Cover & $2 - \epsilon$ & Dinur (2005, UGC) \\
-Clique & $n^{1-\epsilon}$ & Hastad (1999) \\
-Set Cover & $(1-\epsilon)\ln n$ & Feige (1998) \\
-Graph Coloring & $n^{1-\epsilon}$ & Hastad (1999) \\
+MAX-3SAT & $7/8 + \epsilon$ & H{\aa}stad~\cite{hastad97} \\\\
+Vertex Cover & $2 - \epsilon$ & Dinur~\cite{dinur05} (UGC) \\\\
+Clique & $n^{1-\epsilon}$ & H{\aa}stad~\cite{hastad99} \\\\
+Set Cover & $(1-\epsilon)\ln n$ & Feige~\cite{feige98} \\\\
+Graph Coloring & $n^{1-\epsilon}$ & H{\aa}stad~\cite{hastad99} \\\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -45,7 +45,7 @@ Random 3-SAT with $m$ clauses on $n$ variables satisfies $\frac{7}{8}m$ clauses 
 Assuming the Unique Games Conjecture (UGC), vertex cover cannot be approximated within $2 - \epsilon$. The UGC states that certain constraint satisfaction problems are hard to solve even when a $(1-\epsilon)$ fraction of constraints can be simultaneously satisfied.
 
 \subsection{Set Cover Hardness}
-Feige (1998) showed that approximating set cover within $(1-\epsilon)\ln n$ is NP-hard. This matches the $O(\ln n)$ upper bound from the greedy algorithm.
+Feige~\cite{feige98} showed that approximating set cover within $(1-\epsilon)\ln n$ is NP-hard. This matches the $O(\ln n)$ upper bound from the greedy algorithm.
 
 \section{Gap-Producing Reductions}
 The key technique: given a PCP verifier $V$ for an NP-complete language $L$, construct an optimization problem $\Pi$ such:

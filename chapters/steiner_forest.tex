@@ -14,7 +14,7 @@
 \section{Problem Definition}
 Given an undirected graph $G = (V, E)$ with edge costs $c_e \ge 0$, and a set of $k$ terminal pairs $S = \{(s_1, t_1), \dots, (s_k, t_k)\}$, the \emph{Steiner Forest} problem is to find a minimum cost subgraph $F \subseteq E$ such that $s_i$ and $t_i$ are in the same connected component of $(V, F)$ for every $i \in \{1, \dots, k\}$.
 
-The problem is NP-hard. It admits a 2-approximation using the Agrawal-Klein-Ravi (AKR) primal-dual algorithm.
+The problem is NP-hard. It admits a 2-approximation using the Agrawal, Klein, and Ravi (AKR) primal-dual algorithm~\cite{agrawal-klein-ravi95}.
 
 \section{Algorithm and Python Implementation}
 We implement the AKR primal-dual schema: growing dual variables for active components, adding tight edges to the forest, and performing reverse-delete pruning.
